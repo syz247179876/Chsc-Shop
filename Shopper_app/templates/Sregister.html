@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>云社区注册界面</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="all,follow">
+    <!-- Bootstrap CSS-->
+    <link rel="stylesheet" href="https://www.jq22.com/jquery/bootstrap-4.2.1.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,700">
+      {% load static %}
+    <link rel="stylesheet" href="{% static 'css/shopper/style.default.css' %}" id="theme-stylesheet">
+    <link rel="stylesheet" href="{% static 'layui/css/layui.css' %}">
+      <link rel="stylesheet" href="{% static 'css/shopper/Sregister.css' %}">
+
+  </head>
+  <body>
+    <div class="page login-page">
+      <div class="container d-flex align-items-center">
+        <div class="form-holder has-shadow">
+          <div class="row">
+            <!-- Logo & Information Panel-->
+            <div class="col-lg-6">
+              <div class="info d-flex align-items-center">
+                <div class="content">
+                  <div class="logo">
+                    <h1>欢迎加入吃货商家</h1>
+                  </div>
+                  <p>吃货商城商家注册</p>
+                </div>
+              </div>
+            </div>
+            <!-- Form Panel    -->
+            <div class="col-lg-6 bg-white">
+              <div class="form d-flex align-items-center">
+                <div class="content">
+                  <div class="layui-form syznb">
+                    <div class="layui-form layui-form-pane">
+        <!--可以不需要-->
+
+        <div class="layui-form-item">
+        <label class="layui-form-label layui-icon-username layui-icon"></label>
+        <div class="layui-input-block">
+            <input type="text" name="user_name" id="user_name" required="" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input">
+        </div>
+        </div>
+
+          <div class="layui-form-item">
+          <label class="layui-form-label layui-icon-password layui-icon"></label>
+          <div class="layui-input-block">
+            <input type="password" name="user_password" id="user_password"  lay-verify="required" placeholder="密码" autocomplete="off" class="layui-input">
+          </div>
+          </div>
+          <div class="layui-form-item">
+          <label class="layui-form-label layui-icon-password layui-icon"></label>
+          <div class="layui-input-block">
+             <input type="password" name="user_password_repeat" id="user_password_repeat"  lay-verify="required" placeholder="再次输入密码" autocomplete="off" class="layui-input">
+          </div>
+          </div>
+
+          <div class="layui-form-item">
+        <label class="layui-form-label layui-icon layui-icon-cellphone"></label>
+          <div class="layui-input-block">
+            <input type="email" name="user_email" id="user_email" required="" lay-verify="required|email" placeholder="邮箱" autocomplete="off" class="layui-input">
+        </div>
+        </div>
+           <div class="layui-form-item">
+        <label class="layui-form-label layui-icon layui-icon-cellphone"></label>
+          <div class="layui-input-block">
+            <input type="phone" name="user_phone" id="user_phone" required="" lay-verify="required|phone" placeholder="手机号" autocomplete="off" class="layui-input">
+        </div>
+        </div>
+
+
+         <div class="layui-form-item">
+        <label class="layui-form-label layui-icon-password layui-icon-vercode layui-icon"></label>
+
+        <div class="verify_input">
+            <input type="text" name="verification" id="verification" placeholder="验证码" autocomplete="off" class="layui-input">
+        <div style="padding-top:5px;">
+            <input id="verify_btn" type="button" class="layui-input verify_off" value="发送" data-method="send_email">
+        </div>
+            </div>
+          </div>
+
+                        <div class="layui-form-item">
+                      <label class="layui-form-label layui-icon-app layui-icon"></label>
+                      <div class="layui-input-block">
+                        <select name="sell_type" lay-verify="required" lay-search="" id="district" lay-filter="district">
+                          <option value="">请选择主销售类</option>
+                          <option value="衣服">衣服</option>
+                          <option value="食品">食品</option>
+                          <option value="化妆品">化妆品</option>
+                          <option value="鞋子">鞋子</option>
+                          <option value="裤子">裤子</option>
+                          <option value="帽子">帽子</option>
+                          <option value="袜子">袜子</option>
+                          <option value="游戏">游戏</option>
+                          <option value="户外装备">户外装备</option>
+                          <option value="手表">手表</option>
+                          <option value="饰品">饰品</option>
+                          <option value="生活用品">生活用品</option>
+                          <option value="家居">家居</option>
+                            <option value="其他">其他</option>
+                        </select>
+                      </div>
+                    </div>
+        <hr>
+    </div>
+            <div class="layui-upload uploads" style="text-align: center">
+                    <label>身份证正面</label>
+                    <div class="layui-upload-list">
+                      <img class="upload_idcard" id="face">
+                    </div>
+                  </div>
+                 <div class="layui-form-item">
+                      <div class="layui-input-block">
+                      <button class="layui-btn" id="verified">立即提交</button>
+                      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                      </div>
+                      <small>已有账号?</small><a href="/admin" class="signup">&nbsp;登录</a>
+                </div>
+                  </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- JavaScript files-->
+    <script src="https://www.jq22.com/jquery/jquery-1.10.2.js"></script>
+    <script src="https://www.jq22.com/jquery/bootstrap-4.2.1.js"></script>
+    <script type="text/javascript" src="{% static '/layui/layui.js' %}"></script>
+        <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script>
+
+
+    		layui.use(['upload','form'],function () {
+                let $ = layui.jquery;
+                let upload = layui.upload;
+                let layer = layui.layer;
+                let form = layui.form;
+                let csrftoken = $.cookie("csrftoken");
+                let headers = {'X-CSRFToken':csrftoken};
+                const reg_email = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //邮箱验证
+                const reg_phone = new RegExp("^1[3456789]\d{9}$"); //手机号验证
+                const reg_username = new RegExp("[\u4e00-\u9fa5]{1,10}|[a-zA-Z0-9]{8,20}");//用户名验证
+                const reg_password = new RegExp("[a-zA-Z0-9]{8,20}"); //密码验证
+
+
+                $(function () {
+
+                     const count = 60;
+                     // 倒计时函数
+                     function SetRemainTime1() {
+                         if (curCount1 === 0) {
+                             window.clearInterval(InterValObj1); //停止计时器
+                             $(".verify_btn").removeAttr("disabled"); //启用按钮
+                             $(".verify_btn").val("重新发送");
+                             $(".verify_btn").removeClass("verify_ing");
+                         } else {
+                             curCount1--;
+                             $(".verify_btn").val(+curCount1 + "秒再获取");
+                         }
+                     }
+
+                    $("#verify_btn").click(function () {
+                         let email = $("#user_email").val();
+                         if(email ===''){
+                              layer.msg('请输入邮箱!', {icon: 7, time: 1500, closeBtn: 0});
+                         }else{
+                             layer.load(0,2000);
+                             curCount1 = count;  //设置成window对象
+                             $(".send_code").attr("disabled", "true");
+                             $(".send_code").addClass("verify_ing");
+                             $(".send_code").val(+curCount1 + "秒再获取");
+                             InterValObj1 = window.setInterval(SetRemainTime1, 1000); //启动计时器，1秒执行一次
+                             let data = JSON.stringify({'email':email,'way':'email'});
+                             let url = '/consumer/verification-code-shopper-chsc-api/';
+                             $.ajax({
+                                 type:'POST',
+                                 data:data,
+                                 url:url,
+                                 headers:headers,
+                                 beforeSend:function(req){
+                                   req.setRequestHeader('Content-Type','application/json')
+                                 },
+                                 success:function (data) {
+                                     if(data.code === 7){
+                                        layer.msg('邮箱已被注册！',{icon:2,time:1500,closeBtn:0});
+                                        }
+                                     else if(data.code === 31){
+                                        layer.msg('验证码发送成功！',{icon:1,time:1200,closeBtn:0});
+                                        }
+                                     else if(data.code === 500){
+                                        layer.msg('服务器无响应',{icon:2,time:1500,closeBtn:0});
+                                        }
+                                 },
+                                 error:function () {
+                                      layer.msg('服务器无响应!', {icon: 2, time: 1500, closeBtn: 0});
+                                 }
+                             });
+                               layer.closeAll('loading');
+                         }
+                    });
+
+                    $("#face").hover(function () {
+                        layer.tips('<h3>身份证识别要求：</h3><br>' +
+                            '1.上传证件应清晰，确保窗口内肉眼可以看见文字。<br>' +
+                            '2.上传证件大小在5M以内。<br>' +
+                            '3.上传证件图片类型为JGP,PNG,JEPG等常见格式。<br>', '#face', {
+                            tips: 2,
+                            time: 10000,
+                        });
+                    });
+
+
+                    let user_password_repeat = '';
+                    let user_password = '';
+                    let user_name = '';
+                    let user_email = '';
+                    let user_phone = '';
+                    let verification = '';
+
+                    $("#verified").click(function () {
+                        user_password_repeat = $("#user_password_repeat").val();
+                        user_password = $("#user_password").val();
+                        user_name = $("#user_name").val();
+                        user_email = $("#user_email").val();
+                        user_phone = $("#user_phone").val();
+                        verification = $("#verification").val();
+                        if (user_name === ''){
+                            layer.msg('用户名不能为空!', {anim: 6, icon: 2, time: 1500, closeBtn: 0});
+                        }else if(user_password === '' || user_password_repeat === ''){
+                            layer.msg('密码不能为空!', {anim: 6, icon: 2, time: 1500, closeBtn: 0});
+                        }else if (user_password_repeat !== user_password) {
+                            layer.msg('两次密码必须相同!', {anim: 6, icon: 2, time: 1500, closeBtn: 0});
+                        }else if(user_email === ''){
+                             layer.msg('邮箱不能为空！', {anim: 6, icon: 2, time: 1500, closeBtn: 0});
+                        }else if(user_phone === ''){
+                            layer.msg('手机号不能为空！', {anim: 6, icon: 2, time: 1500, closeBtn: 0});
+                        }else if(verification === ''){
+                              layer.msg('验证码不能为空！', {anim: 6, icon: 2, time: 1500, closeBtn: 0});
+                        }
+                    });
+
+                    //身份证件正面上传
+                        upload.render({
+                            elem: '#face'
+                            , accept: 'images'
+                            , auto: false
+                            , size: 5000
+                            , drag: true
+                            , exts: 'jpg|png|jpeg'
+                            , bindAction: '#verified'
+                            , field: 'image'
+                            , headers: headers
+                            , url: '/shopper/shopper-operation-chsc-api/' //改成您自己的上传接口
+                            , choose: function (obj) {
+                                //预读本地文件示例，不支持ie8
+                                obj.preview(function (index, file, result) {
+                                    $('#face').prop('src', result); //图片链接（base64)
+                                });
+                            }
+                            , before: function (obj) {
+                               this.data = {"user_name":user_name,"user_password":user_password,"user_email":user_email,"user_phone":user_phone,"verification":verification};
+                                layer.load(0, {time: 5000});
+                            }
+                            , done: function (res) {
+                                //如果上传失败
+                                if (res.code === 21) {
+                                    layer.msg('注册成功,即将跳转', {icon: 1, time: 1000, closeBtn: 0});
+                                    layer.closeAll('loading');
+                                    setTimeout(function () {
+                                        window.location.href = '/admin';
+                                    }, 1200);
+                                } else if (res.code === 0) {
+                                    layer.msg('验证码错误!', {icon: 2, time: 1500, closeBtn: 0});
+                                    layer.closeAll('loading');
+                                }else if (res.code === -15) {
+                                    layer.msg('身份验证失败!', {icon: 2, time: 1500, closeBtn: 0});
+                                    layer.closeAll('loading');
+                                    setTimeout(function () {
+                                        location.replace(location.href);  //刷新
+                                    }, 1500);
+                                } else if (res.code === 8) {
+                                    layer.msg('邮箱已被注册!', {icon: 2, time: 1500, closeBtn: 0});
+                                    layer.closeAll('loading');
+
+                                }else if (res.code === 9) {
+                                    layer.msg('手机已注册!', {icon: 2, time: 1500, closeBtn: 0});
+                                    layer.closeAll('loading');
+                                }
+                                else if (res.code === -20) {
+                                    layer.msg('注册失败!', {icon: 2, time: 1500, closeBtn: 0});
+                                    layer.closeAll('loading');
+                                }
+                            }
+                            , error: function () {
+                                layer.msg('服务器无响应!', {icon: 2, time: 1500, closeBtn: 0});
+                                // window.location.reload();
+                                layer.closeAll('loading');
+                            }
+                        });
+                    });
+            });
+    </script>
+  </body>
+</html>

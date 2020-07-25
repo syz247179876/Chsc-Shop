@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>吃货商城</title>
+        {% load static %}
+		<link href="https://cdn.bootcss.com/amazeui/2.5.1/css/amazeui.css" rel="stylesheet" type="text/css" />
+		<link href="{% static 'css/mainsite/admin.css' %}" rel="stylesheet" type="text/css" />
+
+		<link href="{% static 'css/mainsite/demo.css' %}" rel="stylesheet" type="text/css" />
+
+		<link href="{% static 'css/mainsite/hmstyle.css' %}" rel="stylesheet" type="text/css"/>
+
+		<script src="https://www.jq22.com/jquery/jquery-1.10.2.js" ></script>
+		<script src="https://cdn.bootcss.com/amazeui/2.5.1/js/amazeui.min.js"></script>
+			    <script src="{% static 'layui/layui.js' %}"></script>
+
+		{% load filters %}
+	</head>
+
+<body>
+		<div class="hmtop">
+			<!--顶部导航条 -->
+			<div class="header-top">
+				<div class="am-container header">
+					<ul class="message-l">
+
+						<div class="topMessage">
+
+							<div class="menu-hd">
+
+								{% if default_address %}
+								<!--添加个标签-->
+							    <a href="javascript:;">送货至：<span>{{default_address.region|cut_address:1}}</span><img src="https://django-e-mall.oss-cn-shanghai.aliyuncs.com/"></a>
+							    {% else %}
+<!--							    <a href="javascript:;">送货至：<span>暂无默认地址</span><img src=""></a>-->
+							    {% endif %}
+								{% if request.user.is_authenticated %}
+								<a href="{% url 'consumer:personal' %}" target="_top"class="h">用户：{{user.username}}</a>
+								{% else %}
+								<a href="{% url 'consumer:login' %}" target="_top" class="h">亲，请登录</a>
+								<a href="{% url 'consumer:login' %}" target="_top">免费注册</a>
+								{% endif %}
+							</div>
+						</div>
+					</ul>
+					<ul class="message-r">
+						<div class="topMessage open_shop">
+							<div class="menu-hd MyShangcheng"><a href="/shopper/shopper-operation-chsc-api/?way=register" target="_top">开店</a></div>
+						</div>
+						<div class="topMessage my-shangcheng">
+							<div class="menu-hd MyShangcheng"><a href="{% url 'consumer:personal' %}" target="_top">会员中心</a></div>
+						</div>
+						<div class="topMessage mini-cart">
+							<div class="menu-hd"><a id="mc-menu-hd" href="/admin" target="_top"><span>商家中心</span><strong id="J_MiniCartNum" class="h"></strong></a></div>
+						</div>
+						<div class="topMessage favorite">
+							<div class="menu-hd"><a href="#" target="_top"><span>帮助</span></a></div>
+						</div>
+					</ul>
+				</div>
+			</div>
+
+				<!--悬浮搜索框-->
+
+				<div class="nav white">
+<!--					<div class="logo"><img src="https://django-e-mall.oss-cn-shanghai.aliyuncs.com/logo.png" /></div>-->
+<!--					<div class="logoBig">-->
+<!--						<li><img src="https://django-e-mall.oss-cn-shanghai.aliyuncs.com/logobig.png" /></li>-->
+<!--					</div>-->
+
+					<div class="search-bar pr">
+						<a name="index_none_header_sysc" href="#"></a>
+						<form role="search" action="{% url 'search' %}" method="get">
+							<input id="searchInput" name="q" type="text" placeholder="搜索" autocomplete="off">
+							<input id="ai-topsearch" class="submit am-btn" value="搜索" index="1" type="submit">
+						</form>
+					</div>
+				</div>
+            {% block content %}
+
+            {% endblock %}
+            	<div class="footer ">
+						<div class="footer-hd ">
+							<p>
+								<a href="# ">关于云中</a>
+								<b>|</b>
+								<a href="# ">商城首页</a>
+								<b>|</b>
+								<a href="# ">支付宝</a>
+								<b>|</b>
+								<a href="# ">物流</a>
+							</p>
+						</div>
+						<div class="footer-bd ">
+							<p>
+								<a href="# ">关于云中</a>
+								<a href="# ">合作伙伴</a>
+								<a href="# ">联系我们</a>
+								<a href="# ">网站地图</a>
+							</p>
+						</div>
+					</div>
+ </div>
+
+<script>
+
+    $(".")
+
+
+</script>

@@ -1,0 +1,143 @@
+{% extends 'base-personal.html' %}
+{% block personal_content %}
+{% load static %}
+<link href="{% static 'css/consumer/infstyle.css' %}" rel="stylesheet" type="text/css">
+					<div class="user-info">
+						<!--标题 -->
+						<div class="am-cf am-padding">
+							<div class="am-fl am-cf"><strong class="am-text-danger am-text-lg">个人资料</strong> / <small>Personal&nbsp;information</small></div>
+						</div>
+						<hr/>
+						<!--头像 -->
+						<div class="user-infoPic">
+
+							<div class="filePic">
+								<input type="file" class="inputPic" allowexts="gif,jpeg,jpg,png,bmp" accept="image/*">
+								<img class="am-circle am-img-thumbnail" src="https://django-e-mall.oss-cn-shanghai.aliyuncs.com/getAvatar.do.jpg" alt="https://django-e-mall.oss-cn-shanghai.aliyuncs.com/getAvatar.do.jpg" />
+							</div>
+
+							<p class="am-form-help">头像</p>
+
+							<div class="info-m">
+								<div><b>用户名：<i>{{username}}</i></b></div>
+								<div class="u-level">
+									<span class="rank r2">
+							             <s class="vip1"></s><a class="classes" href="#">{{rank}}</a>
+						            </span>
+								</div>
+								<div class="u-safety">
+									<a href="safety.html">
+									 账户安全
+									<span class="u-profile"><i class="bc_ee0000" style="width: 60px;">{{safety}}</i></span>
+									</a>
+								</div>
+							</div>
+						</div>
+
+						<!--个人信息 -->
+						<div class="info-main">
+							<form class="am-form am-form-horizontal" data-am-validator	>
+
+								<div class="am-form-group">
+									<label for="username" class="am-form-label">账号名</label>
+									<div class="am-form-content">
+										<input type="text" id="username" placeholder="账号名,不超过20个字符" value={{username}} required/>
+									</div>
+								</div>
+
+								<div class="am-form-group">
+									<label for="shortname" class="am-form-label">姓名</label>
+									<div class="am-form-content">
+										<input type="text" id="shortname" placeholder="您的真实姓名" readonly="readonly"  value="{{actual_name}}" required/>
+									</div>
+								</div>
+
+								<div class="am-form-group">
+									<label class="am-form-label">性别</label>
+									<div class="am-form-content sex ">
+										<input type="text" name="sex" value="{{sex}}" readonly="readonly" required/>
+									</div>
+								</div>
+
+								<div class="am-form-group">
+									<label for="birth" class="am-form-label">生日</label>
+									<div class="am-form-content birth">
+										<div class="birth-select">
+											  <input type="text" name="birth" id="birth" autocomplete="off" placeholder="请填写您的生日" readonly="readonly" value="{{birthday}}" required/>
+										</div>
+									</div>
+							
+								</div>
+								<div class="am-form-group">
+									<label for="phone" class="am-form-label">电话</label>
+									<div class="am-form-content">
+										<input id="phone" placeholder="您的电话" type="tel" readonly="readonly"  value="{{phone}}" required/>
+									</div>
+								</div>
+								<div class="am-form-group">
+									<label for="email" class="am-form-label">电子邮件</label>
+									<div class="am-form-content">
+										<input id="email" placeholder="您的邮箱" type="email" readonly="readonly" value="{{email}}" required/>
+									</div>
+								</div>
+								<div class="am-form-group address">
+									<label for="address" class="am-form-label">收货地址</label>
+									<div class="am-form-content address" id="address">
+										<a href="address.html">
+											<p class="new-mu_l2cw">
+												<span class="province">湖南</span>省
+												<span class="city">株洲</span>市
+												<span class="dist">泰山</span>路
+												<span class="street">泰山路88号(湖南工业大学)</span>
+												<span class="am-icon-angle-right"></span>
+											</p>
+										</a>
+
+									</div>
+								</div>
+								<div class="am-form-group safety">
+									<label for="safety" class="am-form-label">账号安全</label>
+									<div class="am-form-content" id="safety">
+										<a href="#" class="safe">
+											<span>{{safety}}分</span>
+											<span class="am-icon-angle-right"></span>
+										</a>
+									</div>
+								</div>
+								<div class="info-btn">
+									<div class="am-btn am-btn-danger" id="information_save" data-method="information_save">保存修改</div>
+								</div>
+
+							</form>
+						</div>
+					</div>
+{% endblock %}
+
+{% block scriptContent %}
+// 修改个人信息
+
+	       information_save:function(){
+	          let username = $("#username").val().trim();
+	          let url = '/consumer/information-changes-chsc-api/';
+	          let data = {'username':username};
+	          layer.load(0, {time: 10000});
+              $.ajax({
+                       url:url,
+                       type:'POST',
+                       data:data,
+                       headers:headers,
+                       success:function(data){
+                           if(data.code == 4){
+                                layer.msg('信息修改成功',{icon:1,time:1000,closeBtn:0});
+                           }
+                           else if(data.code == -4){
+                                layer.msg('服务器无响应',{icon:2,time:1200,closeBtn:0});
+                           }
+                       },
+                       error:function(){
+                           layer.msg('服务器无响应',{icon:2,time:1200,closeBtn:0});
+                       }
+              });
+              layer.closeAll('loading');
+	       },
+{% endblock %}

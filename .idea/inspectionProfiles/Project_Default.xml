@@ -1,0 +1,80 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="BadExpressionStatementJS" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <Languages>
+        <language minSize="61" name="Python" />
+        <language minSize="13" name="Style Sheets" />
+      </Languages>
+    </inspection_tool>
+    <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="5">
+            <item index="0" class="java.lang.String" itemvalue="data-am-flexslider" />
+            <item index="1" class="java.lang.String" itemvalue="index" />
+            <item index="2" class="java.lang.String" itemvalue="lay-text" />
+            <item index="3" class="java.lang.String" itemvalue="lay-skin" />
+            <item index="4" class="java.lang.String" itemvalue="width" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="9">
+            <item index="0" class="java.lang.String" itemvalue="nobr" />
+            <item index="1" class="java.lang.String" itemvalue="noembed" />
+            <item index="2" class="java.lang.String" itemvalue="comment" />
+            <item index="3" class="java.lang.String" itemvalue="noscript" />
+            <item index="4" class="java.lang.String" itemvalue="embed" />
+            <item index="5" class="java.lang.String" itemvalue="script" />
+            <item index="6" class="java.lang.String" itemvalue="div" />
+            <item index="7" class="java.lang.String" itemvalue="p" />
+            <item index="8" class="java.lang.String" itemvalue="li" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="HtmlUnknownTarget" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="JSJQueryEfficiency" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyBroadExceptionInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N801" />
+          <option value="N806" />
+          <option value="N803" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPropertyDefinitionInspection" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="Remark_app.models.remark_models.User" />
+          <option value="Shop_app.models.commodity_models.Commodity.*" />
+          <option value="django.contrib.auth.models.User.DoesNotExist" />
+          <option value="Order_app.models.order_models.Logistic.*" />
+          <option value="str.get_username" />
+          <option value="str.EMAIL_FIELD" />
+          <option value="str.get_email_field_name" />
+          <option value="User_app.models.user_models.Consumer.DoesNotExist" />
+          <option value="django.db.models.fields.related.OneToOneField.get_username" />
+          <option value="django.db.models.fields.related.OneToOneField.get_email_field_name" />
+          <option value="urllib.request" />
+          <option value="User_app.models.user_models.Address.DoesNotExist" />
+          <option value="Shopper_app.models.shopper_models.Shoppers.DoesNotExist" />
+          <option value="django.db.models.fields.files.ImageField.url" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="RequiredAttributes" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myAdditionalRequiredHtmlAttributes" value="type" />
+    </inspection_tool>
+  </profile>
+</component>

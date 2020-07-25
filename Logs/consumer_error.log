@@ -1,0 +1,226 @@
+ERROR - 2020-05-02 20:26:58,024 - login_register_api - judge_code - 27456 - 23096 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 20:27:00,905 - login_register_api - judge_code - 27456 - 23096 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 20:27:03,317 - login_register_api - judge_code - 27456 - 23096 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 20:29:56,626 - login_register_api - judge_code - 27456 - 19920 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 20:29:59,002 - login_register_api - judge_code - 27456 - 19920 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 20:30:02,006 - login_register_api - judge_code - 27456 - 19920 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 20:43:05,331 - login_register_api - judge_code - 27456 - 22048 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 20:52:17,090 - login_register_api - judge_code - 27456 - 21940 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 21:50:31,299 - login_register_api - judge_code - 27456 - 26628 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 22:14:35,113 - login_register_api - judge_code - 27456 - 2508 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 22:45:48,822 - login_register_api - judge_code - 11192 - 17332 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 22:46:31,255 - login_register_api - judge_code - 22084 - 24832 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 22:46:37,057 - login_register_api - judge_code - 22084 - 24832 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 22:47:03,208 - login_register_api - judge_code - 22084 - 24832 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-02 22:47:51,007 - login_register_api - judge_code - 22084 - 24832 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-04 23:01:49,118 - login_register_api - register_email - 8612 - 14564 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:08:35,668 - login_register_api - post - 6220 - 26748 - email
+ERROR - 2020-05-04 23:17:24,429 - login_register_api - register_email - 15584 - 24016 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:17:59,481 - login_register_api - register_email - 8612 - 7644 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:18:44,428 - login_register_api - register_email - 8612 - 20408 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:19:56,796 - login_register_api - register_email - 24184 - 7964 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:20:26,104 - login_register_api - register_email - 24184 - 7964 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:20:49,415 - login_register_api - register_email - 10820 - 18072 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:20:52,287 - login_register_api - register_email - 10820 - 18072 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:21:56,416 - login_register_api - register_email - 10820 - 21952 - register_email_error:User matching query does not exist.
+ERROR - 2020-05-04 23:32:24,568 - login_register_api - register_email - 12152 - 7644 - register_email_create_error:Consumer() got an unexpected keyword argument 'consumer'
+ERROR - 2020-05-04 23:35:35,209 - login_register_api - register_email - 24876 - 16800 - register_email_create_error:(1054, "Unknown column 'user_id' in 'field list'")
+ERROR - 2020-05-04 23:39:21,219 - login_register_api - register_email - 24876 - 6076 - register_email_create_error:You have multiple authentication backends configured and therefore must provide the `backend` argument or set the `backend` attribute on the user.
+ERROR - 2020-05-07 16:35:30,521 - user_redis - check_key_value - 25908 - 18976 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:35:32,687 - user_redis - check_key_value - 25908 - 18976 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:36:58,070 - user_redis - check_key_value - 25908 - 2324 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:37:07,783 - user_redis - check_key_value - 25908 - 2324 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:37:10,370 - user_redis - check_key_value - 25908 - 2324 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:37:31,164 - user_redis - check_key_value - 25908 - 2324 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:43:40,195 - user_redis - check_key_value - 25908 - 20196 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:43:45,874 - user_redis - check_key_value - 25908 - 20196 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:43:53,510 - user_redis - check_key_value - 25908 - 20196 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:44:44,317 - user_redis - check_key_value - 25908 - 27948 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:44:59,218 - user_redis - check_key_value - 25908 - 20196 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:53:41,961 - user_redis - check_key_value - 25212 - 11760 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:53:46,913 - user_redis - check_key_value - 25212 - 11760 - 'NoneType' object has no attribute 'decode'
+ERROR - 2020-05-07 16:59:04,283 - verification_code - send - 15520 - 26984 - bind-send_email:'email'
+ERROR - 2020-05-07 16:59:35,172 - verification_code - send - 15520 - 28312 - bind-send_email:'email'
+ERROR - 2020-05-07 17:00:44,853 - verification_code - send - 13688 - 18284 - bind-send_email:'email'
+ERROR - 2020-05-07 17:05:30,751 - user_redis - save_key_value - 15692 - 18728 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:09:34,372 - user_redis - save_key_value - 19928 - 24188 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:09:40,534 - user_redis - save_key_value - 19928 - 24188 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:11:49,703 - user_redis - save_key_value - 19928 - 1340 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:12:40,671 - user_redis - save_key_value - 19928 - 6960 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:13:08,614 - user_redis - save_key_value - 4736 - 16272 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:13:28,953 - user_redis - save_key_value - 4736 - 16272 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:14:21,385 - user_redis - save_key_value - 4736 - 9900 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:14:34,582 - user_redis - save_key_value - 4736 - 14676 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:14:52,026 - user_redis - save_key_value - 26860 - 17664 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:15:10,905 - user_redis - save_key_value - 20316 - 16092 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:15:41,625 - user_redis - save_key_value - 12560 - 25364 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:18:00,443 - user_redis - save_key_value - 12780 - 10796 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:18:00,686 - user_redis - save_key_value - 12780 - 10796 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:18:22,660 - user_redis - save_key_value - 12780 - 3840 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:18:46,215 - user_redis - save_key_value - 23716 - 25960 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:19:00,948 - user_redis - save_key_value - 13852 - 22036 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:19:18,595 - user_redis - save_key_value - 13852 - 19992 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-07 17:19:28,650 - user_redis - save_key_value - 12260 - 15164 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-09 19:44:43,669 - ali_card_ocr - get_posturl_result - 10796 - 12560 - HTTP Error 462: 462
+ERROR - 2020-05-09 19:47:37,300 - ali_card_ocr - get_posturl_result - 13752 - 9700 - HTTP Error 462: 462
+ERROR - 2020-05-09 19:48:05,570 - ali_card_ocr - get_posturl_result - 7248 - 17416 - HTTP Error 462: 462
+ERROR - 2020-05-09 19:50:37,111 - ali_card_ocr - get_posturl_result - 4896 - 17880 - HTTP Error 462: 462
+ERROR - 2020-05-09 20:40:57,097 - verification_code - send - 18648 - 13564 - register-send_email:invalid password
+ERROR - 2020-05-09 20:41:52,054 - verification_code - send - 18648 - 17700 - register-send_email:invalid password
+ERROR - 2020-05-09 20:51:15,726 - verification_code - send - 18648 - 15196 - register-send_email:invalid password
+ERROR - 2020-05-09 20:54:08,403 - login_register_api - register_email - 18648 - 15196 - register_email_create_error:(1048, "Column 'birthday' cannot be null")
+ERROR - 2020-05-09 21:04:30,190 - login_register_api - register_email - 12020 - 6864 - register_email_create_error:(1048, "Column 'birthday' cannot be null")
+ERROR - 2020-05-26 14:30:34,669 - verification_code - send - 16672 - 19872 - register-send_email:invalid password
+ERROR - 2020-05-26 14:31:42,530 - verification_code - send - 16672 - 19872 - register-send_email:invalid password
+ERROR - 2020-05-26 14:32:46,935 - verification_code - send - 16672 - 19872 - register-send_email:invalid password
+ERROR - 2020-05-26 14:35:40,684 - login_register_api - register_email - 16672 - 16972 - register_email_create_error:(1062, "Duplicate entry 'chch247179876@qq.com' for key 'username'")
+ERROR - 2020-05-26 14:37:06,684 - login_register_api - register_email - 16672 - 16972 - register_email_create_error:(1062, "Duplicate entry 'chch247179876@qq.com' for key 'username'")
+ERROR - 2020-05-26 14:38:20,613 - login_register_api - register_email - 16672 - 16972 - register_email_create_error:(1062, "Duplicate entry 'chch247179876@qq.com' for key 'username'")
+ERROR - 2020-05-28 09:43:00,576 - favorites_redis - add_favorites_goods_id - 14292 - 8040 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-28 13:47:16,847 - favorites_redis - get_favorites_goods_id - 16084 - 10892 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-28 13:47:26,421 - favorites_redis - get_favorites_goods_id - 16084 - 10892 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-28 13:48:53,747 - favorites_redis - get_favorites_goods_id - 16372 - 15136 - name 'page' is not defined
+ERROR - 2020-05-28 13:49:16,309 - favorites_redis - get_favorites_goods_id - 6844 - 2516 - name 'page' is not defined
+ERROR - 2020-05-28 13:49:40,931 - favorites_redis - get_favorites_goods_id - 6844 - 2516 - name 'page' is not defined
+ERROR - 2020-05-28 13:49:44,347 - favorites_redis - get_favorites_goods_id - 6844 - 2516 - name 'page' is not defined
+ERROR - 2020-05-28 13:49:51,654 - favorites_redis - get_favorites_goods_id - 6844 - 2516 - name 'page' is not defined
+ERROR - 2020-05-28 13:49:54,646 - favorites_redis - get_favorites_goods_id - 6844 - 2516 - name 'page' is not defined
+ERROR - 2020-05-28 13:50:43,374 - favorites_redis - get_favorites_goods_id - 6844 - 2516 - name 'page' is not defined
+ERROR - 2020-05-28 13:50:58,832 - favorites_redis - get_favorites_goods_id - 3048 - 5056 - name 'page' is not defined
+ERROR - 2020-05-28 13:51:17,875 - favorites_redis - get_favorites_goods_id - 9684 - 16176 - name 'page' is not defined
+ERROR - 2020-05-28 13:52:19,492 - favorites_redis - get_favorites_goods_id - 9684 - 16176 - name 'page' is not defined
+ERROR - 2020-05-28 13:52:29,535 - favorites_redis - get_favorites_goods_id - 9684 - 16176 - name 'page' is not defined
+ERROR - 2020-05-28 13:56:36,559 - favorites_redis - get_favorites_goods_id - 7140 - 15700 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-28 13:56:48,212 - favorites_redis - get_favorites_goods_id - 7140 - 15700 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-28 13:57:02,373 - favorites_redis - get_favorites_goods_id - 7140 - 15700 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-28 13:57:28,522 - favorites_redis - get_favorites_goods_id - 13384 - 15544 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-28 13:57:57,575 - favorites_redis - get_favorites_goods_id - 14000 - 4992 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-29 17:10:07,327 - foot_redis - get_foot_commodity_id - 16884 - 22416 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:12:35,540 - foot_redis - get_foot_commodity_id - 10952 - 5436 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:14:04,334 - foot_redis - get_foot_commodity_id - 10952 - 5436 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:15:04,155 - foot_redis - get_foot_commodity_id - 22424 - 21992 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:15:19,486 - foot_redis - get_foot_commodity_id - 22424 - 21992 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:15:52,284 - foot_redis - get_foot_commodity_id - 22424 - 21992 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:15:53,753 - foot_redis - get_foot_commodity_id - 22424 - 17576 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:16:38,983 - foot_redis - get_foot_commodity_id - 22424 - 17576 - 'NoneType' object is not subscriptable
+ERROR - 2020-05-29 17:43:37,903 - foot_redis - get_foot_commodity_id - 21712 - 20292 - Invalid format string
+ERROR - 2020-05-29 17:43:52,300 - foot_redis - get_foot_commodity_id - 21712 - 20292 - Invalid format string
+ERROR - 2020-05-29 17:44:43,318 - foot_redis - get_foot_commodity_id - 21136 - 22504 - unconverted data remains:  17:44:43
+ERROR - 2020-05-29 17:44:50,045 - foot_redis - get_foot_commodity_id - 21136 - 22504 - unconverted data remains:  17:44:50
+ERROR - 2020-05-29 17:45:43,058 - foot_redis - get_foot_commodity_id - 21136 - 22504 - unconverted data remains:  17:45:43
+ERROR - 2020-05-29 17:45:44,432 - foot_redis - get_foot_commodity_id - 21136 - 22504 - unconverted data remains:  17:45:44
+ERROR - 2020-05-29 21:09:28,100 - favorites_redis - get_favorites_goods_id_and_page - 17692 - 22616 - WRONGTYPE Operation against a key holding the wrong kind of value
+ERROR - 2020-05-29 21:09:28,111 - FavoritesSerializersApi - get_favorites - 17692 - 22616 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:10:32,987 - favorites_redis - get_favorites_goods_id_and_page - 20636 - 24340 - WRONGTYPE Operation against a key holding the wrong kind of value
+ERROR - 2020-05-29 21:10:32,987 - FavoritesSerializersApi - get_favorites - 20636 - 24340 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:12:51,038 - favorites_redis - get_favorites_goods_id_and_page - 23120 - 16668 - WRONGTYPE Operation against a key holding the wrong kind of value
+ERROR - 2020-05-29 21:12:51,038 - FavoritesSerializersApi - get_favorites - 23120 - 16668 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:33:43,326 - favorites_redis - get_favorites_goods_id_and_page - 19860 - 1536 - not all arguments converted during string formatting
+ERROR - 2020-05-29 21:33:43,327 - FavoritesSerializersApi - get_favorites - 19860 - 1536 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:34:57,308 - foot_redis - get_foot_commodity_id_and_page - 19860 - 19588 - not all arguments converted during string formatting
+ERROR - 2020-05-29 21:35:24,685 - foot_redis - get_foot_commodity_id_and_page - 19860 - 19588 - not all arguments converted during string formatting
+ERROR - 2020-05-29 21:36:21,846 - foot_redis - get_foot_commodity_id_and_page - 10084 - 20144 - not all arguments converted during string formatting
+ERROR - 2020-05-29 21:36:21,846 - FootSerializerApi - get_foot - 10084 - 20144 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:50:43,804 - foot_redis - get_foot_commodity_id_and_page - 24500 - 21912 - must be str, not int
+ERROR - 2020-05-29 21:50:43,804 - FootSerializerApi - get_foot - 24500 - 21912 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:51:02,440 - favorites_redis - get_favorites_goods_id_and_page - 24500 - 22064 - must be str, not int
+ERROR - 2020-05-29 21:51:02,441 - FavoritesSerializersApi - get_favorites - 24500 - 22064 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:51:13,589 - foot_redis - get_foot_commodity_id_and_page - 24500 - 24112 - must be str, not int
+ERROR - 2020-05-29 21:51:13,589 - FootSerializerApi - get_foot - 24500 - 24112 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:52:39,072 - foot_redis - get_foot_commodity_id_and_page - 24504 - 17292 - must be str, not int
+ERROR - 2020-05-29 21:52:39,072 - FootSerializerApi - get_foot - 24504 - 17292 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:52:59,975 - foot_redis - get_foot_commodity_id_and_page - 3516 - 25540 - must be str, not int
+ERROR - 2020-05-29 21:52:59,976 - FootSerializerApi - get_foot - 3516 - 25540 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:54:09,240 - foot_redis - get_foot_commodity_id_and_page - 15800 - 23868 - must be str, not int
+ERROR - 2020-05-29 21:54:09,241 - FootSerializerApi - get_foot - 15800 - 23868 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:54:24,347 - foot_redis - get_foot_commodity_id_and_page - 24528 - 21236 - must be str, not int
+ERROR - 2020-05-29 21:54:24,348 - FootSerializerApi - get_foot - 24528 - 21236 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:55:24,869 - foot_redis - get_foot_commodity_id_and_page - 25564 - 22788 - must be str, not int
+ERROR - 2020-05-29 21:55:24,870 - FootSerializerApi - get_foot - 25564 - 22788 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:56:00,401 - foot_redis - get_foot_commodity_id_and_page - 22064 - 20924 - must be str, not int
+ERROR - 2020-05-29 21:56:00,402 - FootSerializerApi - get_foot - 22064 - 20924 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:56:13,440 - foot_redis - get_foot_commodity_id_and_page - 22064 - 25056 - must be str, not int
+ERROR - 2020-05-29 21:56:13,440 - FootSerializerApi - get_foot - 22064 - 25056 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:56:38,736 - foot_redis - get_foot_commodity_id_and_page - 22064 - 25056 - must be str, not int
+ERROR - 2020-05-29 21:56:38,737 - FootSerializerApi - get_foot - 22064 - 25056 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 21:57:01,028 - foot_redis - get_foot_commodity_id_and_page - 16540 - 24168 - must be str, not int
+ERROR - 2020-05-29 21:57:01,028 - FootSerializerApi - get_foot - 16540 - 24168 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 22:00:11,887 - foot_redis - get_foot_commodity_id_and_page - 19260 - 19804 - must be str, not int
+ERROR - 2020-05-29 22:00:11,887 - FootSerializerApi - get_foot - 19260 - 19804 - 'NoneType' object is not iterable
+ERROR - 2020-05-29 22:00:41,803 - foot_redis - get_foot_commodity_id_and_page - 15756 - 3324 - must be str, not int
+ERROR - 2020-05-29 22:00:41,804 - FootSerializerApi - get_foot - 15756 - 3324 - 'NoneType' object is not iterable
+ERROR - 2020-05-30 15:36:10,838 - shopcart_redis - get_shop_cart_id_and_page - 35536 - 34372 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-30 15:36:46,727 - shopcart_redis - get_shop_cart_id_and_page - 35536 - 34372 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-30 15:37:02,102 - shopcart_redis - get_shop_cart_id_and_page - 35212 - 35372 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-30 15:38:03,318 - shopcart_redis - get_shop_cart_id_and_page - 33848 - 32876 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-30 15:38:06,827 - shopcart_redis - get_shop_cart_id_and_page - 33848 - 32876 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-30 15:39:31,693 - shopcart_redis - get_shop_cart_id_and_page - 8424 - 34900 - unsupported operand type(s) for -: 'str' and 'int'
+ERROR - 2020-05-30 15:40:20,470 - shopcart_redis - get_shop_cart_id_and_page - 35624 - 35612 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:40:22,299 - shopcart_redis - get_shop_cart_id_and_page - 35624 - 35004 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:43:01,153 - shopcart_redis - get_shop_cart_id_and_page - 31944 - 26124 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:45:32,017 - shopcart_redis - get_shop_cart_id_and_page - 27604 - 18848 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:45:49,631 - shopcart_redis - get_shop_cart_id_and_page - 27604 - 18848 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:46:28,160 - shopcart_redis - get_shop_cart_id_and_page - 27604 - 18848 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:47:39,071 - shopcart_redis - get_shop_cart_id_and_page - 34880 - 33852 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:48:37,870 - shopcart_redis - get_shop_cart_id_and_page - 35128 - 32528 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:48:39,232 - shopcart_redis - get_shop_cart_id_and_page - 35128 - 18864 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:50:03,576 - shopcart_redis - get_shop_cart_id_and_page - 34828 - 33044 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:50:50,761 - shopcart_redis - get_shop_cart_id_and_page - 34856 - 35788 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:50:51,266 - shopcart_redis - get_shop_cart_id_and_page - 34856 - 35448 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:51:34,177 - shopcart_redis - get_shop_cart_id_and_page - 35248 - 8424 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:54:03,001 - shopcart_redis - get_shop_cart_id_and_page - 33268 - 35016 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 15:54:03,683 - shopcart_redis - get_shop_cart_id_and_page - 33268 - 35016 - unsupported operand type(s) for /: 'list' and 'int'
+ERROR - 2020-05-30 16:02:39,495 - shopcart_redis - get_shop_cart_id_and_page - 33076 - 34580 - int() argument must be a string, a bytes-like object or a number, not 'list'
+ERROR - 2020-05-30 16:02:40,937 - shopcart_redis - get_shop_cart_id_and_page - 33076 - 34580 - int() argument must be a string, a bytes-like object or a number, not 'list'
+ERROR - 2020-05-30 16:05:04,489 - shopcart_redis - get_shop_cart_id_and_page - 31016 - 35812 - int() argument must be a string, a bytes-like object or a number, not 'list'
+ERROR - 2020-05-30 16:05:57,944 - shopcart_redis - get_shop_cart_id_and_page - 31016 - 35812 - int() argument must be a string, a bytes-like object or a number, not 'list'
+ERROR - 2020-05-30 21:17:58,519 - shopcart_redis - get_shop_cart_id_and_page - 39288 - 35724 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:18:38,740 - shopcart_redis - get_shop_cart_id_and_page - 34700 - 39368 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:20:23,688 - shopcart_redis - get_shop_cart_id_and_page - 34700 - 39368 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:20:26,650 - shopcart_redis - get_shop_cart_id_and_page - 34700 - 39368 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:20:50,543 - shopcart_redis - get_shop_cart_id_and_page - 39700 - 36900 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:20:50,544 - personal_api - get - 39700 - 36900 - 'NoneType' object has no attribute 'keys'
+ERROR - 2020-05-30 21:21:50,582 - shopcart_redis - get_shop_cart_id_and_page - 39660 - 36792 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:21:50,583 - personal_api - get - 39660 - 36792 - 'NoneType' object has no attribute 'keys'
+ERROR - 2020-05-30 21:22:15,888 - shopcart_redis - get_shop_cart_id_and_page - 39708 - 19740 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:22:15,889 - personal_api - get - 39708 - 19740 - 'NoneType' object has no attribute 'keys'
+ERROR - 2020-05-30 21:22:23,153 - shopcart_redis - get_shop_cart_id_and_page - 39708 - 19740 - zrevrange() missing 1 required positional argument: 'end'
+ERROR - 2020-05-30 21:22:23,153 - personal_api - get - 39708 - 19740 - 'NoneType' object has no attribute 'keys'
+ERROR - 2020-05-31 12:22:24,792 - personal_api - get - 47660 - 40744 - 'store_and_commodity'
+ERROR - 2020-05-31 12:30:02,707 - personal_api - get - 47660 - 47820 - Cannot both declare the field 'total_price' and include it in the CommoditySerializer 'exclude' option. Remove the field or, if inherited from a parent serializer, disable with `total_price = None`.
+ERROR - 2020-05-31 12:30:24,045 - personal_api - get - 47264 - 47860 - Cannot both declare the field 'total_price' and include it in the CommoditySerializer 'exclude' option. Remove the field or, if inherited from a parent serializer, disable with `total_price = None`.
+ERROR - 2020-05-31 12:31:03,501 - personal_api - get - 45320 - 43336 - 'store_and_commodity'
+ERROR - 2020-05-31 12:31:05,121 - personal_api - get - 45320 - 46728 - 'store_and_commodity'
+ERROR - 2020-05-31 15:09:18,566 - shopcart_redis - edit_one_good - 39740 - 49824 - Invalid input of type: 'Decimal'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-31 15:10:45,630 - shopcart_redis - edit_one_good - 37396 - 49776 - Invalid input of type: 'Decimal'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-31 15:23:37,074 - shopcart_redis - edit_one_good - 47236 - 48500 - Invalid input of type: 'Decimal'. Convert to a bytes, string, int or float first.
+ERROR - 2020-05-31 15:46:36,203 - shopcart_redis - get_shop_cart_id_and_page - 49472 - 33256 - int() argument must be a string, a bytes-like object or a number, not 'NoneType'
+ERROR - 2020-05-31 15:46:36,203 - personal_api - get - 49472 - 33256 - not enough values to unpack (expected 4, got 3)
+ERROR - 2020-05-31 15:46:51,328 - shopcart_redis - get_shop_cart_id_and_page - 49472 - 33256 - int() argument must be a string, a bytes-like object or a number, not 'NoneType'
+ERROR - 2020-05-31 15:46:51,328 - personal_api - get - 49472 - 33256 - not enough values to unpack (expected 4, got 3)
+ERROR - 2020-05-31 15:48:52,715 - shopcart_redis - get_shop_cart_id_and_page - 49924 - 49656 - float() argument must be a string or a number, not 'NoneType'
+ERROR - 2020-05-31 15:48:52,715 - personal_api - get - 49924 - 49656 - not enough values to unpack (expected 4, got 3)
+ERROR - 2020-06-01 22:02:22,060 - verification_code - send - 15776 - 14152 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:03:08,638 - verification_code - send - 15572 - 3028 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:03:53,750 - verification_code - send - 3632 - 13196 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:04:27,969 - verification_code - send - 3632 - 16000 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:04:57,947 - verification_code - send - 14140 - 14568 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:06:39,759 - verification_code - send - 12268 - 14920 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:07:09,916 - verification_code - send - 3316 - 10564 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:07:45,626 - verification_code - send - 5756 - 10552 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:09:36,157 - verification_code - send - 15752 - 7264 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:15:34,100 - verification_code - send - 13968 - 16348 - register-send_email:name 'key' is not defined
+ERROR - 2020-06-01 22:16:47,388 - verification_code - send - 16028 - 7808 - register-send_email:invalid password
+ERROR - 2020-06-01 22:17:00,361 - verification_code - send - 16028 - 14744 - register-send_email:invalid password
+ERROR - 2020-06-01 22:18:03,468 - user_redis - save_code - 16028 - 5868 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-06-02 19:27:03,520 - foot_redis - get_foot_commodity_id_and_page - 26376 - 32876 - 'NoneType' object is not subscriptable
+ERROR - 2020-06-02 19:27:03,626 - FootSerializerApi - get_foot - 26376 - 32876 - 'NoneType' object is not iterable
+ERROR - 2020-06-02 19:31:24,290 - foot_redis - get_foot_commodity_id_and_page - 32872 - 30124 - 'NoneType' object is not subscriptable
+ERROR - 2020-06-02 19:31:24,291 - FootSerializerApi - get_foot - 32872 - 30124 - 'NoneType' object is not iterable
+ERROR - 2020-06-02 19:32:26,122 - foot_redis - get_foot_commodity_id_and_page - 5032 - 30628 - int() argument must be a string, a bytes-like object or a number, not 'NoneType'
+ERROR - 2020-06-02 19:32:26,124 - FootSerializerApi - get_foot - 5032 - 30628 - 'NoneType' object is not iterable
+ERROR - 2020-06-02 19:33:32,661 - foot_redis - get_foot_commodity_id_and_page - 15128 - 22844 - 'NoneType' object is not subscriptable
+ERROR - 2020-06-02 19:33:32,662 - FootSerializerApi - get_foot - 15128 - 22844 - 'NoneType' object is not iterable
+ERROR - 2020-06-03 14:52:29,134 - foot_redis - add_foot_commodity_id - 15424 - 15684 - invalid password
+ERROR - 2020-06-03 14:55:32,748 - verification_code - send - 15424 - 15684 - register-send_email:invalid password
+ERROR - 2020-07-24 18:06:37,660 - verification_code - send - 21309 - 140294599194368 - register-send_email:Error 111 connecting to 127.0.0.1:6379. Connection refused.

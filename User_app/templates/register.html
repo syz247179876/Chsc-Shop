@@ -1,0 +1,74 @@
+{% extends 'login-register.html' %}
+{% block login-or-register %}
+  <h2 class="title">登录商城</h2>
+     <button data-method="login_page" id="login_tag" class="am-fr am-btn-default zcnext">注册</button>
+  <div class="clear"></div>
+  <div class="am-tabs" id="doc-my-tabs">
+    <ul class="am-tabs-nav am-nav am-nav-tabs am-nav-justify">
+    <li class="am-active"><a href="">邮箱注册</a></li>
+    <li><a href="">手机号注册</a></li>
+   </ul>
+   <div class="am-tabs-bd">
+    <div class="am-tab-panel am-active">
+     <form method="post" id="register_form">
+      <div class="user-email">
+       <label for="email"><i class="am-icon-envelope-o"></i></label>
+       <input type="email" name="email" id="email" placeholder="请输入邮箱账号" /><img src="" alt=""><br>
+      </div>
+      <div class="user-pass">
+       <label for="password_email"><i class="am-icon-lock"></i></label>
+       <input type="password" name="password_email" id="password_email" placeholder="设置密码" /><img src="" alt=""><br>
+      </div>
+      <div class="user-pass">
+       <label for="passwordRepeat_email"><i class="am-icon-lock"></i></label>
+       <input type="password" name="passwordRepeat_email" id="passwordRepeat_email" placeholder="确认密码" /><img src="" alt=""><br>
+      </div>
+      <div class="verification">
+       <label for="code_email"><i class="am-icon-code-fork"></i></label>
+       <input type="tel" required name="" class="code" id="code_email" placeholder="请输入验证码" /><img src="" alt=""><br>
+       <a class="btn" href="javascript:void(0);" id="sendEmailCode"> <input id="dyEmailButton" class="send_code" data-method="getEmailCode" value="获取"></a>
+      </div>
+     </form>
+
+     <div class="register-links">
+      <label for="reader-me"> <input id="reader-me" type="checkbox" /> 同意遵守吃货商城《服务协议》 </label>
+     </div>
+     <div class="am-cf">
+      <input type="submit" id="email_register" data-method="email_register" value="注册" class="am-btn am-btn-primary am-btn-sm am-fl" />
+     </div>
+    </div>
+    <div class="am-tab-panel">
+     <form method="post">
+      <div class="user-phone">
+       <label for="phone"><i class="am-icon-mobile-phone am-icon-md"></i></label>
+       <input type="tel" name="" id="phone" placeholder="请输入手机号" />
+      </div>
+      <div class="verification">
+       <label for="code_phone"><i class="am-icon-code-fork"></i></label>
+       <input type="tel" name="" class="code" id="code_phone" placeholder="请输入验证码" />
+       <a class="btn" href="javascript:void(0);" id="sendMobileCode">
+        <input id="dyMobileButton" class="send_code" data-method="getPhoneCode" value="获取"></a>
+      </div>
+      <div class="user-pass">
+       <label><i class="am-icon-lock"></i></label>
+       <input type="password" name="" id="password_phone" placeholder="设置密码" />
+      </div>
+      <div class="user-pass">
+       <label><i class="am-icon-lock"></i></label>
+       <input type="password" name="" id="passwordRepeat_phone" placeholder="确认密码" />
+      </div>
+     </form>
+
+     <div class="login-links">
+      <label for="reader-me"> <input id="reader-me" type="checkbox" /> 同意遵守吃货商城《服务协议》 </label>
+     </div>
+     <div class="am-cf">
+      <input type="submit" id="phone_register" data-method="phone_register" value="注册" class="am-btn am-btn-primary am-btn-sm am-fl" />
+     </div>
+     <hr />
+    </div>
+
+   </div>
+  </div>
+{% endblock %}
+

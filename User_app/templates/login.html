@@ -1,0 +1,37 @@
+{% extends 'login-register.html' %}
+{% block login-or-register %}
+  <h2 class="title">登录商城</h2>
+  <div class="clear"></div>
+  <div class="login-form">
+   <form class="layui-form">
+    <div class="user-name">
+     <label for="user"><i class="am-icon-user"></i></label> 
+     <input type="text" id="user" placeholder="邮箱/手机/用户名" />
+    </div> 
+    <div class="user-pass"> 
+     <label for="password"><i class="am-icon-lock"></i></label> 
+     <input type="password" id="password" placeholder="请输入密码" />
+    </div>
+   </form>
+  </div>
+
+  <div class="layui-form login-links">
+    <input type="checkbox" name="" title="记住用户名" id="remember" checked>
+   <a href="#" class="am-fr">忘记用户名</a>
+   </div>
+
+   <button data-method="register_page" id="register_tag" class="am-fr am-btn-default zcnext">注册</button>
+   <br /> 
+
+  <div class="am-cf"> 
+   <input type="submit" id="login" data-method="login" value="登 录" class="am-btn am-btn-primary am-btn-sm" />
+  </div> 
+  <div class="partner"> 
+   <h3>合作账号</h3> 
+   <div class="am-btn-group">
+    <li><a href="#"><i class="am-icon-qq am-icon-sm"></i><span>QQ登录</span></a></li> 
+    <li><a href="#"><i class="am-icon-weibo am-icon-sm"></i><span>微博登录</span> </a></li> 
+    <li><a href="#"><i class="am-icon-weixin am-icon-sm"></i><span>微信登录</span> </a></li> 
+   </div> 
+  </div>
+{% endblock %}

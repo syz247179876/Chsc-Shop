@@ -1,0 +1,110 @@
+{% extends 'base-personal.html' %}
+{% block personal_content %}
+{% load static %}
+<link href="{% static 'css/consumer/colstyle.css' %}" rel="stylesheet" type="text/css">
+					<div class="user-collection">
+						<!--标题 -->
+						<div class="am-cf am-padding">
+							<div class="am-fl am-cf"><strong class="am-text-danger am-text-lg">我的收藏</strong> / <small>My&nbsp;Collection</small></div>
+						</div>
+						<hr/>
+
+						<div class="you-like">
+							<div class="s-bar">
+								我的收藏
+								<a class="am-badge am-badge-danger am-round">降价</a>
+								<a class="am-badge am-badge-danger am-round">下架</a>
+							</div>
+							<div class="s-content">
+
+							</div>
+
+<!--							<div class="s-more-btn i-load-more-item" data-screen="0"><i class="am-icon-refresh am-icon-fw"></i>更多</div>-->
+
+						</div>
+
+					</div>
+<script>
+	layui.use(['flow','layer'],function () {
+		let $ = layui.jquery;
+		let flow = layui.flow;
+		let layer = layui.layer;
+
+		$(function () {
+		    flow.load({
+				elem:'.s-content',  // 容器dom
+				done:function (page,next) {
+					let list_favorites = [];
+					$.ajax({
+						type:'GET',
+						url: '/consumer/favorites-operation-chsc-api/?page=' + page,
+						dataType: 'json',
+						success:function (data) {
+							let max_pages = data.page;
+							let favorites = data.data;
+							$.each(favorites,function (index,value) {
+								let pk = value.pk; //商品id
+								let store_name = value.store_name;  // 店铺名
+								let commodity_name = value.commodity_name; //商品名
+								let price = value.price; // 商品价格
+								let intro = value.intro; // 商品简介
+								let category = value.category; //商品种类
+								let status = value.status;  // 上架
+								let discounts = value.discounts;  // 上架
+								let image = value.image;  // 图片
+								let shop_grade = value.shop_grade; // 店铺评分
+								let attention = value.attention;   // 关注度
+								let status_read = ''; // 可读商品状态
+								let status_class = '';
+								if (status ==='下架'){
+									status_read = '已下架'
+									status_class = '<span class="tip-title">'+status_read+'</span>'
+								}
+								let content = '<div class="s-item-wrap">\n' +
+										'\t\t\t\t\t\t\t\t\t<div class="s-item">\n' +
+										'\n' +
+										'\t\t\t\t\t\t\t\t\t\t<div class="s-pic">\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<a href="/shop/introduce/'+pk+'" class="s-pic-link">\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t\t<img src="'+image+'" alt="'+intro+'" title="'+intro+'" class="s-pic-img s-guess-item-img">\n' + status_class+
+										'\t\t\t\t\t\t\t\t\t\t\t</a>\n' +
+										'\t\t\t\t\t\t\t\t\t\t</div>\n' +
+										'\t\t\t\t\t\t\t\t\t\t<div class="s-info">\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<div class="s-title"><a href="#" title="'+commodity_name+'">'+commodity_name+'</a></div>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<div class="s-price-box">\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t\t<span class="s-price"><em class="s-price-sign">¥</em><em class="s-value">'+discounts*price+'</em></span>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t\t<span class="s-history-price"><em class="s-price-sign">¥</em><em class="s-value">'+price+'</em></span>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t</div>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<div class="s-extra-box">\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t\t<span class="s-comment">好评: '+Math.round(shop_grade/10).toFixed(2) + '%'+'</span>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t\t<span class="s-sales">月销: 293</span>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t</div>\n' +
+										'\t\t\t\t\t\t\t\t\t\t</div>\n' +
+										'\t\t\t\t\t\t\t\t\t\t<div class="s-tp">\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<span class="ui-btn-loading-before">找相似</span>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<i class="am-icon-shopping-cart"></i>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<span class="ui-btn-loading-before buy">加入购物车</span>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t<p>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t\t<a href="javascript:;" class="c-nodo J_delFav_btn">取消收藏</a>\n' +
+										'\t\t\t\t\t\t\t\t\t\t\t</p>\n' +
+										'\t\t\t\t\t\t\t\t\t\t</div>\n' +
+										'\t\t\t\t\t\t\t\t\t</div>\n' +
+										'\t\t\t\t\t\t\t\t</div>';
+								list_favorites.push(content);
+							});
+							setTimeout(function () {
+								next(list_favorites.join(''),page<max_pages);  // 这里的最大2后期换成page
+							},500);
+						},
+						error:function () {
+							layer.msg('服务器无响应',{icon:2,time:1500,closeBtn:0});
+						}
+					})
+				}
+
+		    });
+
+		});
+
+	});
+</script>
+{% endblock %}

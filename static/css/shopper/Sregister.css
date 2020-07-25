@@ -1,0 +1,19 @@
+/*验证码*/
+.verify_off {
+    width: 70px;
+    height: 25px;
+    padding: 0 5px;
+    margin: 0;
+    font-size: 12px;
+    text-align: center;
+    background: transparent;
+    border-radius: 30px ! important;
+    color: #a07941;
+    border-color: #a07941;
+}
+
+.verify_input {
+    left: -1px;
+    float: left;
+    width: 140px;
+}

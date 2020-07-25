@@ -1,0 +1,6 @@
+{{ object.store.store_name }}
+{{ object.shopper.username }}
+{{ object.commodity_name }}
+{{ object.type }}
+{{ object.category }}
+{{ object.discounts_intro }}

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    	<meta charset="utf-8">
+        <!--自适应设备屏幕-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+
+		<title>个人中心</title>
+        {% load static %}
+
+		<link href="{% static 'css/mainsite/admin.css' %}" rel="stylesheet" type="text/css" />
+<!--	<link href="{% static 'assets/css/amazeui.css' %}" rel="stylesheet" type="text/css" />-->
+		<link href="http://cdn.bootcss.com/amazeui/2.5.1/css/amazeui.css" rel="stylesheet" type="text/css" />
+	    <!--<link href="https://cdn.bootcss.com/amazeui/2.5.1/css/amazeui.css" rel="stylesheet" type="text/css" />-->
+		<link href="{% static 'css/consumer/personal.css' %}" rel="stylesheet" type="text/css">
+
+	    <link href="{% static 'layui/css/layui.css' %}" rel="stylesheet" type="text/css" >
+     	<script src="http://www.jq22.com/jquery/jquery-1.10.2.js"></script>
+     	<script src="http://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+	    <script src="http://cdn.amazeui.org/amazeui/2.5.0/js/amazeui.min.js"></script>
+	    <!--<script src="https://www.jq22.com/jquery/jquery-1.10.2.js" ></script>-->
+	    <script src="{% static 'assets/js/amazeui.js' %}" ></script>
+	    <script src="{% static 'layui/layui.js' %}"></script>
+
+
+</head>
+<body>
+        <header>
+			<article>
+				<div class="mt-logo">
+					<!--顶部导航条 -->
+					<div class="am-container header">
+						<ul class="message-l">
+							<div class="topMessage">
+								<div class="menu-hd">
+									<a href="{% url 'consumer:personal_information' %}" target="_top" class="h">当前用户   {{ request.user.username }}</a>
+								</div>
+							</div>
+						</ul>
+						<ul class="message-r">
+							<div class="topMessage home">
+								<div class="menu-hd"><a href="/" target="_top" class="h">商城首页</a></div>
+							</div>
+							<div class="topMessage my-shangcheng">
+								<div class="menu-hd MyShangcheng"><a href="{% url 'consumer:personal' %}" target="_top"><i class="am-icon-user am-icon-fw"></i>个人中心</a></div>
+							</div>
+							<div class="topMessage mini-cart">
+								<div class="menu-hd"><a id="mc-menu-hd" href="{% url 'consumer:personal_shopcart' %}" target="_top"><i class="am-icon-shopping-cart  am-icon-fw"></i><span>购物车</span><strong id="J_MiniCartNum" class="h"></strong></a></div>
+							</div>
+							<div class="topMessage favorite">
+								<div class="menu-hd"><a href="{% url 'consumer:personal_collection' %}" target="_top"><i class="am-icon-heart am-icon-fw"></i><span>收藏夹</span></a></div>
+						    </div>
+                        </ul>
+
+						<!--悬浮搜索框-->
+					</div>
+						<div class="nav white">
+<!--							<div class="logoBig">-->
+<!--								<li><img src="https://django-e-mall.oss-cn-shanghai.aliyuncs.com/logobig.png" /></li>-->
+<!--							</div>-->
+
+							<div class="search-bar pr">
+								<form role="search" action="{% url 'search' %}" method="get">
+									<input id="searchInput" name="q" type="text" placeholder="搜索" autocomplete="off">
+									<input id="ai-topsearch" class="submit am-btn" value="搜索" index="1" type="submit">
+								</form>
+							</div>
+						</div>
+
+						<div class="clear"></div>
+					</div>
+			</article>
+		</header>
+        <div class="nav-table">
+					   <div class="long-title"><span class="all-goods">全部分类</span></div>
+					   <div class="nav-cont">
+							<ul>
+								<li class="index"><a href="/">首页</a></li>
+                                <li class="qc"><a href="#">限时抢</a></li>
+                                <li class="qc"><a href="#">团购</a></li>
+							</ul>
+						    <div class="nav-extra">
+						    	<i class="am-icon-user-secret am-icon-md nav-user"></i><b></b>我的福利
+						    	<i class="am-icon-angle-right" style="padding-left: 10px;"></i>
+						    </div>
+						</div>
+        </div>
+        <b class="line"></b>
+
+		<div class="center">
+			<div class="col-main">
+				<div class="main-wrap">
+		{% block personal_content %}
+		{% endblock %}
+				</div>
+					<!--底部-->
+				<div class="footer">
+					<div class="footer-hd">
+						<p>
+							<a href="#">关于云中</a>
+							<b>|</b>
+							<a href="#">商城首页</a>
+							<b>|</b>
+							<a href="#">支付宝</a>
+							<b>|</b>
+							<a href="#">物流</a>
+						</p>
+					</div>
+					<div class="footer-bd">
+						<p>
+							<a href="#">关于云中</a>
+							<a href="#">合作伙伴</a>
+							<a href="#">联系我们</a>
+							<a href="#">网站地图</a>
+							<em>© 2020-2030 司云中 版权所有 <a href="http://syzzjw.cn/" target="_blank" title="版权所有">版权所有</a> - Collect from</em>
+						</p>
+					</div>
+				</div>
+
+			</div>
+
+			<aside class="menu">
+				<ul>
+					<li class="person active">
+						<a href="{% url 'consumer:personal' %}">个人中心</a>
+					</li>
+					<li class="person">
+						<a href="#">个人资料</a>
+						<ul>
+							<li> <a href="{% url 'consumer:personal_information' %}">个人信息</a></li>
+							<li> <a href="{% url 'consumer:personal_safety' %}">安全设置</a></li>
+							<li> <a href="{% url 'consumer:personal_address' %}">收货地址</a></li>
+						</ul>
+					</li>
+					<li class="person">
+						<a href="#">我的交易</a>
+						<ul>
+							<li><a href="{% url 'order:personal_order' %}">订单管理</a></li>
+							<li> <a href="{% url 'order:personal_change' %}">退款售后</a></li>
+						</ul>
+					</li>
+					<li class="person">
+						<a href="#">我的资产</a>
+						<ul>
+							<li> <a href="#">优惠券</a></li>
+							<li> <a href="#">红包</a></li>
+							<li> <a href="#">账单明细</a></li>
+						</ul>
+					</li>
+
+					<li class="person">
+						<a href="#">我的淘金园</a>
+						<ul>
+							<li> <a href="{% url 'consumer:personal_shopcart' %}">购物车</a></li>
+							<li> <a href="{% url 'consumer:personal_collection' %}">收藏</a></li>
+							<li> <a href="{% url 'consumer:personal_foot' %}">足迹</a></li>
+							<li> <a href="{% url 'remark:personal_comment' %}">评价</a></li>
+							<li> <a href="{% url 'remark:personal_news' %}">消息</a></li>
+						</ul>
+					</li>
+
+				</ul>
+
+			</aside>
+		</div>
+        <!--引导 -->
+		<!--
+		<div class="navCir">
+			<li><a href="../home/home.html"><i class="am-icon-home "></i>首页</a></li>
+			<li><a href="../home/sort.html"><i class="am-icon-list"></i>分类</a></li>
+			<li><a href="../home/shopcart.html"><i class="am-icon-shopping-basket"></i>购物车</a></li>
+			<li class="active"><a href="index.html"><i class="am-icon-user"></i>我的</a></li>
+		</div>
+		-->
+
+<script>
+
+
+	layui.use(['laydate','form','upload'],function(){
+        let laydate = layui.laydate;
+        let form = layui.form;
+        let layer = layui.layer;
+        let upload = layui.upload;
+        let $ = layui.jquery;
+        const reg_email = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //邮箱验证
+		const reg_phone = new RegExp("^1[3456789]\d{9}$"); //手机号验证
+		const reg_username = new RegExp("[\u4e00-\u9fa5]{1,10}|[a-zA-Z0-9]{8,20}");//用户名验证
+		const reg_password = new RegExp("[a-zA-Z0-9]{8,20}"); //密码验证
+
+        const csrftoken = $.cookie("csrftoken");
+        const headers = {'X-CSRFToken':csrftoken};
+
+      $(function(){
+      	 const count = 60;
+        // 倒计时函数
+         function SetRemainTime1() {
+            if (curCount1 === 0) {
+               window.clearInterval(InterValObj1); //停止计时器
+               $(".send_code").removeAttr("disabled"); //启用按钮
+               $(".send_code").text("重新发送");
+               $(".send_code").removeClass("verify_ing");
+            } else {
+               curCount1--;
+               $(".send_code").text(curCount1 + "秒再获取");
+            }
+         }
+
+          //身份证件正面上传
+		  upload.render({
+			  elem: '#face'
+			  , headers:headers
+			  , accept:'images'
+			  , auto:false
+			  , size:3000
+			  , data:{'card_type':'face'}
+			  , drag:true
+			  , exts:'jpg|png|jpeg'
+			  , bindAction:'#verified'
+			  , field:'image'
+			  , url: '/consumer/verification-name-chsc-api/' //改成您自己的上传接口
+			  , choose: function (obj) {
+				  //预读本地文件示例，不支持ie8
+				  obj.preview(function (index, file, result) {
+					  $('#face').prop('src', result); //图片链接（base64）
+				  });
+			  }
+			  , done: function (res) {
+				  //如果上传失败
+				  if (res.code === 21) {
+					  layer.msg('认证成功!', {icon: 1, time: 1000, closeBtn: 0});
+					  $(".step-2").children().children().css({'opacity':1});
+					  window.location.href = '/consumer/personal_idcard';
+				  }
+				  else if (res.code === -21){
+				  	  layer.msg('图像识别失败!', {icon: 2, time: 1200, closeBtn: 0});
+				  }
+				  else if(res.code === 500){
+				  	layer.msg('服务器无响应!', {icon: 2, time: 1200, closeBtn: 0});
+				  }
+				  $('#face').removeAttr('src');
+				  //上传成功
+			  }
+			  , error: function () {
+				  //演示失败状态，并实现重传
+				  layer.msg('服务器无响应!', {icon: 2, time: 1200, closeBtn: 0});
+				  $('#face').removeAttr('src');
+			  }
+		  });
+
+         // //身份证件背面上传
+		 //  upload.render({
+			//   elem: '#back'
+			//   , headers:headers
+			//   , accept:'images'
+			//   , size:3000
+			//   , data:{'card_type':'back'}
+			//   , exts:'jpg|png|jpeg'
+			//   , drag:true
+			//   , auto:false
+			//   , bindAction:'#verified'
+			//   , field:'image'
+			//   , url: '/consumer/verification-name-chsc-api/' //改成您自己的上传接口
+			//   , before: function (obj) {
+			// 	  //预读本地文件示例，不支持ie8
+			// 	  obj.preview(function (index, file, result) {
+			// 		  $('#face').attr('src', result); //图片链接（base64）
+			// 	  });
+			//   }
+			//   , done: function (res) {
+			// 	  //如果上传失败
+			// 	  if (res.code === 21) {
+			// 		  layer.msg('认证成功!', {icon: 1, time: 1000, closeBtn: 0});
+			// 		  $(".step-2").children().children().css({'opacity':1});
+			// 		  $("#verified").text('实名认证成功！');
+			// 	  }
+			// 	  else if (res.code === -21){
+			// 	  	  layer.msg('图像识别失败!', {icon: 2, time: 1200, closeBtn: 0});
+			// 	  }
+			// 	  else if(res.code === 500){
+			// 	  	layer.msg('服务器无响应!', {icon: 2, time: 1200, closeBtn: 0});
+			// 	  }
+			// 	  $('#back').removeAttr('src');
+			// 	  //上传成功
+			//   }
+			//   , error: function () {
+			// 	  layer.msg('服务器无响应!', {icon: 2, time: 1200, closeBtn: 0});
+			// 	  $('#back').removeAttr('src');
+			//   }
+		 //  });
+
+		  let active = {
+	       {% block scriptContent %}
+	       {% endblock %}
+	    }
+
+	    $("#information_save,#password_change,#save_pay,#bind_phone," +
+				"#bind_email,#sendPhoneCode,#sendEmailCode,#verified,#add_address," +
+				".set_default,.delete_address,#modify_address,.fallback").click(function(){
+	       let othis = $(this);
+	       let method = othis.data('method');
+	       active[method] ? active[method].call(this,othis) : '';
+        })
+      });
+    });
+
+</script>
+
+</body>
+</html>

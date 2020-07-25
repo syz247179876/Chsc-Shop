@@ -1,0 +1,194 @@
+{% extends 'base-personal.html' %}
+{% block personal_content %}
+{% load static %}
+<link href="{% static 'css/consumer/addstyle.css' %}" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="{% static 'js/consumer/jsAddress.js' %}"></script>
+					<div class="user-address">
+						<!--标题 -->
+						<div class="am-cf am-padding">
+							<div class="am-fl am-cf"><strong class="am-text-danger am-text-lg">地址管理</strong> / <small>Address&nbsp;list</small></div>
+						</div>
+						<hr/>
+						<ul class="am-avg-sm-1 am-avg-md-3 am-thumbnails">
+
+							{% for address in addresses %}
+							{% if address.default_address %}
+							<li class="user-addresslist defaultAddr">
+								<span class="new-option-r set_default" data-method="set_default" ><i class="am-icon-check-circle"></i>默认地址</span>
+								<p class="new-tit new-p-re">
+									<span class="new-txt">{{address.recipients}}</span>
+									<span class="new-txt-rd2">{{address.phone}}</span>
+								</p>
+								<div class="new-mu_l2a new-p-re">
+									<p class="new-mu_l2cw">
+										<span class="title">地址：</span>
+										<span class="province">{{address.region}}</span>
+									</p>
+								</div>
+								<div class="new-addr-btn">
+									<p class="pk">{{address.pk}}</p>
+									<a href="/consumer/personal_edit_address/chsc_p={{address.pk}}" ><i class="am-icon-edit"></i>编辑</a>
+									<span class="new-addr-bar">|</span>
+									<a href="javascript:void(0);" data-method="delete_address" class="delete_address"><i class="am-icon-trash"></i>删除</a>
+								</div>
+							</li>
+							{% else %}
+							<li class="user-addresslist">
+								<span class="new-option-r set_default" data-method="set_default" ><i class="am-icon-check-circle"></i>设为默认</span>
+								<p class="new-tit new-p-re">
+									<span class="new-txt">{{address.recipients}}</span>
+									<span class="new-txt-rd2">{{address.phone}}</span>
+								</p>
+								<div class="new-mu_l2a new-p-re">
+									<p class="new-mu_l2cw">
+										<span class="title">地址：</span>
+										<span class="province">{{address.region}}</span>
+									</p>
+								</div>
+								<div class="new-addr-btn">
+									<p class="pk">{{address.pk}}</p>
+									<a href="/consumer/personal_edit_address/chsc_p={{address.pk}}" ><i class="am-icon-edit"></i>编辑</a>
+									<span class="new-addr-bar">|</span>
+									<a href="javascript:void(0);" data-method="delete_address" class="delete_address"><i class="am-icon-trash"></i>删除</a>
+								</div>
+							</li>
+							{% endif %}
+							{% endfor %}
+						</ul>
+						<div class="clear"></div>
+						<a class="new-abtn-type" data-am-modal="{target: '#add-modal-address', closeViaDimmer: 0}">添加新地址</a>
+						<!--添加地址-->
+						{% include 'add-address.html' %}
+					</div>
+					<script type="text/javascript">
+						$(function () {
+							let $ww = $(window).width();
+							if($ww>640) {
+								$("#add-modal-address").removeClass("am-modal am-modal-no-btn");
+							}
+						})
+					</script>
+
+<script type="text/javascript">
+    addressInit('area','province','city','dist','华北地区', '北京', '市辖区', '东城区');
+    //addressInit('Select1', 'Select2', 'Select3');
+</script>
+
+{% endblock %}
+
+{% block scriptContent %}
+		add_address: function () {
+			let recipients = $("#recipients").val().trim();
+			let phone = $("#phone").val();
+			let area = $("#area").val().trim();
+			let province = $("#province").val().trim();
+			let city = $("#city").val().trim();
+			let dist = $("#dist").val().trim();
+			let intro = $("#intro").val().trim();
+			let address_tags = $('input:radio[name="address_tags"]:checked').val();
+			let region_list = [];
+			region_list.push(area);
+			region_list.push(province);
+			region_list.push(city);
+			region_list.push(dist);
+			region_list.push(intro);
+			let region = region_list.join('-');
+			if (recipients === '') {
+				layer.msg('请填写收货人', {icon: 7, time: 1200, closeBtn: 0});
+			} else if (phone === '') {
+				layer.msg('请填写手机号', {icon: 7, time: 1200, closeBtn: 0});
+			} else if (intro === '') {
+				layer.msg('请填写详细的信息', {icon: 7, time: 1200, closeBtn: 0});
+			} else if (address_tags === undefined) {
+				layer.msg('请选择地址标签', {icon: 7, time: 1200, closeBtn: 0});
+			} else {
+				layer.load(0, {time: 10000});
+				let url = '/consumer/address-operation-chsc-api/';
+				let data = {
+					'recipients': recipients,
+					'phone': phone,
+					'region': region,
+					'address_tags': address_tags,
+					'way':'add',
+				};
+				$.ajax({
+					type: 'POST',
+					data: data,
+					url: url,
+					headers: headers,
+					success: function (data) {
+						if (data.code === 35) {
+							layer.msg('地址添加成功!', {icon: 1, time: 1200, closeBtn: 0});
+                            window.location.href = '/consumer/personal_address/';
+						} else if (data.code === -35) {
+							layer.msg('地址添加失败!', {icon: 2, time: 1500, closeBtn: 0});
+						}
+					},
+					error: function () {
+						layer.msg('服务器无响应!', {icon: 2, time: 1500, closeBtn: 0});
+					}
+				});
+				layer.closeAll('loading');
+			}
+		},
+		set_default: function () {
+            layer.load(0, {time: 2000});
+			let othis = $(this);
+			let pk = othis.siblings('.new-addr-btn').children('.pk').text();
+			let url = '/consumer/address-operation-chsc-api/';
+			let data = {
+				'pk':pk,
+				'way':'default'
+			};
+			$.ajax({
+				type:'PUT',
+				url:url,
+				data:data,
+				headers:headers,
+				success:function (data) {
+					if (data.code === 42){
+						othis.parent('.user-addresslist').addClass("defaultAddr").siblings().removeClass("defaultAddr");
+					}
+					 else if (data.code === -42) {
+						layer.msg('更换地址失败！', {icon: 2, time: 1500, closeBtn: 0});
+					}
+				},
+				error:function () {
+					layer.msg('服务器无响应',{icon:2,time:1200,closeBtn:0});
+				}
+			});
+            layer.closeAll('loading');
+
+		},
+		delete_address: function(){
+			let othis = $(this);
+			let pk = othis.siblings('.pk').text();
+			let url = '/consumer/address-operation-chsc-api/';
+			let data = {
+				'pk':pk,
+				'way':'delete'
+			};
+			layer.confirm('确定要删除嘛？',{icon:7,title:'提示'}, function(index) {
+					$.ajax({
+						type: 'DELETE',
+						url: url,
+						data: data,
+						headers: headers,
+						success: function (data) {
+							if (data.code === 55) {
+                                layer.close(index);
+								window.location.href = '/consumer/personal_address/';
+							} else if (data.code === -55) {
+								layer.msg('删除地址失败!', {icon: 2, time: 1500, closeBtn: 0});
+							}
+						},
+						error: function () {
+							layer.msg('服务器无响应!', {icon: 2, time: 1500, closeBtn: 0});
+						}
+					});
+			});
+		},
+{% endblock %}
+
+
+
