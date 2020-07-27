@@ -39,7 +39,7 @@ def single(cls):
     _instance = {}
 
     def generate_obj(*args, **kwargs):
-        if _instance.setdefault(cls,None):
+        if _instance.setdefault(cls, None):
             _instance[cls] = cls(*args, **kwargs)
         return _instance[cls]
 
@@ -74,7 +74,5 @@ class m:
     def __init__(self):
         pass
 
+
 print(len(dir(m)))
-
-
-

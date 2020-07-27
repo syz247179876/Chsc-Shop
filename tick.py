@@ -1,7 +1,6 @@
 import re
 
-if re.match(r'1[3456789]\d{9}$', '13511722028'):
-    print(re.match(r'1[3456789]\d{9}$', '13511722028').group())
+
 
 print(re.search(r'1[3456789]\d{9}$', '13511722028').group())
 
@@ -34,3 +33,5 @@ class Son(Father):
 
 Son.mm()
 
+if re.match(r'^\?next=/(\w+)', '?next=/consumer/homepage'):
+    print(re.match(r'^\?next=((/\w+)*)', '?next=/consumer/homepage').group(1))
