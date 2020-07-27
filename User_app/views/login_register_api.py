@@ -19,22 +19,6 @@ common_logger = Logging.logger('django')
 
 consumer_logger = Logging.logger('consumer_')
 
-# 单例，邮箱or用户名认证
-email_or_username_auth = EmailOrUsername()
-
-# 单例，手机号认证
-phone_auth = Phone()
-
-
-def get_previous_page(path):
-    """获取跳转前的那一页"""
-
-    # 当用户没有登录，跳转到登录页，并记录下之前的那页
-    if path == '':
-        return '/'  # root directory
-    path_list = path.split('?next=')
-    return path_list[-1]
-
 
 class LoginAPIView(ObtainJSONWebToken):
     """ 使用JWT登录"""

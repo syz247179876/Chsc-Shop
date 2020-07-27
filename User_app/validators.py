@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : validators.py
 # @Software: PyCharm
-
+import re
 
 from django.core import validators
 from django.utils.deconstruct import deconstructible
@@ -40,3 +40,51 @@ class PhoneValidator(validators.RegexValidator):
 
     def __init__(self, regex=regex, message=message, code=None, inverse_match=None, flags=flags):
         super().__init__(regex, message, flags)
+
+
+def username_validate(username):
+    """用户名验证"""
+    regex = r'[a-zA-Z0-9]{6,20}'
+    if isinstance(username, str) and re.match(regex, username):
+        return True
+    return False
+
+
+def password_validate(password):
+    """密码验证"""
+    regex = r'[a-zA-Z0-9]{8,20}'
+    if isinstance(password, str) and re.match(regex, password):
+        return True
+    return False
+
+
+def url_validate(url):
+    """
+    URL验证
+    用于登录传递URL
+    """
+    regex = r'^\?next=((/\w+)*)'
+    if isinstance(url, str) and re.match(regex, url):
+        return url.split('?next=')[-1]
+    return '/'   # 错误传回首页
+
+
+def email_validate(email):
+    """邮箱验证"""
+
+    regex = r'\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*'
+    if isinstance(email, str) and re.match(regex,email):
+        return True
+    return False
+
+
+def phone_validate(phone):
+    """手机号验证"""
+
+    regex = r'^1[3456789]\d{9}$'
+    if isinstance(phone, str) and re.match(regex, phone):
+        return True
+    return False
+
+
+

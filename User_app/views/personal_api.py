@@ -5,10 +5,14 @@
 # @Software: PyCharm
 import datetime
 
+from rest_framework import status
+
 from User_app.models.user_models import Address, Consumer
 from User_app.redis.favorites_redis import RedisFavoritesOperation
 from User_app.redis.foot_redis import FootRedisOperation
 from User_app.redis.shopcart_redis import ShopCartRedisOperation
+
+from User_app.serializers.BindEmailOrPhoneSerializersApi import BindPhoneOrEmailSerializer
 from User_app.serializers.FavoritesSerializersApi import FavoritesSerializer
 from User_app.serializers.AddressSerializerApi import AddressSerializers
 
@@ -20,13 +24,13 @@ from User_app.views.ali_card_ocr import Interface_identify
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction, DatabaseError
-from django.http import Http404
+from rest_framework import generics
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from User_app import validators
 
 common_logger = Logging.logger('django')
 consumer_logger = Logging.logger('consumer_')
@@ -38,18 +42,19 @@ class SaveInformation(APIView):
     @staticmethod
     def save_user(user, username):
         """修改用户昵称"""
-        user.username = username
+        if not validators.username_validate(username):
+            return Response(response_code.username_formation_error, status=status.HTTP_400_BAD_REQUEST)
         try:
             user.save(update_fields=['username'])
         except DatabaseError:
-            return Response(response_code.server_error)
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response(response_code.user_infor_change_success)
+            return Response(response_code.user_infor_change_success, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def put(self, request):
         """处理修改用户信息POST请求"""
         if not request.user.is_authenticated:
-            raise Http404
+            return Response(response_code.username_forbidden_error, status=status.HTTP_403_FORBIDDEN)
         username = request.data.get('username')
         user = request.user
         return self.save_user(user, username)
@@ -64,21 +69,25 @@ class ChangePassword(APIView):
     @staticmethod
     def modify_password(user, old_password, new_password):
         """改变用户的密码"""
+        if not validators.password_validate(new_password):
+            return Response(response_code.password_formation_error, status=status.HTTP_400_BAD_REQUEST)
         try:
             is_checked = user.check_password(old_password)  # 核查旧密码
             if not is_checked:
-                return Response(response_code.user_original_password_error)
+                return Response(response_code.user_original_password_error,
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 user.set_password(new_password)  # 设置新密码
         except User.DoesNotExist:
-            return Response(response_code.user_not_existed)
+            return Response(response_code.user_not_existed, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             try:
                 user.save(update_fields=["password"])
             except Exception:
-                return Response(response_code.modify_password_verification_error)
+                return Response(response_code.modify_password_verification_error,
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
-                return Response(response_code.modify_password_verification_success)
+                return Response(response_code.modify_password_verification_success, status=status.HTTP_200_OK)
 
     def post(self, request):
         """处理密码修改POST请求"""
@@ -88,69 +97,61 @@ class ChangePassword(APIView):
         return self.modify_password(user, old_password, new_password)
 
 
-# 来人，给朕废了它
-class SetpayPassword(APIView):
-    def post(self, request):
-        pass
-
-
 class BindEmailOrPhone(APIView):
     """
     绑定（改绑）用户邮箱或者手机号
     需发送验证码验证
     """
-    redis = RedisVerificationOperation.choice_redis_db('redis')  # 选择redis的db
+    redis = RedisVerificationOperation.choice_redis_db('redis')  # 选择配置文件中的redis
 
-    def bind_email(self, request, user, code):
-        """绑定（改绑）手机号"""
-        new_email = request.data.get('new_email')
-        old_email = request.data.get('old_email')
-        is_true = self.redis.check_code(old_email, code)  # 与redis中验证码核对
-        if not is_true:
-            return Response(response_code.verification_code_error)
-        else:
-            user.email = new_email
-            try:
-                user.save(update_fields=['email'])
-            except Exception:
-                return Response(response_code.server_error)
-            else:
-                return Response(response_code.bind_email_success)
+    serializer_class = BindPhoneOrEmailSerializer
 
-    def bind_phone(self, request, user, code):
-        """绑定（改绑）手机号"""
-        new_phone = request.data.get('new_phone')
-        old_phone = request.data.get('old_phone')
-        is_true = self.redis.check_code(old_phone, code)  # 核对验证码
-        if not is_true:
-            return Response(response_code.verification_code_error)
-        else:
-            consumer = Consumer.consumer_.get(user=user)
-            consumer.phone = new_phone
-            try:
-                with transaction.atomic():
-                    consumer.save(update_fileds=['phone'])
-            except DatabaseError:
-                return Response(response_code.server_error)
-            else:
-                return Response(response_code.bind_phone_success)
+    def get_serializer_class(self):
+        return self.serializer_class
 
-    def factory(self, request, user, code, way):
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'view': self,
+        }
+
+    def factory(self, way, serializer, instance):
         """简单工厂管理手机号和邮箱的改绑"""
         func_list = {
             'email': 'bind_email',
             'phone': 'bind_phone',
         }
         func = func_list.get(way)
-        result = getattr(self, func)
-        return result(request, user, code)
+        bind = getattr(serializer, func)
+        return bind(self.redis, instance, serializer.validated_data)
 
-    def post(self, request):
+    def put(self, request):
         """处理改绑POST请求"""
-        way = request.data.get('way')
-        code = request.data.get('code')
-        user = request.user
-        return self.factory(request, user, code, way)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            # 校验成功
+            way = serializer.validated_data.get('way')
+            if way == 'phone':
+                instance = Consumer.consumer_.get(user=request.user)
+                bind_success = self.factory(way, serializer, instance)
+                # 改绑成功
+                if bind_success:
+                    return Response(response_code.bind_phone_success, status=status.HTTP_200_OK)
+                # 改绑失败
+                return Response(response_code.bind_email_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                instance = request.user
+                bind_success = self.factory(way, serializer, instance)
+                if bind_success:
+                    return Response(response_code.bind_email_success, status=status.HTTP_200_OK)
+                return Response(response_code.bind_email_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # 校验错误
+        return Response(response_code.validation_error, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VerifyIdCard(APIView):
@@ -166,7 +167,10 @@ class VerifyIdCard(APIView):
 
     @staticmethod
     def trans_birth(read_birth):
-        """重构生日"""
+        """
+        重构生日
+        返回日期类型
+        """
         year = read_birth[0:4]
         month = read_birth[4:6]
         day = read_birth[6:8]
@@ -211,15 +215,18 @@ class SecretSecurity(APIView):
     pass
 
 
-class AddressOperation(APIView):
+class AddressOperation(generics.GenericAPIView):
     """
-    收货地址处理（之后重构以下，改继承APIView的工具类）
+    收货地址处理
     """
 
+    serializer_class = AddressSerializers
+
+    queryset = None
+
     @staticmethod
-    def add_new_address(user, data):
+    def add_new_address(serializer, user, data):
         """增加新地址"""
-        serializer = AddressSerializers(data=data)
         if serializer.is_valid():
             # 会调用各字段的validators验证器
             # 传入data数据实例化serializer对象，才可以调用is_valid()方法，才能校验获取validated_data
@@ -231,24 +238,17 @@ class AddressOperation(APIView):
         return Response(serializer.errors)
 
     @staticmethod
-    def put_default_address(user, data):
+    def put_default_address(user, serializer):
         """修改默认地址"""
-        try:
-            with transaction.atomic():
-                addresses = Address.address_.filter(user=user)
-                addresses.filter(default_address=True).update(default_address=False)  # 全置为False
-                addresses.filter(pk=data.get('pk')).update(default_address=True)     # 重设默认地址
-        except DatabaseError:
-            return Response(response_code.modify_default_error)
+        if serializer.put_default_address(user, serializer.validated_data):
+            return Response(response_code.modify_default_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response(response_code.modify_default_success)
+            return Response(response_code.modify_default_success, status=status.HTTP_200_OK)
 
-    @staticmethod
-    def put_edit_address(user, data):
+    def put_edit_address(user, serializer):
         """修改地址"""
-        serializer = AddressSerializers(data=data)
         if serializer.is_valid():
-            is_true = serializer.add_or_edit_address(user, data)
+            is_true = serializer.add_or_edit_address(user, serializer)
             if is_true:
                 return Response(response_code.address_edit_success)
             else:
@@ -256,7 +256,6 @@ class AddressOperation(APIView):
         # 以后改成server_error
         return Response(serializer.errors)
 
-    @staticmethod
     def delete_address(user, data):
         """删除某个选定的地址"""
         try:
@@ -264,47 +263,30 @@ class AddressOperation(APIView):
                 Address.address_.get(pk=data.get('pk')).delete()
         except DatabaseError as e:
             common_logger.info(e)
-            return Response(response_code.delete_address_error)
+            return False
         else:
-            return Response(response_code.delete_address_success)
-
-    def factory(self, user, way, data):
-        """简单工厂管理地址处理操作"""
-        func_dict = {
-            'default': 'put_default_address',
-            'edit': 'put_edit_address',
-            'add': 'add_new_address',
-            'delete': 'delete_address',
-        }
-        func = func_dict.get(way)
-        result = getattr(self, func)
-        return result(user, data)
+            return True
 
     @method_decorator(login_required(login_url='consumer/login/'))
     def put(self, request):
         """修改地址PUT请求"""
-        data = request.data.copy()
-        way = data.pop('way')[0]
-        user = request.user
-        common_logger.info(data)
-        return self.factory(user, way, data)
+        serializer = self.get_serializer(data=request.data)
+        pass
 
     @method_decorator(login_required(login_url='consumer/login/'))
     def post(self, request):
         """增加地址POST请求"""
-        data = request.data.copy()
-        way = data.pop('way')[0]
-        user = request.user
-        return self.factory(user, way, data)
+        serializer = AddressSerializers(data=request.data)
+        pass
 
     @method_decorator(login_required(login_url='consumer/login/'))
     def delete(self, request):
         """删除地址DELETE请求"""
-        data = request.data.copy()
-        common_logger.info(data)
-        way = data.pop('way')[0]
-        user = request.user
-        return self.factory(user, way, data)
+        serializer = AddressSerializers(data=request.data)
+        delete_success = serializer.delete_address(serializer.validated_data)
+        if delete_success:
+            return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
+        return Response(response_code.delete_address_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class FavoriteOperation(APIView):

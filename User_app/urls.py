@@ -38,7 +38,6 @@ urlpatterns = [
     path('verification-code-chsc-bind-api/', VerificationCodeBind.as_view(), name='verification-code-chsc-bind-api'),
     path('information-changes-chsc-api/', SaveInformation.as_view(), name='information-changes-chsc-api'),
     path('password-changes-chsc-api/', ChangePassword.as_view(), name='password-changes-chsc-api'),
-    path('password-pay-chsc-api/', SetpayPassword.as_view(), name='password-pay-chsc-api'),
     path('email-or-phone-binding-chsc-api/', BindEmailOrPhone.as_view(), name='email-or-phone-binding-chsc-api'),
     path('verification-name-chsc-api/', VerifyIdCard.as_view(), name='verification-name-chsc-api'),
     path('secret-security-chsc-api/', SecretSecurity.as_view(), name='secret-security-chsc-api'),

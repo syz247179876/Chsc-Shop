@@ -8,6 +8,7 @@ from django_redis import get_redis_connection
 
 
 class BaseRedis:
+    _redis_instance = {}
     _instance = {}
 
     def __init__(self, redis_instance):
@@ -15,11 +16,14 @@ class BaseRedis:
 
     @classmethod
     def choice_redis_db(cls, db):
-        """choice designated db in redis"""
-        """different redis db , but follow the single mode"""
+        """
+        选择配置中指定的数据库
+        单例模式，减小new实例的大量创建的次数，减少内存等资源的消耗（打开和关闭连接），共享同一个资源
+        """
         if not cls._instance.setdefault(db, None):
-            cls._instance[db] = get_redis_connection(db)
-        return cls(cls._instance[db])
+            cls._redis_instance[db] = get_redis_connection(db)   # redis实例
+            cls._instance[db] = cls(cls._redis_instance[db])     # BaseRedis实例
+        return cls._instance[db]
 
     @property
     def redis(self):

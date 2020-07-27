@@ -9,8 +9,8 @@ from User_app.models.user_models import Consumer
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import User
 from django.db.models import Q
-import re
 import logging
+from User_app import validators
 
 common_log = logging.getLogger('django')
 
@@ -18,7 +18,7 @@ common_log = logging.getLogger('django')
 class EmailOrUsername(ModelBackend):
     """
     针对邮箱或者用户名登录，自定义认证
-    用户名规则：6～20位密码，由数字，字母组成
+    用户名规则：6～20位，由数字，字母组成
     邮箱规则：正常邮箱规则
     """
 
@@ -26,8 +26,7 @@ class EmailOrUsername(ModelBackend):
         global consumer
         try:
 
-            if re.match(r'[a-zA-Z0-9]{6,20}', username) or re.match(r'\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*',
-                                                             username):
+            if validators.username_validate(username) or validators.email_validate(username):
                 consumer = User.objects.get(Q(username=username) | Q(email=username))
             else:
                 return None  # 用户名不正确
@@ -49,7 +48,7 @@ class Phone(ModelBackend):
         """authenticate consumer, only phones are allowed to login"""
         global consumer
         try:
-            if re.match(r'^1[3456789]\d{9}$', username):
+            if validators.phone_validate(username):
                 consumer = Consumer.consumer_.get(phone=username)
             else:
                 return None

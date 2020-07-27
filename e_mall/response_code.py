@@ -217,6 +217,18 @@ ADD_GOOD_INTO_FAVORITIES_ERROR = -788
 # 服务器无响应
 SERVER_ERROR = 500
 
+# 用户名格式不规则
+USERNAME_FORMATION = 996
+
+# 用户无权限
+USER_FORBIDDEN = 403
+
+# 用户密码格式不正确
+PASSWORD_FORMATION_ERROR = 965
+
+# 校验出错
+VALIDATION_ERROR = 400
+
 
 class ResponseCode:
     result = {
@@ -227,172 +239,196 @@ class ResponseCode:
     }
 
     @property
+    def validation_error(self):
+        """校验错误"""
+        self.result.update(dict(code=VALIDATION_ERROR, msg='校验错误', status='error'))
+        return self.result
+
+    @property
+    def password_formation_error(self):
+        """用户密码格式不正确"""
+        self.result.update(dict(code=PASSWORD_FORMATION_ERROR, msg='密码格式不正确', status='error'))
+        return self.result
+
+    @property
+    def username_forbidden_error(self):
+        """用户尚未登录"""
+        self.result.update(dict(code=USER_FORBIDDEN, msg='用户尚未登录', status='error'))
+        return self.result
+
+    @property
+    def username_formation_error(self):
+        """邮箱不规则"""
+        self.result.update(dict(code=USERNAME_FORMATION, msg='密码格式不正确', status='error'))
+        return self.result
+
+    @property
     def verification_code_error(self):
         """验证码验证"""
-        self.result.update(dict(code=VERIFICATION_CODE_ERROR, msg='code', status='error'))
+        self.result.update(dict(code=VERIFICATION_CODE_ERROR, msg='验证码验证失败', status='error'))
         return self.result
 
     @property
     def login_success(self):
         """登录验证成功"""
-        self.result.update(dict(code=LOGIN_VERIFICATION_SUCCESS, msg='login', status='success'))
+        self.result.update(dict(code=LOGIN_VERIFICATION_SUCCESS, msg='登录验证成功', status='success'))
         return self.result
 
     @property
     def login_error(self):
         """登录验证失败"""
-        self.result.update(dict(code=LOGIN_VERIFICATION_ERROR, msg='login', status='error'))
+        self.result.update(dict(code=LOGIN_VERIFICATION_ERROR, msg='登录验证失败', status='error'))
         return self.result
 
     @property
     def register_success(self):
         """注册验证成功"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_SUCCESS, msg='register', status='success'))
+        self.result.update(dict(code=REGISTER_VERIFICATION_SUCCESS, msg='注册验证成功', status='success'))
         return self.result
 
     @property
     def register_error(self):
         """注册验证失败"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_ERROR, msg='register', status='error'))
+        self.result.update(dict(code=REGISTER_VERIFICATION_ERROR, msg='注册验证失败', status='error'))
         return self.result
 
     @property
     def email_verification_success(self):
         """邮件验证成功"""
-        self.result.update(dict(code=EMAIL_VERIFICATION_SUCCESS, msg='email_verification', status='success'))
+        self.result.update(dict(code=EMAIL_VERIFICATION_SUCCESS, msg='邮件验证成功', status='success'))
         return self.result
 
     @property
     def email_verification_error(self):
         """邮件验证失败"""
-        self.result.update(dict(code=EMAIL_VERIFICATION_ERROR, msg='email_verification', status='error'))
+        self.result.update(dict(code=EMAIL_VERIFICATION_ERROR, msg='邮件验证失败', status='error'))
         return self.result
 
     @property
     def phone_verification_success(self):
         """手机验证成功"""
-        self.result.update(dict(code=PHONE_VERIFICATION_SUCCESS, msg='phone_verification', status='success'))
+        self.result.update(dict(code=PHONE_VERIFICATION_SUCCESS, msg='手机验证成功', status='success'))
         return self.result
 
     @property
     def phone_verification_error(self):
         """手机验证失败"""
-        self.result.update(dict(code=PHONE_VERIFICATION_SUCCESS, msg='phone_verification', status='error'))
+        self.result.update(dict(code=PHONE_VERIFICATION_SUCCESS, msg='手机验证失败', status='error'))
         return self.result
 
     @property
     def find_password_verification_success(self):
         """找回密码验证成功"""
-        self.result.update(dict(code=FIND_PASSWORD_VERIFICATION_SUCCESS, msg='find_password', status='success'))
+        self.result.update(dict(code=FIND_PASSWORD_VERIFICATION_SUCCESS, msg='找回密码验证成功', status='success'))
         return self.result
 
     @property
     def find_password_verification_error(self):
-        """找回密码验证成功"""
-        self.result.update(dict(code=FIND_PASSWORD_VERIFICATION_ERROR, msg='find_password', status='error'))
+        """找回密码验证失败"""
+        self.result.update(dict(code=FIND_PASSWORD_VERIFICATION_ERROR, msg='找回密码验证失败', status='error'))
         return self.result
 
     @property
     def modify_password_verification_success(self):
-        """找回密码验证成功"""
-        self.result.update(dict(code=MODIFY_PASSWORD_VERIFICATION_SUCCESS, msg='modify_password', status='success'))
+        """修改密码验证成功"""
+        self.result.update(dict(code=MODIFY_PASSWORD_VERIFICATION_SUCCESS, msg='修改密码验证成功', status='success'))
         return self.result
 
     @property
     def modify_password_verification_error(self):
-        """找回密码验证成功"""
-        self.result.update(dict(code=MODIFY_PASSWORD_VERIFICATION_ERROR, msg='modify_password', status='error'))
+        """修改密码验证失败"""
+        self.result.update(dict(code=MODIFY_PASSWORD_VERIFICATION_ERROR, msg='修改密码验证失败', status='error'))
         return self.result
 
     @property
     def user_existed(self):
         """用户已经存在"""
-        self.result.update(dict(code=USER_EXISTS, msg='register', status='error'))
+        self.result.update(dict(code=USER_EXISTS, msg='用户已经存在', status='error'))
         return self.result
 
     @property
     def user_not_existed(self):
         """用户不存在"""
-        self.result.update(dict(code=USER_NOT_EXISTS, msg='login', status='error'))
+        self.result.update(dict(code=USER_NOT_EXISTS, msg='用户不存在', status='error'))
         return self.result
 
     @property
     def email_exist(self):
         """邮箱已存在"""
-        self.result.update(dict(code=EMAIL_EXISTS, msg='email_verification', status='error'))
+        self.result.update(dict(code=EMAIL_EXISTS, msg='邮箱已存在', status='error'))
         return self.result
 
     @property
     def phone_exist(self):
         """手机已存在"""
-        self.result.update(dict(code=PHONE_EXISTS, msg='phone_verification', status='error'))
+        self.result.update(dict(code=PHONE_EXISTS, msg='手机已存在', status='error'))
         return self.result
 
     @property
     def server_error(self):
         """服务器无响应"""
-        self.result.update(dict(code=SERVER_ERROR, msg='server_error', status='error'))
+        self.result.update(dict(code=SERVER_ERROR, msg='服务器无响应', status='error'))
         return self.result
 
     @property
     def user_infor_change_success(self):
-        """succeed to save user information"""
-        self.result.update(dict(code=USER_INFOR_CHANGE_SUCCESS, msg='change_information', status='success'))
+        """修改信息成功"""
+        self.result.update(dict(code=USER_INFOR_CHANGE_SUCCESS, msg='修改信息成功', status='success'))
         return self.result
 
     @property
     def user_infor_change_error(self):
-        """fail to save user information"""
-        self.result.update(dict(code=USER_INFOR_CHANGE_ERROR, msg='change_information', status='error'))
+        """修改信息失败"""
+        self.result.update(dict(code=USER_INFOR_CHANGE_ERROR, msg='修改信息失败', status='error'))
         return self.result
 
     @property
     def user_original_password_error(self):
-        """original password of user is error"""
-        self.result.update(dict(code=USER_ORIGINAL_PASSWORD_ERROR, msg='change_password', status='error'))
+        """原密码不正确"""
+        self.result.update(dict(code=USER_ORIGINAL_PASSWORD_ERROR, msg='原密码不正确', status='error'))
         return self.result
 
     @property
     def bind_email_success(self):
-        """original password of user is error"""
-        self.result.update(dict(code=BIND_EMAIL_SUCCESS, msg='bind_email', status='suceess'))
+        """绑定邮箱成功"""
+        self.result.update(dict(code=BIND_EMAIL_SUCCESS, msg='绑定邮箱成功', status='success'))
         return self.result
 
     @property
     def bind_email_error(self):
-        """original password of user is error"""
-        self.result.update(dict(code=BIND_EMAIL_ERROR, msg='bind_email', status='error'))
+        """绑定邮箱失败"""
+        self.result.update(dict(code=BIND_EMAIL_ERROR, msg='绑定邮箱失败', status='error'))
         return self.result
 
     @property
     def bind_phone_success(self):
-        """original password of user is error"""
-        self.result.update(dict(code=BIND_PHONE_SUCCESS, msg='bind_phone', status='success'))
+        """绑定手机成功"""
+        self.result.update(dict(code=BIND_PHONE_SUCCESS, msg='绑定手机成功', status='success'))
         return self.result
 
     @property
     def bind_phone_error(self):
-        """original password of user is error"""
-        self.result.update(dict(code=BIND_PHONE_ERROR, msg='bind_phone', status='error'))
+        """绑定手机失败"""
+        self.result.update(dict(code=BIND_PHONE_ERROR, msg='绑定手机失败', status='error'))
         return self.result
 
     @property
     def verify_id_card_success(self):
-        """certificate user authentication successfunlly"""
-        self.result.update(dict(code=VERIFY_ID_CARD_SUCCESS, msg='verify', status='success'))
+        """身份认证成功"""
+        self.result.update(dict(code=VERIFY_ID_CARD_SUCCESS, msg='身份认证成功', status='success'))
         return self.result
 
     @property
     def verify_id_card_error(self):
-        """fail to authenticate User"""
-        self.result.update(dict(code=VERIFY_ID_CARD_ERROR, msg='verify', status='error'))
+        """身份认证失败"""
+        self.result.update(dict(code=VERIFY_ID_CARD_ERROR, msg='身份认证失败', status='error'))
         return self.result
 
-    @property
-    def secret_security_success(self):
-        """set secret security successfully"""
-        self.result.update(dict(code=SECRET_SECURITY_SUCCESS, msg='secret_security', status='success'))
-        return self.result
+    # @property
+    # def secret_security_success(self):
+    #     """设置"""
+    #     self.result.update(dict(code=SECRET_SECURITY_SUCCESS, msg='secret_security', status='success'))
+    #     return self.result
 
     @property
     def real_name_authentication_success(self):
