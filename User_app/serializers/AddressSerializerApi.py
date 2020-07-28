@@ -15,20 +15,22 @@ consumer_logger = Logging.logger('consumer_')
 
 
 class AddressSerializers(serializers.ModelSerializer):
-    """the serializers of Model -- Address"""
+    pk = serializers.IntegerField()
 
     class Meta:
         model = Address
-        fields = ['recipients', 'region', 'address_tags', 'phone']
+        fields = ['pk', 'recipients', 'region', 'address_tags', 'phone']
 
-    def add_or_edit_address(self, user, validated_data):
-        """create new address instance"""
-        ModelClass = self.Meta.model
-        address_ = Address.address_.filter(user=user).count()
+    def add_or_edit_address(self, instance, validated_data):
+        """
+        创建新的地址
+        如果第一次创建地址，则将第一个地址设置为默认地址
+        """
+        address_ = self.Meta.model.address_.filter(user=instance).count()
         try:
             default_address = True if address_ == 0 else False
-            address = ModelClass.address_.create(
-                user=user,
+            address = self.Meta.model.address_.create(
+                user=instance,
                 default_address=default_address,
                 recipients=validated_data['recipients'],
                 region=validated_data['region'],
@@ -36,34 +38,42 @@ class AddressSerializers(serializers.ModelSerializer):
                 phone=validated_data['phone'],
             )
         except Exception as e:
-            common_logger.info(str(e))
+            consumer_logger.error(e)
             return None
         else:
             return address
 
-    @staticmethod
-    def update_default(instance, validated_data):
-        """edit information of address"""
-        """for key, value in validated_data.items():
-            setattr(instance, key, value)"""
-        instance.default_address = True
+    def update_default_address(self, queryset, validated_data):
+        """修改默认地址"""
         try:
+            # 开启事务
             with transaction.atomic():
-                instance.save()
+                addresses = queryset
+                addresses.filter(default_address=True).update(default_address=False)  # 全置为False
+                addresses.filter(pk=validated_data['pk']).update(default_address=True)  # 重设默认地址
+                return True
         except DatabaseError:
-            return None
-        else:
-            return instance
+            return False
 
-    @staticmethod
-    def update_edit(instance, validated_data):
-        """update default of address instance with using pk"""
+    def update_address(self, validated_data):
+        """修改地址"""
+        instance = self.Meta.model.address_.get(pk=validated_data['pk'])
         for key, value in validated_data.items():
             setattr(instance, key, value)
         try:
-            with transaction.atomic():
-                instance.save()
-        except DatabaseError:
-            return None
+            instance.save()
+        except Exception as e:
+            consumer_logger.error(e)
+            return False
         else:
-            return instance
+            return True
+
+    def delete_address(self, queryset, validated_data):
+        """删除某个选定的地址"""
+        try:
+            queryset.get(pk=validated_data['pk']).delete()
+        except DatabaseError as e:
+            consumer_logger.error(e)
+            return False
+        else:
+            return True

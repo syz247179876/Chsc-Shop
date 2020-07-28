@@ -5,7 +5,8 @@
 # @Software: PyCharm
 import datetime
 
-from rest_framework import status
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 
 from User_app.models.user_models import Address, Consumer
 from User_app.redis.favorites_redis import RedisFavoritesOperation
@@ -210,83 +211,61 @@ class VerifyIdCard(APIView):
         return self.verify(pk, image.file.read(), card_type)
 
 
-class SecretSecurity(APIView):
-    """来人，把它拖出去给我斩了"""
-    pass
-
-
-class AddressOperation(generics.GenericAPIView):
+class AddressOperation(viewsets.ModelViewSet):
     """
     收货地址处理
     """
 
     serializer_class = AddressSerializers
 
-    queryset = None
+    def get_queryset(self):
+        # APIView重新封装过了request，因此self.request
+        # 暂时用不到
+        return Address.address_.filter(user=self.request.user)
 
-    @staticmethod
-    def add_new_address(serializer, user, data):
-        """增加新地址"""
-        if serializer.is_valid():
-            # 会调用各字段的validators验证器
-            # 传入data数据实例化serializer对象，才可以调用is_valid()方法，才能校验获取validated_data
-            is_true = serializer.add_or_edit_address(user, data)
-            if is_true:
-                return Response(response_code.address_add_success)
-            else:
-                return Response(response_code.address_add_error)
-        return Response(serializer.errors)
-
-    @staticmethod
-    def put_default_address(user, serializer):
-        """修改默认地址"""
-        if serializer.put_default_address(user, serializer.validated_data):
-            return Response(response_code.modify_default_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response(response_code.modify_default_success, status=status.HTTP_200_OK)
-
-    def put_edit_address(user, serializer):
-        """修改地址"""
-        if serializer.is_valid():
-            is_true = serializer.add_or_edit_address(user, serializer)
-            if is_true:
-                return Response(response_code.address_edit_success)
-            else:
-                return Response(response_code.address_edit_error)
-        # 以后改成server_error
-        return Response(serializer.errors)
-
-    def delete_address(user, data):
-        """删除某个选定的地址"""
-        try:
-            with transaction.atomic():
-                Address.address_.get(pk=data.get('pk')).delete()
-        except DatabaseError as e:
-            common_logger.info(e)
-            return False
-        else:
-            return True
-
+    # action中的detail用于标识为装饰的视图生成{view_name:url}的有序字典映射
+    # 将url和视图绑定
     @method_decorator(login_required(login_url='consumer/login/'))
-    def put(self, request):
-        """修改地址PUT请求"""
+    @action(methods=['put'], detail=True)
+    def update_default_address(self, request):
+        """单修改默认地址"""
         serializer = self.get_serializer(data=request.data)
-        pass
+        if serializer.is_valid():
+            if serializer.update_default_address(self.get_queryset(), serializer.validated_data):
+                return Response(response_code.modify_default_success, status=status.HTTP_200_OK)
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(response_code.modify_default_error, status=status.HTTP_400_BAD_REQUEST)
 
     @method_decorator(login_required(login_url='consumer/login/'))
-    def post(self, request):
-        """增加地址POST请求"""
-        serializer = AddressSerializers(data=request.data)
-        pass
+    def update(self, request):
+        """单修改地址信息"""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            if serializer.update_address(serializer.validated_data):
+                return Response(response_code.modify_address_success, status=status.HTTP_200_OK)
+            return Response(response_code.modify_default_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(response_code.modify_address_error, status=status.HTTP_400_BAD_REQUEST)
+
+    # 默认与post绑定，反射到post=>post映射到create
+    @method_decorator(login_required(login_url='consumer/login/'))
+    def create(self, request):
+        """单添加地址"""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            if serializer.add_or_edit_address(request.user, serializer.validated_data):
+                return Response(response_code.address_add_success, status=status.HTTP_200_OK)
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(response_code.address_add_error, status=status.HTTP_400_BAD_REQUEST)
 
     @method_decorator(login_required(login_url='consumer/login/'))
-    def delete(self, request):
-        """删除地址DELETE请求"""
-        serializer = AddressSerializers(data=request.data)
-        delete_success = serializer.delete_address(serializer.validated_data)
-        if delete_success:
-            return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
-        return Response(response_code.delete_address_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def destroy(self, request):
+        """单删除地址DELETE请求"""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            if serializer.delete_address(self.get_queryset(), serializer.validated_data):
+                return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(response_code.delete_foot_error, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FavoriteOperation(APIView):

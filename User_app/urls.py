@@ -40,7 +40,6 @@ urlpatterns = [
     path('password-changes-chsc-api/', ChangePassword.as_view(), name='password-changes-chsc-api'),
     path('email-or-phone-binding-chsc-api/', BindEmailOrPhone.as_view(), name='email-or-phone-binding-chsc-api'),
     path('verification-name-chsc-api/', VerifyIdCard.as_view(), name='verification-name-chsc-api'),
-    path('secret-security-chsc-api/', SecretSecurity.as_view(), name='secret-security-chsc-api'),
     path('address-operation-chsc-api/', AddressOperation.as_view(), name='address-operation-chsc-api'),
     path('favorites-operation-chsc-api/', FavoriteOperation.as_view(), name='favorites-operation-chsc-api'),
     path('foot-operation-chsc-api/', FootOperation.as_view(), name='foot-operation-chsc-api'),

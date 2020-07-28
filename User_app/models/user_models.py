@@ -5,7 +5,7 @@
 # @Software: PyCharm
 
 
-from User_app.validators import RecipientsValidator, RegionValidator, PhoneValidator
+from User_app.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User
 from django.db import models
@@ -148,6 +148,7 @@ class Address(models.Model):
     # 收件地址，所在地区,后期改成下拉列表的形式
     region = models.CharField(verbose_name=_('所在地区'),
                               max_length=100,
+                              validators=[RegionValidator(), ]
                               )
     # 地址标签
     address_tags_choice = (
@@ -157,7 +158,9 @@ class Address(models.Model):
     )
     address_tags = models.CharField(verbose_name=_('地址标签'),
                                     max_length=1,
-                                    choices=address_tags_choice)
+                                    choices=address_tags_choice,
+                                    validators=[AddressTagValidator(), ],
+                                    )
     # 是否设置为默认地址
     default_address = models.BooleanField(verbose_name=_('默认地址'),
                                           default=False)
@@ -179,6 +182,9 @@ class Address(models.Model):
         verbose_name = _('收获地址')
         verbose_name_plural = _('收获地址')
         ordering = ('-default_address',)
+
+
+
 
     def __str__(self):
         return self.recipients

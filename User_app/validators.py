@@ -9,12 +9,18 @@ from django.core import validators
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 
+# Django 验证器, 用于表单验证-ModelForm,Model中无反应
+from rest_framework import serializers
 
+
+# deconstructible对该类进行序列化，确保migration的正确性
 @deconstructible
 class RecipientsValidator(validators.RegexValidator):
-    """验证收件人"""
-    regex = '^[\u4e00-\u9fa5]{0,10}$'
-    message = _('验证人的名称不超过10个汉子')
+    """
+    验证收件人
+    """
+    regex = r'[\u4e00-\u9fa5]{1,10}'
+    message = _('验证人的名称必须在1～10个汉字之间')
     flags = 0
 
     def __init__(self, regex=regex, message=message, code=None, inverse_match=None, flags=flags):
@@ -23,8 +29,8 @@ class RecipientsValidator(validators.RegexValidator):
 
 @deconstructible
 class RegionValidator(validators.RegexValidator):
-    """验证省份"""
-    regex = '^[\u4e00-\u9fa5]{0,50}$'
+    """验证收货地址"""
+    regex = r'\w{0,50}'
     message = _('收货地址设置不超过50个汉子')
     flags = 0
 
@@ -32,14 +38,76 @@ class RegionValidator(validators.RegexValidator):
         super().__init__(regex, message, flags)
 
 
+@deconstructible
 class PhoneValidator(validators.RegexValidator):
     """验证手机号"""
-    regex = '^13[0-9]{1}[0-9]{8}|^15[0-9]{1}[0-9]{8}'  # 正则表达式
+    regex = r'^13[0-9]{1}[0-9]{8}|^15[0-9]{1}[0-9]{8}'  # 正则表达式
     message = _('请输入正确的手机号格式')  # 错误提示消息
     flags = 0  # 修饰符
 
     def __init__(self, regex=regex, message=message, code=None, inverse_match=None, flags=flags):
         super().__init__(regex, message, flags)
+
+
+@deconstructible
+class AddressTagValidator(validators.RegexValidator):
+    """验证地址标签"""
+    regex = r'[123]'
+    message = _('请选择正确的地址标签编号')
+    flags = 0
+
+    def __init__(self, regex=regex, message=message, code=None, inverse_match=None, flags=flags):
+        super().__init__(regex, message, flags)
+
+
+# DRF 验证器
+
+class DRFBaseValidator:
+    """基验证器"""
+    regex = None  # 正则表达式
+    message = None  # 错误消息提示
+    type = str  # 值所属的类型
+    re_method = 'match'  # 默认的re方法
+
+    def __call__(self, value):
+        assert self.message is not None, (
+            'Regex , Message and Type cannot be empty,'
+            'Regex means regular string,'
+            'Message means error notice,'
+            'Type means the type to which the value belong'
+        )
+        if not isinstance(value, self.type) or not getattr(re, self.re_method)(self.regex, value):
+            raise serializers.ValidationError(self.message)
+
+
+class DRFUsernameValidator(DRFBaseValidator):
+    """用户名验证"""
+    regex = r'[a-zA-Z0-9]{6,20}'
+    message = _('用户名格式不正确')
+
+
+class DRFPasswordValidator(DRFBaseValidator):
+    """密码验证"""
+    regex = r'[a-zA-Z0-9]{8,20}'
+    message = _('密码格式不正确')
+
+
+class DRFPhoneValidator(DRFBaseValidator):
+    """手机号验证"""
+    regex = '^13[0-9]{1}[0-9]{8}|^15[0-9]{1}[0-9]{8}'
+    message = _('手机号格式不正确')
+
+
+class DRFEmailValidator(DRFBaseValidator):
+    """邮箱验证"""
+    regex = r'\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*'
+    message = _('邮箱格式不正确')
+
+
+class DRFPkValidator(DRFBaseValidator):
+    """对象PK验证"""
+    regex = r'\d{1,10}'
+    message = _('pk应为正整数')
 
 
 def username_validate(username):
@@ -66,14 +134,14 @@ def url_validate(url):
     regex = r'^\?next=((/\w+)*)'
     if isinstance(url, str) and re.match(regex, url):
         return url.split('?next=')[-1]
-    return '/'   # 错误传回首页
+    return '/'  # 错误传回首页
 
 
 def email_validate(email):
     """邮箱验证"""
 
     regex = r'\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*'
-    if isinstance(email, str) and re.match(regex,email):
+    if isinstance(email, str) and re.match(regex, email):
         return True
     return False
 
@@ -85,6 +153,3 @@ def phone_validate(phone):
     if isinstance(phone, str) and re.match(regex, phone):
         return True
     return False
-
-
-
