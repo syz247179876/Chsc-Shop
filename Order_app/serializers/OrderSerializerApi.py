@@ -53,7 +53,7 @@ class OrderBasicSerializer(serializers.ModelSerializer):
             cur_page = int(kwargs.get('page')[0])  # from request.GET
             limit = 4 if 'limit' not in kwargs else int(kwargs.get('limit')[0])  # every time show four order
             status = '0' if 'limit' not in kwargs else kwargs.get('status')[0]
-            total_instances = Order_basic.order_basic_.select_related('region').filter(consumer=user)\
+            total_instances = Order_basic.order_basic_.select_related('region').filter(consumer=user) \
                 .order_by('-generate_time')
             counts = total_instances.count()
             start = (cur_page - 1) * limit

@@ -1,4 +1,6 @@
-from User_app.views.login_register_api import RegisterLoginAPIView, LoginAPIView
+from rest_framework.routers import DefaultRouter
+
+from User_app.views.login_register_api import RegisterAPIView, LoginAPIView
 from User_app.views.personal_api import *
 from User_app.views.verification_code import VerificationCodeBind, VerificationCodePay, \
     VerificationCodeRegister, VerificationCodeShopperRegister
@@ -30,8 +32,8 @@ urlpatterns = [
     path('personal_question/', personal_question, name='personal_question'),
     path(r'personal_edit_address/chsc_p=<str:pk>/', edit_address, name='edit_address'),
     path('login-chsc-api/', LoginAPIView.as_view(), name='login-chsc-api'),
-    path('register-chsc-api/', RegisterLoginAPIView.as_view(), name='register-chsc-api'),
-    path('verification-code-chsc-api/', VerificationCodeRegister.as_view(), name='verification-code-chsc-api'),
+    path('register-chsc-api/', RegisterAPIView.as_view(), name='register-chsc-api'),
+    path('verification-code-chsc-register-api/', VerificationCodeRegister.as_view(), name='verification-code-chsc-api'),
     path('verification-code-shopper-chsc-api/', VerificationCodeShopperRegister.as_view(), name='verification-code'
                                                                                                 '-shopper-chsc-api'),
     path('Verification-code-pay-chs-api/', VerificationCodePay.as_view(), name='Verification-code-pay-chs-api'),
@@ -40,8 +42,11 @@ urlpatterns = [
     path('password-changes-chsc-api/', ChangePassword.as_view(), name='password-changes-chsc-api'),
     path('email-or-phone-binding-chsc-api/', BindEmailOrPhone.as_view(), name='email-or-phone-binding-chsc-api'),
     path('verification-name-chsc-api/', VerifyIdCard.as_view(), name='verification-name-chsc-api'),
-    path('address-operation-chsc-api/', AddressOperation.as_view(), name='address-operation-chsc-api'),
     path('favorites-operation-chsc-api/', FavoriteOperation.as_view(), name='favorites-operation-chsc-api'),
     path('foot-operation-chsc-api/', FootOperation.as_view(), name='foot-operation-chsc-api'),
     path('shop-cart-operation-chsc-api/', ShopCartOperation.as_view(), name='shop-cart-operation-chsc-api'),
 ]
+
+router = DefaultRouter()
+router.register(r'', AddressOperation, basename='address')
+urlpatterns += router.urls

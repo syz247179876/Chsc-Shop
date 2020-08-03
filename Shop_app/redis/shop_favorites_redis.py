@@ -3,7 +3,7 @@
 # @Author : 司云中 
 # @File : shop_favorites_redis.py 
 # @Software: PyCharm
-from User_app.redis.base_redis import BaseRedis
+from e_mall.base_redis import BaseRedis
 from e_mall.loggings import Logging
 
 common_logger = Logging.logger('django')

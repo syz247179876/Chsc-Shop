@@ -5,11 +5,10 @@
 # @Software: PyCharm
 import math
 
-from User_app.redis.base_redis import BaseRedis
+from e_mall.base_redis import BaseRedis
 
 from e_mall.loggings import Logging
 
-from django.contrib.auth.hashers import make_password
 
 common_logger = Logging.logger('django')
 

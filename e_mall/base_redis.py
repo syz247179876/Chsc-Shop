@@ -8,6 +8,7 @@ from django_redis import get_redis_connection
 
 
 class BaseRedis:
+    _redis_instance = {}
     _instance = {}
 
     def __init__(self, redis_instance):
@@ -15,11 +16,15 @@ class BaseRedis:
 
     @classmethod
     def choice_redis_db(cls, db):
-        """选择不同的缓存，例如redis或memcached，甚至redis中不同的db"""
-        """单例模式"""
-        if not cls._instance.setdefault(db, None):
-            cls._instance[db] = cls(get_redis_connection(db))
-        return cls._instance[db]
+        """
+        选择配置中指定的数据库
+        单例模式，减小new实例的大量创建的次数，减少内存等资源的消耗（打开和关闭连接），共享同一个资源
+        实现每个类实例对应一个redis实例
+        """
+        if not cls._instance.setdefault(cls.__name__, None):
+            cls._redis_instance[db] = get_redis_connection(db)   # redis实例
+            cls._instance[cls.__name__] = cls(cls._redis_instance[db])     # 自定义操作类实例
+        return cls._instance[cls.__name__]
 
     @property
     def redis(self):
@@ -27,14 +32,9 @@ class BaseRedis:
 
     @property
     def salt(self):
-        """盐:上线改为随机生成(16位)"""
         return 'qq:247179876@qq.com,blog:syzzjw.cn'
 
     def key(self, *args):
-        """
-        对键加密
-        非str转为str
-        object类型要求定义__str__或__repr__方法
-        """
+        """encryption , if param in args not str , convert into str"""
         keywords = (str(value) if not isinstance(value, str) else value for value in args)
         return make_password('-'.join(keywords), salt=self.salt)

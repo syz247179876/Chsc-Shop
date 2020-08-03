@@ -82,14 +82,15 @@ class DRFBaseValidator:
 
 class DRFUsernameValidator(DRFBaseValidator):
     """用户名验证"""
-    regex = r'[a-zA-Z0-9]{6,20}'
-    message = _('用户名格式不正确')
+    regex = r'^[\w.@+-]+$'  # 限制结尾必须是正确的数，否则用fullmatch
+    message = _('用户名格式不正确,只能包含字符，数字，以及@/./+/-/_ ')
 
 
 class DRFPasswordValidator(DRFBaseValidator):
     """密码验证"""
     regex = r'[a-zA-Z0-9]{8,20}'
     message = _('密码格式不正确')
+    re_method = 'fullmatch'
 
 
 class DRFPhoneValidator(DRFBaseValidator):

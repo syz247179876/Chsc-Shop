@@ -250,9 +250,17 @@ STATIC_ROOT = '/home/syz/E_mall/static/'
 # celery 设置,用于实例化
 # celery 中间人 redis://redis服务所在的ip地址:端口号/数据库号
 BROKER_URL = 'redis://:syzxss247179876@127.0.0.1:6379/0'
-
+# BROKER_URL = [
+#     'redis://192.168.0.105:6381/0',
+#     'redis://192.168.0.105:6380/0',
+#     'redis://192.168.0.105:6379/0'
+# ]
 # celery结果返回，可用于跟踪结果
 CELERY_RESULT_BACKEND = 'redis://:syzxss247179876@127.0.0.1:6379/1'
+# CELERY_RESULT_BACKEND = ['redis://192.168.0.105:6381/1',
+#                          'redis://192.168.0.105:6380/1',
+#                          'redis://192.168.0.105:6379/1'
+#                          ]
 
 CELERY_TASK_SERIALIZER = 'json'
 
@@ -266,7 +274,12 @@ CACHES = {
     'redis':
         {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': 'redis://:syzxss247179876@127.0.0.1:6379/2',
+            # 'LOCATION': 'redis://:syzxss247179876@127.0.0.1:6379/2',
+            'LOCATION': [
+                'redis://192.168.0.105:6381/2',
+                'redis://192.168.0.105:6380/2',
+                'redis://192.168.0.105:6379/2'
+            ],
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             }

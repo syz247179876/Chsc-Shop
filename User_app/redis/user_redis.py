@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : user_redis.py
 # @Software: PyCharm
-from User_app.redis.base_redis import BaseRedis
+from e_mall.base_redis import BaseRedis
 from e_mall.loggings import Logging
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -165,8 +165,7 @@ class RedisVerificationOperation(BaseRedis):
     def save_code(self, key, code, time):
         """cache verification code for ten minutes"""
         try:
-            self.redis.set(key, code)
-            self.redis.expire(key, time)
+            self.redis.setex(key, time, code)  # 原子操作，设置键和存活时间
         except Exception as e:
             consumer_logger.error(e)
         finally:

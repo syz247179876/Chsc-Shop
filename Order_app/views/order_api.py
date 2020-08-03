@@ -3,18 +3,20 @@
 # @Author : 司云中
 # @File : order.py
 # @Software: PyCharm
+from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated
 
+from Order_app.models.order_models import Order_basic
 from Order_app.serializers.OrderSerializerApi import OrderBasicSerializer, PageSerializer, Page, \
     OrderCommoditySerializer, OrderAddressSerializer
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from e_mall.loggings import Logging
-from e_mall.response_code import response_code
-from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
+
+from e_mall.response_code import response_code
 
 common_logger = Logging.logger('django')
 
@@ -22,15 +24,13 @@ order_logger = Logging.logger('order_')
 
 
 class OrderBasicOperation(APIView):
-    """订单基本浏览删除操作"""
+    """订单操作"""
 
     serializer_class = OrderBasicSerializer
 
     ultimate_class = PageSerializer
 
     page_class = Page
-
-    # renderer_classes = [TemplateHTMLRenderer]  # django’s standard template rendering
 
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class
@@ -64,23 +64,39 @@ class OrderBasicOperation(APIView):
         return Response(serializer.data)
 
     @method_decorator(login_required(login_url='/consumer/login/'))
-    def post(self, request):
-        """产生订单"""
-        user = request.user
-        data = request.data
-
-    @method_decorator(login_required(login_url='/consumer/login/'))
     def delete(self, request):
         """删除订单"""
         data = request.data
         # 单删
         is_success = self.get_serializer_class().delete_order(**data)
-
         # 群删
         if is_success:
-            return Response(response_code.delete_order_success)
+            return Response(response_code.delete_order_success, status=status.HTTP_200_OK)
         else:
             return Response(response_code.delete_address_error)
+
+
+# class OrderLookView(viewsets.ModelViewSet):
+#     """订单操作"""
+#     serializer_class = Page
+#
+#     ultimate_class = PageSerializer
+#
+#     def get_queryset(self):
+#         return Order_basic.order_basic_.filter(consumer=self.request.user)
+#
+#     def list(self, request, *args, **kwargs):
+#         """根据订单状态分批列出某用户的订单"""
+#         serializer = self.get_serializer(data=request.data)
+#         if serializer.is_valid():
+#             instances, page = self.get_order_and_page(user)
+#
+#     def get_permissions(self):
+#         """根据不同的action设定权限"""
+#         global permission_classes
+#         if self.action in ['list', 'destroy', 'retrieve']:
+#             permission_classes = [IsAuthenticated, ]
+#         return [permission() for permission in permission_classes]  # 返回实例化后的权限类，用于循环校验权限
 
 
 class OrderBuyNow(APIView):
