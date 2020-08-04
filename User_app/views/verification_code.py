@@ -6,7 +6,7 @@
 from rest_framework.generics import GenericAPIView
 
 from User_app.models.user_models import Consumer
-from User_app.serializers.VerificationSerializerApi import VerificationSerializer
+from User_app.serializers.VerificationSerializerApi import VerificationSerializer, VerificationModifyPwdSerializer
 from User_app.views import tasks
 from User_app.redis.user_redis import RedisVerificationOperation
 from django.contrib.auth.models import User
@@ -22,20 +22,23 @@ consumer_logger = Logging.logger('consumer_')
 
 
 class SendCode:
-    """decorator for sending code"""
+    """
+    发送验证码类装饰器
+    增强发送过程
+    """
 
     __slots__ = ('mode', 'time', 'response', 'redis')
 
     def __init__(self, mode, db):
-        """mode choose from any function"""
-        self.mode = mode  # 匹配方法
+        """初始化信息"""
+        self.mode = mode  # 匹配方法，功能函数名
         self.redis = RedisVerificationOperation.choice_redis_db(db)
         self.time = 60 * 10
         self.response = None
 
     def __call__(self, func):
         def send(obj, way, number, **kwargs):
-            """way choose from email and phone"""
+            """选择手机号还是邮箱进行验证码发送"""
             is_existed = func(obj, number)  # 根据number验证用户是否存在
             if is_existed:
                 # 如果用户存在
@@ -73,12 +76,12 @@ class VerificationBase(GenericAPIView):
 
     @staticmethod
     def get_key(key):
-        """the key for verification code"""
+        """验证码的键"""
         return key
 
     @SendCode('register', 'redis')
     def send_email_code(self, email):
-        """send email verification code to register"""
+        """发送邮箱验证码用于注册"""
         try:
             User.objects.get(email=email)
             # email was existed
@@ -88,7 +91,7 @@ class VerificationBase(GenericAPIView):
 
     @SendCode('register', 'redis')
     def send_phone_code(self, phone):
-        """send phone verification code to register"""
+        """发送手机号验证码用于注册"""
         try:
             Consumer.consumer_.get(phone=phone)
             # email was existed
@@ -98,7 +101,7 @@ class VerificationBase(GenericAPIView):
 
     @SendCode('bind', 'redis')
     def send_email_code_bind(self, email):
-        """send email verification code to bind"""
+        """发送邮箱验证码用于绑定"""
         try:
             User.objects.get(email=email)
             return None
@@ -107,7 +110,7 @@ class VerificationBase(GenericAPIView):
 
     @SendCode('bind', 'redis')
     def send_phone_code_bind(self, phone):
-        """send phone verification code to bind"""
+        """发送手机验证码用于绑定"""
         try:
             Consumer.consumer_.get(phone=phone)
             return None
@@ -116,7 +119,16 @@ class VerificationBase(GenericAPIView):
 
     @SendCode('setpay', 'redis')
     def send_phone_code_pay(self, phone):
-        """send phone verification code to bind"""
+        """发送手机验证码用于秘保"""
+        try:
+            Consumer.consumer_.get(phone=phone)
+            return None
+        except Consumer.DoesNotExist:
+            return 'user_not_existed'
+
+    @SendCode('modify_pwd', 'redis')
+    def send_phone_code_modify_pwd(self, phone):
+        """发送手机验证码用于修改密码"""
         try:
             Consumer.consumer_.get(phone=phone)
             return None
@@ -142,7 +154,10 @@ class VerificationCodeRegister(VerificationBase):
         return result(way, number, title=self.title, content=self.content)
 
     def post(self, request):
-        """send verification code for user who is registering"""
+        """
+        send verification code for user who is registering
+        发送验证码（用户注册）
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return self.factory(serializer.validated_data)
@@ -167,7 +182,7 @@ class VerificationCodeBind(VerificationBase):
         return result(way, number, title=self.title, content=self.content)
 
     def post(self, request):
-        """send verification code to change bind"""
+        """发送验证码（改绑/绑定）"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return self.factory(serializer.validated_data)
@@ -179,7 +194,7 @@ class VerificationCodePay(VerificationBase):
               '有效期10分钟，如非本人操作，请勿理睬！'
 
     def post(self, request):
-        """send verification code to set password of pay"""
+        """发送验证码（支付）"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         way = serializer.validated_data.get('way')
@@ -193,9 +208,26 @@ class VerificationCodeShopperRegister(VerificationBase):
               '有效期10分钟，如非本人操作，请勿理财！'
 
     def post(self, request):
-        """send verification code to register shopper"""
+        """发送验证码（商家注册）"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         way = serializer.validated_data.get('way')
         email = serializer.validated_data.get(way)
         return self.send_email_code(way, email, title=self.title, content=self.content)
+
+
+class VerificationCodeModifyPassword(VerificationBase):
+    """手机验证"""
+    title = '吃货商城用户%(way)密码修改提醒'
+    content = '亲爱的【吃货商城】用户,您正在为您的账户修改密码,您的修改密码的短信验证码为%(code)s,' \
+              '有效期10分钟，如非本人操作，请勿理睬！'
+
+    serializer_class = VerificationModifyPwdSerializer
+
+    def post(self, request):
+        """发送验证码（修改密码）"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        way = 'phone'
+        phone = serializer.validated_data.get(way)
+        return self.send_phone_code_modify_pwd(way, phone, title=self.title, content=self.content)

@@ -245,3 +245,6 @@ ERROR - 2020-08-04 15:17:49,579 - AddressSerializerApi - delete_address - 18989 
 ERROR - 2020-08-04 15:18:17,788 - AddressSerializerApi - delete_address - 19057 - 140600034334464 - Address matching query does not exist.
 ERROR - 2020-08-04 15:19:07,702 - AddressSerializerApi - delete_address - 19151 - 140168693991168 - Address matching query does not exist.
 ERROR - 2020-08-04 15:19:28,821 - AddressSerializerApi - delete_address - 19151 - 140168693991168 - Address matching query does not exist.
+ERROR - 2020-08-04 21:50:45,134 - personal_api - patch - 35369 - 140148161046272 - 'User' object has no attribute 'update'
+ERROR - 2020-08-04 21:51:24,247 - personal_api - put - 35468 - 140652673648384 - 'User' object has no attribute 'update'
+ERROR - 2020-08-04 21:51:45,794 - personal_api - patch - 35530 - 140693050803968 - 'User' object has no attribute 'update'

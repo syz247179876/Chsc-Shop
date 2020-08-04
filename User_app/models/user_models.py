@@ -32,7 +32,7 @@ class Consumer(models.Model):
         blank=True,
     )
 
-    birthday = models.DateTimeField(
+    birthday = models.DateField(
         _('生日'),
         help_text=_('填写您的出生日期'),
         null=True,
@@ -62,14 +62,14 @@ class Consumer(models.Model):
     )
 
     rank_choice = (
-        (1, '先锋会员'),
-        (2, '卫士会员'),
-        (3, '中军会员'),
-        (4, '统帅会员'),
-        (5, '传奇会员'),
-        (6, '万古流芳会员'),
-        (7, '超凡入圣会员'),
-        (8, '冠绝一世会员'),
+        ('1', '先锋会员'),
+        ('2', '卫士会员'),
+        ('3', '中军会员'),
+        ('4', '统帅会员'),
+        ('5', '传奇会员'),
+        ('6', '万古流芳会员'),
+        ('7', '超凡入圣会员'),
+        ('8', '冠绝一世会员'),
     )
 
     rank = models.CharField(

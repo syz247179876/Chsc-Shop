@@ -89,20 +89,21 @@ class DRFUsernameValidator(DRFBaseValidator):
 
 class DRFPasswordValidator(DRFBaseValidator):
     """密码验证"""
-    regex = r'[a-zA-Z0-9]{8,20}'
+    regex = r'^[a-zA-Z0-9]{8,20}$'
     message = _('密码格式不正确')
     re_method = 'fullmatch'
 
 
 class DRFPhoneValidator(DRFBaseValidator):
     """手机号验证"""
-    regex = '^13[0-9]{1}[0-9]{8}|^15[0-9]{1}[0-9]{8}'
+    regex = '^13[0-9]{1}[0-9]{8}|^15[0-9]{1}[0-9]{8}$'
     message = _('手机号格式不正确')
+    re_method = 'fullmatch'
 
 
 class DRFEmailValidator(DRFBaseValidator):
     """邮箱验证"""
-    regex = r'\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*'
+    regex = r'^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$'
     message = _('邮箱格式不正确')
 
 

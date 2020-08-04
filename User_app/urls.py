@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from User_app.views.login_register_api import RegisterAPIView, LoginAPIView
 from User_app.views.personal_api import *
 from User_app.views.verification_code import VerificationCodeBind, VerificationCodePay, \
-    VerificationCodeRegister, VerificationCodeShopperRegister
+    VerificationCodeRegister, VerificationCodeShopperRegister, VerificationCodeModifyPassword
 from User_app.views.views import register_page, login_page
 from User_app.views.personal import *
 from django.urls import path
@@ -38,7 +38,9 @@ urlpatterns = [
                                                                                                 '-shopper-chsc-api'),
     path('Verification-code-pay-chs-api/', VerificationCodePay.as_view(), name='Verification-code-pay-chs-api'),
     path('verification-code-chsc-bind-api/', VerificationCodeBind.as_view(), name='verification-code-chsc-bind-api'),
-    path('information-changes-chsc-api/', SaveInformation.as_view(), name='information-changes-chsc-api'),
+    path('verification-code-chsc-modify-pwd-api/', VerificationCodeModifyPassword.as_view(),
+         name='verification-code-chsc-modify-pwd-api'),
+    path('information-chsc-api/', SaveInformation.as_view(), name='information-changes-chsc-api'),
     path('password-changes-chsc-api/', ChangePassword.as_view(), name='password-changes-chsc-api'),
     path('email-or-phone-binding-chsc-api/', BindEmailOrPhone.as_view(), name='email-or-phone-binding-chsc-api'),
     path('verification-name-chsc-api/', VerifyIdCard.as_view(), name='verification-name-chsc-api'),
