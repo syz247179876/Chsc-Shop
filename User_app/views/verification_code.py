@@ -136,8 +136,9 @@ class VerificationCodeRegister(VerificationBase):
             'phone': 'send_phone_code',
         }
         func = func_list.pop(way)
-        number = validated_data.get(func)  # email or phone or any other
+        number = validated_data.get(way)  # email or phone or any other
         result = getattr(self, func)
+        common_logger.info(number)
         return result(way, number, title=self.title, content=self.content)
 
     def post(self, request):

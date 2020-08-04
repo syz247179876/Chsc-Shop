@@ -147,7 +147,7 @@ class Address(models.Model):
 
     # 收件地址，所在地区,后期改成下拉列表的形式
     region = models.CharField(verbose_name=_('所在地区'),
-                              max_length=100,
+                              max_length=50,
                               validators=[RegionValidator(), ]
                               )
     # 地址标签
@@ -172,7 +172,7 @@ class Address(models.Model):
                                  'unique': _('A telephone number with this already exists.'),
                              },
                              validators=[PhoneValidator(), ],
-                             max_length=11
+                             max_length=11,
                              )
 
     address_ = Manager()
@@ -182,9 +182,6 @@ class Address(models.Model):
         verbose_name = _('收获地址')
         verbose_name_plural = _('收获地址')
         ordering = ('-default_address',)
-
-
-
 
     def __str__(self):
         return self.recipients

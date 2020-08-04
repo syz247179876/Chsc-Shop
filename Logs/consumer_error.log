@@ -224,3 +224,24 @@ ERROR - 2020-06-02 19:33:32,662 - FootSerializerApi - get_foot - 15128 - 22844 -
 ERROR - 2020-06-03 14:52:29,134 - foot_redis - add_foot_commodity_id - 15424 - 15684 - invalid password
 ERROR - 2020-06-03 14:55:32,748 - verification_code - send - 15424 - 15684 - register-send_email:invalid password
 ERROR - 2020-07-24 18:06:37,660 - verification_code - send - 21309 - 140294599194368 - register-send_email:Error 111 connecting to 127.0.0.1:6379. Connection refused.
+ERROR - 2020-08-03 23:54:24,205 - verification_code - send - 11849 - 140207172208384 - register-send_email:Error 111 connecting to 127.0.0.1:6379. Connection refused.
+ERROR - 2020-08-04 10:58:15,884 - user_redis - save_code - 5214 - 139983704807168 - Error 111 connecting to 192.168.0.105:6381. Connection refused.
+ERROR - 2020-08-04 10:59:48,498 - user_redis - save_code - 5214 - 139983704807168 - Error 111 connecting to 192.168.0.105:6381. Connection refused.
+ERROR - 2020-08-04 11:03:30,809 - user_redis - check_code - 5214 - 139983704807168 - Error 111 connecting to 192.168.0.105:6381. Connection refused.
+ERROR - 2020-08-04 11:04:15,530 - user_redis - check_code - 5214 - 139983704807168 - Error 111 connecting to 192.168.0.105:6381. Connection refused.
+ERROR - 2020-08-04 11:08:00,325 - user_redis - save_code - 5214 - 139983704807168 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:10:53,503 - user_redis - save_code - 5214 - 139983704807168 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:12:47,076 - user_redis - save_code - 7101 - 139814525081344 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:14:24,923 - user_redis - save_code - 7266 - 140101833193216 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:20:27,875 - user_redis - save_code - 7311 - 140699974498048 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:20:45,661 - user_redis - save_code - 7807 - 140199586670336 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:22:10,453 - verification_code - factory - 7907 - 139745861539584 - OrderedDict([('email', 'syz247179876@126.com'), ('way', 'email')])
+ERROR - 2020-08-04 11:22:10,541 - user_redis - save_code - 7907 - 139745861539584 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:22:59,746 - user_redis - save_code - 7961 - 140100978751232 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-04 11:24:24,670 - login_register_api - register_email - 8046 - 140070387779328 - register_email_create_error:(1062, "Duplicate entry 'chchsyz247179876@126.com' for key 'auth_user.username'")
+ERROR - 2020-08-04 11:24:28,206 - login_register_api - register_email - 8046 - 140070387779328 - register_email_create_error:(1062, "Duplicate entry 'chchsyz247179876@126.com' for key 'auth_user.username'")
+ERROR - 2020-08-04 11:24:45,560 - login_register_api - register_email - 8046 - 140070387779328 - register_email_create_error:(1062, "Duplicate entry 'chchsyz247179876@126.com' for key 'auth_user.username'")
+ERROR - 2020-08-04 15:17:49,579 - AddressSerializerApi - delete_address - 18989 - 140258984060672 - Address matching query does not exist.
+ERROR - 2020-08-04 15:18:17,788 - AddressSerializerApi - delete_address - 19057 - 140600034334464 - Address matching query does not exist.
+ERROR - 2020-08-04 15:19:07,702 - AddressSerializerApi - delete_address - 19151 - 140168693991168 - Address matching query does not exist.
+ERROR - 2020-08-04 15:19:28,821 - AddressSerializerApi - delete_address - 19151 - 140168693991168 - Address matching query does not exist.

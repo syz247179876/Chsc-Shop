@@ -4,8 +4,8 @@
     <inspection_tool class="BadExpressionStatementJS" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <Languages>
-        <language minSize="61" name="Python" />
         <language minSize="13" name="Style Sheets" />
+        <language minSize="61" name="Python" />
       </Languages>
     </inspection_tool>
     <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
@@ -70,6 +70,7 @@
           <option value="User_app.models.user_models.Address.DoesNotExist" />
           <option value="Shopper_app.models.shopper_models.Shoppers.DoesNotExist" />
           <option value="django.db.models.fields.files.ImageField.url" />
+          <option value="str.fullmatch" />
         </list>
       </option>
     </inspection_tool>

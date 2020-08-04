@@ -481,7 +481,7 @@ class ResponseCode:
     @property
     def delete_address_success(self):
         """delete address successfully"""
-        self.result.update(dict(code=DELETE_ADDRESS_SUCCESS, msg='delete_error', stuats='success'))
+        self.result.update(dict(code=DELETE_ADDRESS_SUCCESS, msg='delete_success', stuats='success'))
         return self.result
 
     @property

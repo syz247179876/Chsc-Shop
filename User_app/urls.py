@@ -48,5 +48,5 @@ urlpatterns = [
 ]
 
 router = DefaultRouter()
-router.register(r'', AddressOperation, basename='address')
+router.register(r'address-chsc-api', AddressOperation, basename='address')
 urlpatterns += router.urls

@@ -6,6 +6,7 @@
 import re
 
 from django.core import validators
+from django.core.exceptions import ValidationError
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 
@@ -19,7 +20,7 @@ class RecipientsValidator(validators.RegexValidator):
     """
     验证收件人
     """
-    regex = r'[\u4e00-\u9fa5]{1,10}'
+    regex = r'^[\u4e00-\u9fa5]{1,10}$'
     message = _('验证人的名称必须在1～10个汉字之间')
     flags = 0
 
@@ -30,7 +31,7 @@ class RecipientsValidator(validators.RegexValidator):
 @deconstructible
 class RegionValidator(validators.RegexValidator):
     """验证收货地址"""
-    regex = r'\w{0,50}'
+    regex = r'^\w{0,50}$'
     message = _('收货地址设置不超过50个汉子')
     flags = 0
 

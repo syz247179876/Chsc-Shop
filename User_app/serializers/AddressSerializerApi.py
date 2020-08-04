@@ -15,18 +15,16 @@ consumer_logger = Logging.logger('consumer_')
 
 
 class AddressSerializers(serializers.ModelSerializer):
-    pk = serializers.IntegerField()
-
     class Meta:
         model = Address
-        fields = ['pk', 'recipients', 'region', 'address_tags', 'phone']
+        fields = ['pk', 'recipients', 'region', 'address_tags', 'phone', 'default_address']
 
-    def add_or_edit_address(self, instance, validated_data):
+    def add_or_edit_address(self, queryset, instance, validated_data):
         """
         创建新的地址
         如果第一次创建地址，则将第一个地址设置为默认地址
         """
-        address_ = self.Meta.model.address_.filter(user=instance).count()
+        address_ = queryset.count()
         try:
             default_address = True if address_ == 0 else False
             address = self.Meta.model.address_.create(
@@ -43,21 +41,27 @@ class AddressSerializers(serializers.ModelSerializer):
         else:
             return address
 
-    def update_default_address(self, queryset, validated_data):
+    @staticmethod
+    def update_default_address(queryset, pk):
         """修改默认地址"""
         try:
+            common_logger.info(pk)
+            if int(pk) <= 0:
+                raise serializers.ValidationError({'pk': ['必须为正整数']})
             # 开启事务
             with transaction.atomic():
                 addresses = queryset
                 addresses.filter(default_address=True).update(default_address=False)  # 全置为False
-                addresses.filter(pk=validated_data['pk']).update(default_address=True)  # 重设默认地址
+                addresses.filter(pk=pk).update(default_address=True)  # 重设默认地址
                 return True
         except DatabaseError:
             return False
 
-    def update_address(self, validated_data):
+    def update_address(self, queryset, validated_data, pk):
         """修改地址"""
-        instance = self.Meta.model.address_.get(pk=validated_data['pk'])
+        if int(pk) < 0:
+            raise serializers.ValidationError('必须为正整数')
+        instance = queryset.get(pk=pk)
         for key, value in validated_data.items():
             setattr(instance, key, value)
         try:
@@ -68,11 +72,14 @@ class AddressSerializers(serializers.ModelSerializer):
         else:
             return True
 
-    def delete_address(self, queryset, validated_data):
+    @staticmethod
+    def delete_address(queryset, pk):
         """删除某个选定的地址"""
+        if int(pk) < 0:
+            raise serializers.ValidationError('必须为正整数')
         try:
-            queryset.get(pk=validated_data['pk']).delete()
-        except DatabaseError as e:
+            queryset.get(pk=pk).delete()
+        except Address.DoesNotExist as e:
             consumer_logger.error(e)
             return False
         else:

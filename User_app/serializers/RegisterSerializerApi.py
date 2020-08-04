@@ -13,8 +13,8 @@ from User_app.validators import DRFUsernameValidator, DRFPasswordValidator
 
 class RegisterSerializer(serializers.Serializer):
     """注册序列化器"""
-    username = serializers.CharField(max_length=30,
-                                     validators=[DRFUsernameValidator(), UniqueValidator(queryset=User.objects.all())])
+    # username = serializers.CharField(max_length=30,
+    #                                  validators=[DRFUsernameValidator(), UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(max_length=20, validators=[DRFPasswordValidator()])  # 密码
     email = serializers.EmailField(required=False, validators=[UniqueValidator(queryset=User.objects.all())])
     phone = serializers.CharField(required=False, validators=[UniqueValidator(queryset=Consumer.consumer_.all())])

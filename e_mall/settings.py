@@ -93,7 +93,9 @@ JWT_AUTH = {
     # 是否可以刷新
     'JWT_ALLOW_REFRESH': True,
     # 刷新的过期时间
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=1),
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    # 是否添加到cookie中
+    'JWT_AUTH_COOKIE': 'JwtToken',
 }
 
 # whoosh搜索引擎的配置
