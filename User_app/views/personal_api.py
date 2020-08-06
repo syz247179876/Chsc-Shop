@@ -17,7 +17,7 @@ from User_app.serializers.BindEmailOrPhoneSerializersApi import BindPhoneOrEmail
 from User_app.serializers.FavoritesSerializersApi import FavoritesSerializer
 from User_app.serializers.AddressSerializerApi import AddressSerializers
 
-from User_app.redis.user_redis import RedisVerificationOperation
+from User_app.redis.user_redis import RedisUserOperation
 from User_app.serializers.FootSerializerApi import FootSerializer
 from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSerializer
 from User_app.serializers.PageSerializerApi import Page, PageSerializer
@@ -32,7 +32,6 @@ from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from User_app import validators
 from rest_framework.generics import GenericAPIView
 
 common_logger = Logging.logger('django')
@@ -77,7 +76,7 @@ class ChangePassword(GenericAPIView):
 
     serializer_class = PasswordSerializer
 
-    redis = RedisVerificationOperation.choice_redis_db('redis')
+    redis = RedisUserOperation.choice_redis_db('redis')
 
     def get_object(self):
         """返回用户对象"""
@@ -124,7 +123,7 @@ class BindEmailOrPhone(APIView):
     绑定（改绑）用户邮箱或者手机号
     需发送验证码验证
     """
-    redis = RedisVerificationOperation.choice_redis_db('redis')  # 选择配置文件中的redis
+    redis = RedisUserOperation.choice_redis_db('redis')  # 选择配置文件中的redis
 
     serializer_class = BindPhoneOrEmailSerializer
 
@@ -180,10 +179,7 @@ class VerifyIdCard(APIView):
     @staticmethod
     def trans_sex(read_sex):
         """ 转换性别 """
-        if read_sex == '男':
-            return 'm'
-        elif read_sex == '女':
-            return 'f'
+        return 'm' if read_sex == '男' else 'f'
 
     @staticmethod
     def trans_birth(read_birth):
@@ -261,7 +257,6 @@ class AddressOperation(viewsets.ModelViewSet):
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # @method_decorator(login_required(login_url='consumer/login/'))
-
     def update(self, request, *args, **kwargs):
         """单修改地址信息"""
         serializer = self.get_serializer(data=request.data)
@@ -277,7 +272,7 @@ class AddressOperation(viewsets.ModelViewSet):
         """单添加地址"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if serializer.add_or_edit_address(self.get_queryset(), serializer.validated_data):
+        if serializer.add_or_edit_address(self.get_queryset(), request.user, serializer.validated_data):
             return Response(response_code.address_add_success, status=status.HTTP_200_OK)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

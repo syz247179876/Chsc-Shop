@@ -6,14 +6,13 @@
 from rest_framework.generics import GenericAPIView
 
 from User_app.models.user_models import Consumer
+from User_app.redis.user_redis import RedisUserOperation
 from User_app.serializers.VerificationSerializerApi import VerificationSerializer, VerificationModifyPwdSerializer
 from User_app.views import tasks
-from User_app.redis.user_redis import RedisVerificationOperation
 from django.contrib.auth.models import User
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework import status
 
 common_logger = Logging.logger('django')
@@ -32,7 +31,7 @@ class SendCode:
     def __init__(self, mode, db):
         """初始化信息"""
         self.mode = mode  # 匹配方法，功能函数名
-        self.redis = RedisVerificationOperation.choice_redis_db(db)
+        self.redis = RedisUserOperation.choice_redis_db(db)
         self.time = 60 * 10
         self.response = None
 
@@ -71,7 +70,7 @@ class VerificationBase(GenericAPIView):
     title = None
     content = None
     aim_user = None
-    _redis = RedisVerificationOperation.choice_redis_db('redis')
+    _redis = RedisUserOperation.choice_redis_db('redis')
     serializer_class = VerificationSerializer
 
     @staticmethod

@@ -2,6 +2,7 @@ from django.core import validators
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 
+
 @deconstructible
 class CommodityValidator(validators.RegexValidator):
     """验证商品名称"""
@@ -10,7 +11,4 @@ class CommodityValidator(validators.RegexValidator):
     flags = 0
 
     def __init__(self, regex=regex, message=message, code=None, inverse_match=None, flags=flags):
-        super().__init__(regex,message,flags)
-
-
-
+        super().__init__(regex, message, flags)

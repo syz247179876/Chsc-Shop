@@ -6,15 +6,16 @@
 import re
 
 from django.core import validators
-from django.core.exceptions import ValidationError
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 
 # Django 验证器, 用于表单验证-ModelForm,Model中无反应
 from rest_framework import serializers
 
-
 # deconstructible对该类进行序列化，确保migration的正确性
+from e_mall.drf_validators import DRFBaseValidator
+
+
 @deconstructible
 class RecipientsValidator(validators.RegexValidator):
     """
@@ -62,23 +63,6 @@ class AddressTagValidator(validators.RegexValidator):
 
 
 # DRF 验证器
-
-class DRFBaseValidator:
-    """基验证器"""
-    regex = None  # 正则表达式
-    message = None  # 错误消息提示
-    type = str  # 值所属的类型
-    re_method = 'match'  # 默认的re方法
-
-    def __call__(self, value):
-        assert self.message is not None, (
-            'Regex , Message and Type cannot be empty,'
-            'Regex means regular string,'
-            'Message means error notice,'
-            'Type means the type to which the value belong'
-        )
-        if not isinstance(value, self.type) or not getattr(re, self.re_method)(self.regex, value):
-            raise serializers.ValidationError(self.message)
 
 
 class DRFUsernameValidator(DRFBaseValidator):

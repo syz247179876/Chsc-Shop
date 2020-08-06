@@ -359,6 +359,14 @@ EMAIL_FROM = '拼夕夕商城<247179876@qq.com>'
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
+# 阿里OCR的AppCode
+
+ALI_APPCODE = '990dad198d304f8da8c0c599593f686c'
+
+# 阿里OCR请求路径
+ALI_OCR_URL = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
+
+
 # Home page address
 SIMPLEUI_INDEX = '/'
 

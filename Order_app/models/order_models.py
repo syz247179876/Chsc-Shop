@@ -97,6 +97,9 @@ class Order_basic(models.Model):
     # 商家删除订单状态，假删除
     delete_shopper = models.BooleanField(verbose_name=_('商家是否删除订单'), default=False)
 
+    # 订单提交有效时间
+    efficient_time = models.DateTimeField(verbose_name=_('订单过期时间'), null=True, auto_now=True)
+
     order_basic_ = Manager()
 
     class Meta:

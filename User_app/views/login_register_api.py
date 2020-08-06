@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework_jwt.views import ObtainJSONWebToken
 
 from User_app.models.user_models import Consumer
-from User_app.redis.user_redis import RedisVerificationOperation
+from User_app.redis.user_redis import RedisUserOperation
 from django.contrib.auth.models import User
 
 from User_app.serializers.RegisterSerializerApi import RegisterSerializer
@@ -30,7 +30,7 @@ class LoginAPIView(ObtainJSONWebToken):
 
 class RegisterAPIView(GenericAPIView):
     """用户注册"""
-    redis = RedisVerificationOperation.choice_redis_db('redis')
+    redis = RedisUserOperation.choice_redis_db('redis')
 
     serializer_class = RegisterSerializer
 

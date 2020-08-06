@@ -143,30 +143,9 @@ class UserStatistic(APIView):
         return Response(response_)
 
 
-class RedisVerificationOperation(BaseRedis):
+class RedisUserOperation(BaseRedis):
     """the operation of save verification code about redis"""
 
     def __init__(self, redis_instance):
         super().__init__(redis_instance)
 
-    def check_code(self, key, value):
-        """compare key-value code and code in redis for equality """
-        try:
-            if self.redis.exists(key):
-                _value = self.redis.get(key).decode()
-                return True if _value == value else False
-            else:
-                return False
-        except Exception as e:
-            consumer_logger.error(e)
-        finally:
-            self.redis.close()
-
-    def save_code(self, key, code, time):
-        """cache verification code for ten minutes"""
-        try:
-            self.redis.setex(key, time, code)  # 原子操作，设置键和存活时间
-        except Exception as e:
-            consumer_logger.error(e)
-        finally:
-            self.redis.close()

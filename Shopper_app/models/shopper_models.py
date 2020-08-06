@@ -1,13 +1,10 @@
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import User, PermissionsMixin, AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Manager
-from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+
 from Shopper_app.validators import validate_sex, PhoneValidator
-import mongoengine
 
 
 class Shoppers(models.Model):
@@ -58,12 +55,29 @@ class Shoppers(models.Model):
         validators=[validate_sex, ]
     )
     # 头像
+
     head_image = models.ImageField(verbose_name=_('头像'),
                                    help_text=_('Please upload your portrait'),
                                    upload_to='head',
                                    null=True,
                                    blank=True,
                                    )
+
+    category_choice = (
+        ('衣服', '衣服'),
+        ('裤子', '裤子'),
+        ('生活用品', '生活用品'),
+        ('家具', '家具'),
+        ('鞋子', '鞋子'),
+        ('化妆品', '化妆品'),
+        ('零食', '零食')
+    )
+    # 销售商品的类别
+    sell_category = models.CharField(choices=category_choice, max_length=10,
+                                     default='衣服')
+
+    # 具体住址
+    nationality = models.CharField(max_length=50, default='')
 
     def head_images(self):
         # 这里添加一个防空判断
@@ -78,7 +92,7 @@ class Shoppers(models.Model):
 
     is_vip = models.BooleanField(_('是否是vip'), default=True)
 
-    birthday = models.DateTimeField(
+    birthday = models.DateField(
         _('生日'),
         help_text=_('填写您的出生日期'),
         null=True,
@@ -109,106 +123,6 @@ class Shoppers(models.Model):
         return getattr(self, self.PHONE_FIELD)
 
 
-'''
-class Shopper(AbstractUser):
-    username_validator = UnicodeUsernameValidator()
-    username = models.CharField(verbose_name=_('商家姓名'),
-                            max_length=20,
-                            unique=True,
-                            help_text=_('该字段是必填的,少于等于20个字符,只允许字母,数字和 @/./+/-/_.'),
-                            validators=[username_validator],  # modelform中进行验证
-                            error_messages={
-                                'unique': _("用户名已经存在。"),
-                            },
-                            )
-    phone = models.CharField(verbose_name=_('手机号'),
-                                 help_text=_('请填写正确的手机号!'),
-                                 unique=True,
-                                 validators=[PhoneValidator(), ],
-                                 max_length=11
-                                 )
-
-    shop_credit_choice = (
-        (1, '1星'),
-        (2, '2星'),
-        (3, '3星'),
-        (4, '4星'),
-        (5, '5星'),
-        (6, '1钻'),
-        (7, '2钻'),
-        (8, '3钻'),
-        (9, '4钻'),
-        (10, '5钻'),
-    )
-    credit = models.CharField(
-        verbose_name=_('信誉'),
-        help_text=_('您的信誉等级'),
-        choices=shop_credit_choice,
-        default=1,
-        max_length=1,
-    )
-    sex_choice = (
-        ('m', '男'),
-        ('f', '女'),
-    )
-    sex = models.CharField(
-        verbose_name=_('性别'),
-        help_text=_('性别'),
-        blank=True,
-        choices=sex_choice,
-        max_length=1,
-        validators=[validate_sex, ]
-    )
-    # 头像
-    head_image = models.ImageField(verbose_name=_('头像'),
-                                   help_text=('Please upload your portrait'),
-                                   upload_to='head',
-                                   blank=True,
-                                   )
-
-    email = models.EmailField(_('邮箱'), blank=True)
-    is_active = models.BooleanField(
-        _('激活状态'),
-        default=True,
-        help_text=_('账户是否激活 '),
-    )
-    is_shopper = models.BooleanField(
-        _('是否注册为商家'),
-        default=True,
-        help_text=_('商家名牌')
-    )
-    
-    
-    is_vip = models.BooleanField(_('是否是vip'))
-
-
-    EMAIL_FIELD = 'email'
-    PHONE_FIELD = 'phone'
-    USERNAME_FIELD = 'username'
-
-    class Meta:
-        verbose_name = _('商家')
-        verbose_name_plural = _('商家')
-
-    def clean(self):
-        super().clean()
-        self.email = self.__class__.objects.normalize_email(self.email)
-
-    def get_username(self):
-        """获取用户名"""
-        super().get_username()
-
-    def get_email(self):
-        """获取电子邮箱"""
-        return getattr(self,self.EMAIL_FIELD)
-
-    def get_phone(self):
-        """获取手机号"""
-        return getattr(self,self.PHONE_FIELD)
-
-'''
-
-
 class Store(models.Model):
     """店铺表"""
     # 店铺名称
@@ -234,6 +148,11 @@ class Store(models.Model):
                                 max_length=10,
                                 blank=True
                                 )
+    # 销售地  市
+    city = models.CharField(verbose_name=_('城市'),
+                            help_text=_('请填写您的城市'),
+                            max_length=10,
+                            blank=True)
 
     # 被关注量
     attention = models.PositiveIntegerField(verbose_name=_('关注量'),

@@ -5,6 +5,9 @@
 # @Software: PyCharm
 from django.contrib.auth.hashers import make_password
 from django_redis import get_redis_connection
+from e_mall.loggings import Logging
+
+common_logger = Logging.logger('django')
 
 
 class BaseRedis:
@@ -22,8 +25,8 @@ class BaseRedis:
         实现每个类实例对应一个redis实例
         """
         if not cls._instance.setdefault(cls.__name__, None):
-            cls._redis_instance[db] = get_redis_connection(db)   # redis实例
-            cls._instance[cls.__name__] = cls(cls._redis_instance[db])     # 自定义操作类实例
+            cls._redis_instance[db] = get_redis_connection(db)  # redis实例
+            cls._instance[cls.__name__] = cls(cls._redis_instance[db])  # 自定义操作类实例
         return cls._instance[cls.__name__]
 
     @property
@@ -38,3 +41,25 @@ class BaseRedis:
         """encryption , if param in args not str , convert into str"""
         keywords = (str(value) if not isinstance(value, str) else value for value in args)
         return make_password('-'.join(keywords), salt=self.salt)
+
+    def check_code(self, key, value):
+        """compare key-value code and code in redis for equality """
+        try:
+            if self.redis.exists(key):
+                _value = self.redis.get(key).decode()
+                return True if _value == value else False
+            else:
+                return False
+        except Exception as e:
+            common_logger.info(e)
+        finally:
+            self.redis.close()
+
+    def save_code(self, key, code, time):
+        """cache verification code for ten minutes"""
+        try:
+            self.redis.setex(key, time, code)  # 原子操作，设置键和存活时间
+        except Exception as e:
+            common_logger.info(e)
+        finally:
+            self.redis.close()

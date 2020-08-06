@@ -5,10 +5,12 @@
 # @Software: PyCharm
 
 import base64
+import datetime
 
 import json
 import urllib
 from e_mall.loggings import Logging
+from e_mall import settings
 
 common_logger = Logging.logger('django')
 
@@ -18,8 +20,8 @@ consumer_logger = Logging.logger('consumer_')
 class OcrIdCard:
     """阿里api身份证识别"""
 
-    AppCode = '990dad198d304f8da8c0c599593f686c'
-    url = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
+    AppCode = settings.ALI_APPCODE
+    url = settings.ALI_OCR_URL
 
     params = {
         'image': None,
@@ -27,64 +29,71 @@ class OcrIdCard:
     }
 
     headers = {
-        'Authorization': 'APPCODE 990dad198d304f8da8c0c599593f686c',  # APPCODE +你的appcod,一定要有空格!
+        'Authorization': 'APPCODE {code}'.format(code=AppCode),  # APPCODE +你的appcod,一定要有空格!
         'Content-Type': 'application/json; charset=UTF-8'  # 根据接口的格式来
     }
 
     def __init__(self, image, card_type):
-        image = str(base64.b64encode(image), encoding='utf-8')
+        image = str(base64.b64encode(image), encoding='utf-8')  # 对二进制进行base64编码
         configure = {"side": card_type}
         self.params.update({'image': image, 'configure': configure})
-        self.json_result = None
-        self.card_type = card_type
+        self.json_result = None   # 存储返回的结果
+        self.card_type = card_type   # 在face和back中选择
 
     def get_posturl_result(self):
-        """get result from aliyun api"""
+        """从接口中获取识别结果"""
         try:
-            params = json.dumps(self.params).encode(encoding='utf-8')
-            req = urllib.request.Request(self.url, params, self.headers)  # structure request
-            r = urllib.request.urlopen(req)  # post request
-            result = r.read().decode('utf-8')
-            self.json_result = json.loads(result)
-            common_logger.info(self.json_result)
-            r.close()
+            params = json.dumps(self.params).encode(encoding='utf-8')  # 原生--->JSON字符串
+            req = urllib.request.Request(self.url, params, self.headers)  # 构建请求
+            r = urllib.request.urlopen(req)  # 发送请求
+            result = r.read().decode('utf-8')  # binary流 ---> utf-8
+            self.json_result = json.loads(result)  # JSON字符串--->原生
+            r.close()  # 关闭请求
         except Exception as e:
             consumer_logger.error(e)
 
     @property
     def address(self):
         """get detail in dict"""
-        return self.json_result.get('address')
+        return self.json_result.get('address', None)
 
     @property
     def birth(self):
         """get birth in dict"""
-        return self.json_result.get('birth')
+        if self.json_result.get('birth', None):
+            birthday = self.json_result.get('birth')
+            year = birthday[0:4]
+            month = birthday[4:6]
+            day = birthday[6:8]
+            birth_str = '%(year)s-%(month)s-%(day)s' % ({'year': year, 'month': month, 'day': day})
+            birthday = datetime.datetime.strptime(birth_str, '%Y-%m-%d')
+            return birthday
+        return None
 
     @property
     def actual_name(self):
         """get name in dict"""
-        return self.json_result.get('name')
+        return self.json_result.get('name', None)
 
     @property
     def nationality(self):
         """get nationality in dict"""
-        return self.json_result.get('nationality')
+        return self.json_result.get('nationality', None)
 
     @property
     def id_card(self):
         """get id card in dict"""
-        return self.json_result.get('num')
+        return self.json_result.get('num', None)
 
     @property
     def sex(self):
         """get sex in dict"""
-        return self.json_result.get('sex')
+        return 'm' if self.json_result.get('sex', None) == '男' else 'f'
 
     @property
     def is_success(self):
         """get status to check whether this request is success"""
-        return self.json_result.get('success')
+        return self.json_result.get('success', None)
 
 
 class Interface_identify:
@@ -99,7 +108,7 @@ class Interface_identify:
 
     @property
     def is_success(self):
-        """get status to check whether this request is success"""
+        """判断请求是否获取到正确的结果"""
         has_result = True if self.user_instance.json_result else False
         if has_result:
             is_success = self.get_detail('is_success')

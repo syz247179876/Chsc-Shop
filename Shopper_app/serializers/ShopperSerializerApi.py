@@ -3,15 +3,15 @@
 # @Author : 司云中 
 # @File : ShopperSerializerApi.py 
 # @Software: PyCharm
-import datetime
+
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from Shopper_app.models.shopper_models import Shoppers, Store
+from Shopper_app.validators import DRFPhoneValidator
 from User_app.views.ali_card_ocr import Interface_identify
-from django.contrib.auth.models import User
-from django.db import transaction, DatabaseError
 from e_mall.loggings import Logging
-from pymongo.database import Database
-from rest_framework import serializers
 
 common_logger = Logging.logger('django')
 
@@ -19,64 +19,89 @@ shopper_logger = Logging.logger('shopper_')
 
 
 class ShopperSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', validators=[UniqueValidator(queryset=User.objects.all())])
+    face = serializers.ImageField(max_length=50, allow_empty_file=False)  # 身份证前照
+    back = serializers.ImageField(max_length=50, allow_empty_file=False)  # 身份正后照片
+    code = serializers.CharField(max_length=6)  # 验证码
+    email = serializers.EmailField(source='user.email', validators=[UniqueValidator(queryset=User.objects.all())])
+    phone = serializers.CharField(validators=[DRFPhoneValidator()])
+
+    def validate_code(self, value):
+        """验证码校验"""
+        if len(value) != 6:
+            raise serializers.ValidationError("验证码长度为6位")
+        return value
+
+    def validate(self, attrs):
+        """
+        OCR识别身份正反
+        验证阶段验证身份信息是否正确或是否已被验证
+        """
+        identify_instance_face = Interface_identify(attrs.get('face'), 'face')
+        identify_instance_back = Interface_identify(attrs.get('back'), 'back')
+        is_success = identify_instance_face.is_success and identify_instance_back.is_success  # 检查身份验证是否全部正确
+        if is_success:
+            OCR_attrs = {
+                'first_name': identify_instance_face.get_detail('actual_name'),
+                'sex': identify_instance_face.get_detail('sex'),
+                'birthday': identify_instance_face.get_detail('birth'),
+                'nationality': identify_instance_face.get_detail('nationality')
+            }
+            if User.objects.filter(first_name=identify_instance_face.get_detail('actual_name')).count() == 1:
+                raise serializers.ValidationError('身份已被认证过！')
+            else:
+                attrs.update(OCR_attrs)
+                return attrs
+        raise serializers.ValidationError('身份校验异常')
 
     @staticmethod
-    def trans_sex(read_sex):
-        if read_sex == '男':
-            return 'm'
-        elif read_sex == '女':
-            return 'f'
-
-    @staticmethod
-    def trans_birth(read_birth):
-        year = read_birth[0:4]
-        month = read_birth[4:6]
-        day = read_birth[6:8]
-        birth_str = '%(year)s-%(month)s-%(day)s' % ({'year': year, 'month': month, 'day': day})
-        birthday = datetime.datetime.strptime(birth_str, '%Y-%m-%d')
-        return birthday
-
-    @classmethod
-    def create_shopper(cls, verified_instance, **data):
-        user_name = data.get('user_name')[0]
-        user_password = data.get('user_password')[0]
-        user_email = data.get('user_email')[0]
-        user_phone = data.get('user_phone')[0]
-        first_name = verified_instance.get_detail('actual_name')
-        sex = cls.trans_sex(verified_instance.get_detail('sex'))
-        birthday = cls.trans_birth(verified_instance.get_detail('birth'))
-        province = verified_instance.get_detail('address').split('省')[0] + '省'
+    def create_user(validated_data):
+        """创建User用户"""
+        username = validated_data['username']
+        first_name = validated_data['first_name']
         try:
-            with transaction.atomic():
-                user = User.objects.create_shopper(user_name, user_email, user_password, first_name=first_name)
-                shopper = Shoppers.shopper_.create(user=user, phone=user_phone, sex=sex, birthday=birthday)
-                store = Store.store_.create(store_name=user_name + '的店铺', shopper=user, province=province)
-        except DatabaseError as e:
-            return None
-        except Exception as e:
-            shopper_logger.error(e)
-            return None
-        else:
+            user = User.objects.create(username=username, first_name=first_name, is_staff=True)
             return user
-
-    @staticmethod
-    def check_shopper_existed(email, phone):
-        """check whether the shopper is registered"""
-
-        # 这里后期需要优化，看用户名是否需要不重复
-        try:
-            user_is_existed = User.objects.filter(email=email).count() == 1
-            shopper_is_existed = Shoppers.shopper_.filter(phone=phone).count() == 1
-            if user_is_existed:
-                return 'email_existed'
-            if shopper_is_existed:
-                return 'phone_existed'
         except Exception as e:
             shopper_logger.error(e)
             return None
+
+    @staticmethod
+    def create_shopper(user, validated_data):
+        """创建shopper用户"""
+        sex = validated_data['sex']
+        phone = validated_data['phone']
+        head_image = validated_data['head_image']
+        sell_category = validated_data['sell_category']
+        try:
+            shopper = Shoppers.shopper_.create(user=user, sex=sex, phone=phone, head_image=head_image,
+                                               sell_category=sell_category)
+            return shopper
+        except Exception as e:
+            shopper_logger.error(e)
+            return None
+
+    @staticmethod
+    def create_store(user, validated_data):
+        """创建店铺"""
+        store_name = validated_data['store_name']
+        province = validated_data['province']
+        city = validated_data['city']
+        try:
+            store = Store.store_.create(shopper=user, store_name=store_name, province=province, city=city)
+            return store
+        except Exception as e:
+            shopper_logger.error(e)
+            return None
+
+    def create(self, validated_data):
+        """创建汇总"""
+        user = self.create_user(validated_data)
+        if user:
+            return all([self.create_shopper(user, validated_data), self.create_store(user, validated_data)])
         else:
-            return 'not_existed'
+            return None
 
     class Meta:
         model = Shoppers
-        fields = '__all__'
+        exclude = ['user', 'credit']

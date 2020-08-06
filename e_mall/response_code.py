@@ -229,6 +229,10 @@ PASSWORD_FORMATION_ERROR = 965
 # 校验出错
 VALIDATION_ERROR = 400
 
+# 创建商家成功
+
+CREATE_SHOPPER_SUCCESS = 691
+
 
 class ResponseCode:
     result = {
@@ -620,6 +624,12 @@ class ResponseCode:
     def add_goods_into_favorites_error(self):
         """fail to add goods into favorites of current consumer"""
         self.result.update(dict(code=ADD_GOOD_INTO_FAVORITIES_ERROR, msg='add_error', status='error'))
+        return self.result
+
+    @property
+    def create_shopper_success(self):
+        """商家创建成功"""
+        self.result.update(dict(code=CREATE_SHOPPER_SUCCESS, msg='create_success', status='success'))
         return self.result
 
 
