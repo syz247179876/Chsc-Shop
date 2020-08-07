@@ -1,15 +1,12 @@
-from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import Manager
-# Create your models here.
 from django.utils.html import format_html
-
 from django.utils.translation import gettext_lazy as _
 from mdeditor.fields import MDTextField
-from Shopper_app.models.shopper_models import Store, Shoppers
-from User_app.models.user_models import Consumer
+
+from Shopper_app.models.shopper_models import Store
 from ..validators import *
 
 

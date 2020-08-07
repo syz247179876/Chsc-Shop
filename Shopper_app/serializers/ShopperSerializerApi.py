@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from Shopper_app.models.shopper_models import Shoppers, Store
-from Shopper_app.validators import DRFPhoneValidator
+from Shopper_app.validators import DRFPhoneValidator, DRFStoreNameValidator
 from User_app.views.ali_card_ocr import Interface_identify
 from e_mall.loggings import Logging
 
@@ -23,8 +23,14 @@ class ShopperSerializer(serializers.ModelSerializer):
     face = serializers.ImageField(max_length=50, allow_empty_file=False)  # 身份证前照
     back = serializers.ImageField(max_length=50, allow_empty_file=False)  # 身份正后照片
     code = serializers.CharField(max_length=6)  # 验证码
-    email = serializers.EmailField(source='user.email', validators=[UniqueValidator(queryset=User.objects.all())])
-    phone = serializers.CharField(validators=[DRFPhoneValidator()])
+    email = serializers.EmailField(required=False, source='user.email',
+                                   validators=[UniqueValidator(queryset=User.objects.all())],
+                                   )
+    phone = serializers.CharField(validators=[DRFPhoneValidator(), UniqueValidator(queryset=Shoppers.shopper_.all())])
+    sell_category = serializers.CharField()  # 销售主类
+    store_name = serializers.CharField(max_length=30, validators=[DRFStoreNameValidator()])  # 店铺名字
+    province = serializers.CharField()
+    city = serializers.CharField()
 
     def validate_code(self, value):
         """验证码校验"""
@@ -57,10 +63,11 @@ class ShopperSerializer(serializers.ModelSerializer):
     @staticmethod
     def create_user(validated_data):
         """创建User用户"""
-        username = validated_data['username']
+        username = validated_data['user']['username']
         first_name = validated_data['first_name']
+        email = validated_data.get('user').get('email', '')
         try:
-            user = User.objects.create(username=username, first_name=first_name, is_staff=True)
+            user = User.objects.create(username=username, first_name=first_name, is_staff=True, email=email)
             return user
         except Exception as e:
             shopper_logger.error(e)
@@ -71,7 +78,7 @@ class ShopperSerializer(serializers.ModelSerializer):
         """创建shopper用户"""
         sex = validated_data['sex']
         phone = validated_data['phone']
-        head_image = validated_data['head_image']
+        head_image = validated_data.get('head_image', None)
         sell_category = validated_data['sell_category']
         try:
             shopper = Shoppers.shopper_.create(user=user, sex=sex, phone=phone, head_image=head_image,
@@ -97,8 +104,8 @@ class ShopperSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """创建汇总"""
         user = self.create_user(validated_data)
-        if user:
-            return all([self.create_shopper(user, validated_data), self.create_store(user, validated_data)])
+        if user and all([self.create_shopper(user, validated_data), self.create_store(user, validated_data)]):
+            return user
         else:
             return None
 

@@ -22,8 +22,6 @@ class VerificationSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         """前端传过来的数据中必须包含email和phone二者之一"""
-        if attrs.get('email', None) and attrs.get('phone', None):
-            raise serializers.ValidationError('不要耍小诡计～')
         way = attrs.get('way')
         # 只要邮箱验证或手机号验证二者成立一个就跳过
         if way == 'phone':

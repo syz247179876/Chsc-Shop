@@ -20,6 +20,7 @@ def set_verification_code() -> str:
             code += random.choice(string.ascii_uppercase)
     return code
 
+
 @app.task
 def send_verification(title, content, user_email):
     """发送邮件"""
@@ -27,4 +28,3 @@ def send_verification(title, content, user_email):
         send_mail(title, content, EMAIL_HOST_USER, [user_email], fail_silently=False)
     except Exception as e:
         print(e)
-

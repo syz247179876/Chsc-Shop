@@ -1,5 +1,6 @@
 import re
 
+from django.contrib.auth import login
 from django.core import validators
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
@@ -34,3 +35,9 @@ class DRFPhoneValidator(DRFBaseValidator):
     regex = '^13[0-9]{1}[0-9]{8}|^15[0-9]{1}[0-9]{8}$'
     message = _('手机号格式不正确')
     re_method = 'fullmatch'
+
+
+class DRFStoreNameValidator(DRFBaseValidator):
+    """店铺名验证"""
+    regex = r'^\w{5,20}$'
+    message = _('店铺名格式不正确')

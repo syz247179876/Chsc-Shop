@@ -73,10 +73,11 @@ class ShopperOperation(GenericAPIView):
         """商家注册"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if not self.check_code(serializer.validated_data):
-            return Response(response_code.verification_code_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        if serializer.create(serializer.validated_data):
+        # if not self.check_code(serializer.validated_data):
+        #     return Response(response_code.verification_code_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        user = serializer.create(serializer.validated_data)  # 创建用户
+        if user:
+            Shopper_user_prem.add_shopper_perm(user)  # 分配权限
             return Response(response_code.create_shopper_success, status=status.HTTP_200_OK)
         else:
             return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-

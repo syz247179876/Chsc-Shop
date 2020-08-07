@@ -14,6 +14,7 @@ from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from rest_framework.response import Response
 from rest_framework import status
+from Shopper_app.models.shopper_models import Shoppers
 
 common_logger = Logging.logger('django')
 
@@ -134,6 +135,15 @@ class VerificationBase(GenericAPIView):
         except Consumer.DoesNotExist:
             return 'user_not_existed'
 
+    @SendCode('register', 'redis')
+    def send_phone_code_shopper(self, phone):
+        """发送手机验证码用于"""
+        try:
+            Shoppers.shopper_.get(phone=phone)
+            return None
+        except Consumer.DoesNotExist:
+            return 'user_not_existed'
+
 
 class VerificationCodeRegister(VerificationBase):
     title = '吃货商城用户注册'
@@ -149,7 +159,6 @@ class VerificationCodeRegister(VerificationBase):
         func = func_list.pop(way)
         number = validated_data.get(way)  # email or phone or any other
         result = getattr(self, func)
-        common_logger.info(number)
         return result(way, number, title=self.title, content=self.content)
 
     def post(self, request):
@@ -203,7 +212,7 @@ class VerificationCodePay(VerificationBase):
 
 class VerificationCodeShopperRegister(VerificationBase):
     title = '吃货商城用户%(way)开店'
-    content = '亲爱的【吃货商城】用户,您正在为您的账户设置密码,您的设置支付密码的短信验证码为%(code)s,' \
+    content = '亲爱的【吃货商城】用户,您正在开通您的店铺,您的店铺开通的短信验证码为%(code)s,' \
               '有效期10分钟，如非本人操作，请勿理财！'
 
     def post(self, request):
@@ -211,8 +220,8 @@ class VerificationCodeShopperRegister(VerificationBase):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         way = serializer.validated_data.get('way')
-        email = serializer.validated_data.get(way)
-        return self.send_email_code(way, email, title=self.title, content=self.content)
+        phone = serializer.validated_data.get(way)
+        return self.send_phone_code_shopper(way, phone, title=self.title, content=self.content)
 
 
 class VerificationCodeModifyPassword(VerificationBase):
@@ -221,12 +230,10 @@ class VerificationCodeModifyPassword(VerificationBase):
     content = '亲爱的【吃货商城】用户,您正在为您的账户修改密码,您的修改密码的短信验证码为%(code)s,' \
               '有效期10分钟，如非本人操作，请勿理睬！'
 
-    serializer_class = VerificationModifyPwdSerializer
-
     def post(self, request):
         """发送验证码（修改密码）"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        way = 'phone'
+        way = serializer.validated_data.get('way')
         phone = serializer.validated_data.get(way)
         return self.send_phone_code_modify_pwd(way, phone, title=self.title, content=self.content)

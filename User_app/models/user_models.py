@@ -3,8 +3,7 @@
 # @Author : 司云中
 # @File : user_models.py
 # @Software: PyCharm
-
-
+from Shop_app.models.commodity_models import Commodity
 from User_app.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User
@@ -185,3 +184,50 @@ class Address(models.Model):
 
     def __str__(self):
         return self.recipients
+
+
+class Foot(models.Model):
+    """用户足迹表"""
+
+    # 用户
+    user = models.ForeignKey(User, related_name='foots', on_delete=True, verbose_name=_('用户'))
+
+    # 商品
+    commodity = models.ManyToManyField(Commodity, related_name='foots', verbose_name=_('商品'))
+
+    # 浏览时间
+    time = models.DateField(auto_now_add=True, verbose_name=_('浏览时间'))
+
+    class Meta:
+        db_table = 'Foot'
+        verbose_name = _('足迹')
+        verbose_name_plural = _('足迹')
+        ordering = ('time',)
+
+    def __str__(self):
+        return '浏览商品id:{}'.format(self.commodity)
+
+
+class Collection(models.Model):
+    """收藏夹"""
+
+    # 用户
+    user = models.ForeignKey(User, related_name='collections', on_delete=True, verbose_name=_('用户'))
+
+    # 商品
+    commodity = models.ManyToManyField(Commodity, related_name='collections', verbose_name=_('商品'))
+
+    # 浏览时间
+    time = models.DateField(auto_now_add=True, verbose_name=_('收藏时间'))
+
+    class Meta:
+        db_table = 'Collection'
+        verbose_name = _('收藏夹')
+        verbose_name_plural = _('收藏夹')
+        ordering = ('time',)
+
+    def __str__(self):
+        return '收藏商品id:{}'.format(self.commodity)
+
+
+
