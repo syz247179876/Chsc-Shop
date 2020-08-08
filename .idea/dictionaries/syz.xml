@@ -2,6 +2,7 @@
   <dictionary name="syz">
     <words>
       <w>appcode</w>
+      <w>asgi</w>
       <w>fullmatch</w>
     </words>
   </dictionary>

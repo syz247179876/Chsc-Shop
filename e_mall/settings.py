@@ -366,6 +366,17 @@ ALI_APPCODE = '990dad198d304f8da8c0c599593f686c'
 # 阿里OCR请求路径
 ALI_OCR_URL = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
 
+# 异步网关协议应用
+ASGI_APPLICATION = "e_mall.routing.application"
+# 用于实现不同consumer间的通信，搭配redis作为存储后端
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": ['redis://:syzxss247179876@127.0.0.1:6379/5'],
+        },
+    },
+}
 
 # Home page address
 SIMPLEUI_INDEX = '/'
