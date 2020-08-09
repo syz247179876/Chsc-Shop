@@ -15,3 +15,4 @@ ERROR - 2020-06-02 11:10:40,353 - home_api - get - 24760 - 25124 - 'NoneType' ob
 ERROR - 2020-06-02 11:11:12,836 - home_api - get - 19856 - 23388 - 'NoneType' object has no attribute 'get'
 ERROR - 2020-07-24 17:56:46,684 - home_api - get - 21135 - 140495188510464 - (1146, "Table 'e_mall_db.Commodity' doesn't exist")
 ERROR - 2020-07-24 17:57:03,828 - home_api - get - 21135 - 140495188510464 - (1146, "Table 'e_mall_db.Commodity' doesn't exist")
+ERROR - 2020-08-09 17:11:01,250 - home_api - get - 16489 - 140139705239296 - 'NoneType' object is not iterable

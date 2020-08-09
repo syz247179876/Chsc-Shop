@@ -63,3 +63,11 @@ class BaseRedis:
             common_logger.info(e)
         finally:
             self.redis.close()
+
+    def get_ttl(self, key):
+        """
+        获取某个键的剩余过期时间
+        键永久：-1
+        键不存在：-2
+        """
+        return self.redis.ttl(key)

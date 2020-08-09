@@ -15,7 +15,7 @@ from User_app.serializers.RegisterSerializerApi import RegisterSerializer
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from rest_framework.response import Response
-
+from django.db import transaction, DatabaseError
 from rest_framework.generics import GenericAPIView
 
 common_logger = Logging.logger('django')
@@ -52,14 +52,17 @@ class RegisterAPIView(GenericAPIView):
 
         # 验证码正确，手机号尚未使用
         try:
-            user = User.objects.create_user(
-                username='chch%s' % phone,
-                password=validated_data.get('password'),
-            )
-            Consumer.consumer_.create(user=user, phone=phone)
+            with transaction.atomic():  # 开启事务
+                save_point = transaction.savepoint()  # 创建事务保存点
+                user = User.objects.create_user(
+                    username='chch%s' % phone,
+                    password=validated_data.get('password'),
+                )
+                Consumer.consumer_.create(user=user, phone=phone)
             # 使用jwt登录，跳转到登录界面
         except Exception as e:
             consumer_logger.error('register_email_create_error:{}'.format(e))
+            transaction.savepoint_rollback(save_point)   # 回滚
             return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(response_code.register_success, status=status.HTTP_200_OK)
@@ -79,17 +82,17 @@ class RegisterAPIView(GenericAPIView):
 
         # 验证码正确，邮箱尚未使用
         try:
-            user = User.objects.create_user(
-                username='chch%s' % email,
-                password=validated_data.get('password'),
-                email=email,
-            )
-            Consumer.consumer_.create(user=user)
-        except Exception as e:
+            with transaction.atomic():  # 开启事务
+                user = User.objects.create_user(
+                    username='chch%s' % email,
+                    password=validated_data.get('password'),
+                    email=email,
+                )
+                Consumer.consumer_.create(user=user)
+        except DatabaseError as e:
             consumer_logger.error('register_email_create_error:{}'.format(e))
             return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response(response_code.register_success, status=status.HTTP_200_OK)
+        return Response(response_code.register_success, status=status.HTTP_200_OK)
 
     def factory(self, validated_data):
         """简单工厂管理用户不同注册方式"""

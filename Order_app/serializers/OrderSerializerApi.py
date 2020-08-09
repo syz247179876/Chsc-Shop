@@ -29,9 +29,12 @@ class ChoiceDisplayField(serializers.ChoiceField):
 class OrderBasicSerializer(serializers.ModelSerializer):
     """订单序列化容器"""
 
-    order_details = serializers.SerializerMethodField()  # 递归嵌套序列化器，订单细节
+    order_details = serializers.SerializerMethodField(read_only=True)  # 递归嵌套序列化器，订单细节
 
-    status = serializers.SerializerMethodField()  # 获取可读的status
+    status = serializers.SerializerMethodField(required=False)  # 获取可读的status
+
+    list_pk = serializers.ListField(required=False, write_only=True, allow_empty=False,
+                                    child=serializers.IntegerField())  # 订单号集合
 
     def get_status(self, obj):
         return obj.get_status_display()
@@ -81,8 +84,8 @@ class OrderBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order_basic
-        fields = ('orderId', 'trade_number', 'total_price', 'commodity_total_counts', 'generate_time', 'status',
-                  'order_details', 'generate_time')
+        fields = ('trade_number', 'total_price', 'commodity_total_counts', 'generate_time', 'status',
+                  'order_details', 'generate_time', 'list_pk')
 
 
 class OrderDetailsSerializer(serializers.ModelSerializer):
@@ -157,9 +160,14 @@ class OrderAddressSerializer(serializers.ModelSerializer):
 
 
 class OrderCommoditySerializer(serializers.ModelSerializer):
-    total_price = serializers.SerializerMethodField()
-    counts = serializers.SerializerMethodField()
-    price = serializers.SerializerMethodField()
+    """订单提交序列化器"""
+
+    total_price = serializers.SerializerMethodField(read_only=True, required=False)
+    commodity_counts_dict = serializers.DictField(child=serializers.IntegerField(max_value=9999),
+                                                  allow_empty=False)
+    store_commodity_dict = serializers.DictField(child=serializers.IntegerField(max_value=9999999),
+                                                 allow_empty=False)
+    price = serializers.SerializerMethodField(read_only=True, required=False)
 
     def get_price(self, obj):
         """序列化商品优惠价"""
@@ -172,15 +180,9 @@ class OrderCommoditySerializer(serializers.ModelSerializer):
     def get_counts(self, obj):
         return self.context.get(obj.pk)
 
-    @staticmethod
-    def get_commodity(commodity_list):
-        """get address of current consumer"""
-        try:
-            return Commodity.commodity_.select_related('store').filter(pk__in=commodity_list)
-        except Commodity.DoesNotExist:
-            return None
-
     class Meta:
         model = Commodity
         fields = ['commodity_name', 'pk', 'price', 'intro', 'category', 'freight', 'total_price', 'image',
-                  'discounts_intro', 'stock', 'counts']
+                  'discounts_intro', 'commodity_counts_dict', 'store_commodity_dict']
+        read_only_fields = ['commodity_name', 'pk', 'price', 'intro', 'category', 'freight', 'total_price',
+                            'total_price', 'image', 'discounts_intro']

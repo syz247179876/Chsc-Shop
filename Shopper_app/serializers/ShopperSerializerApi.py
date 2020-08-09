@@ -5,6 +5,7 @@
 # @Software: PyCharm
 
 from django.contrib.auth.models import User
+from django.db import transaction, DatabaseError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -66,12 +67,8 @@ class ShopperSerializer(serializers.ModelSerializer):
         username = validated_data['user']['username']
         first_name = validated_data['first_name']
         email = validated_data.get('user').get('email', '')
-        try:
-            user = User.objects.create(username=username, first_name=first_name, is_staff=True, email=email)
-            return user
-        except Exception as e:
-            shopper_logger.error(e)
-            return None
+        user = User.objects.create(username=username, first_name=first_name, is_staff=True, email=email)
+        return user
 
     @staticmethod
     def create_shopper(user, validated_data):
@@ -80,13 +77,9 @@ class ShopperSerializer(serializers.ModelSerializer):
         phone = validated_data['phone']
         head_image = validated_data.get('head_image', None)
         sell_category = validated_data['sell_category']
-        try:
-            shopper = Shoppers.shopper_.create(user=user, sex=sex, phone=phone, head_image=head_image,
-                                               sell_category=sell_category)
-            return shopper
-        except Exception as e:
-            shopper_logger.error(e)
-            return None
+        shopper = Shoppers.shopper_.create(user=user, sex=sex, phone=phone, head_image=head_image,
+                                           sell_category=sell_category)
+        return shopper
 
     @staticmethod
     def create_store(user, validated_data):
@@ -94,20 +87,20 @@ class ShopperSerializer(serializers.ModelSerializer):
         store_name = validated_data['store_name']
         province = validated_data['province']
         city = validated_data['city']
-        try:
-            store = Store.store_.create(shopper=user, store_name=store_name, province=province, city=city)
-            return store
-        except Exception as e:
-            shopper_logger.error(e)
-            return None
+        store = Store.store_.create(shopper=user, store_name=store_name, province=province, city=city)
+        return store
 
     def create(self, validated_data):
         """创建汇总"""
-        user = self.create_user(validated_data)
-        if user and all([self.create_shopper(user, validated_data), self.create_store(user, validated_data)]):
-            return user
-        else:
+        try:
+            with transaction.atomic():  # 开启事务
+                user = self.create_user(validated_data)
+                self.create_shopper(user, validated_data)
+                self.create_store(user, validated_data)
+        except Exception as e:
+            shopper_logger.error(e)
             return None
+        return user
 
     class Meta:
         model = Shoppers

@@ -17,3 +17,4 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "e_mall.settings")
 django.setup()   # 加载异步application
 
 application = get_default_application()
+import django.conf.global_settings

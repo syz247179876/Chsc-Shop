@@ -7,6 +7,7 @@ import datetime
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 
 from User_app.models.user_models import Address, Consumer
 from User_app.redis.favorites_redis import RedisFavoritesOperation
@@ -43,6 +44,9 @@ class SaveInformation(GenericAPIView):
     保存信息
     修改用户名后需重新登录
     """
+
+    permission_classes = [IsAuthenticated]
+
     serializer_class = IndividualInfoSerializer
 
     def get_object(self):
@@ -73,6 +77,8 @@ class ChangePassword(GenericAPIView):
     """
     修改当前用户的密码
     """
+
+    permission_classes = [IsAuthenticated]
 
     serializer_class = PasswordSerializer
 
@@ -118,28 +124,17 @@ class ChangePassword(GenericAPIView):
         return self.modify_password(self.get_object(), serializer.validated_data)
 
 
-class BindEmailOrPhone(APIView):
+class BindEmailOrPhone(GenericAPIView):
     """
     绑定（改绑）用户邮箱或者手机号
     需发送验证码验证
     """
+
+    permission_classes = [IsAuthenticated]
+
     redis = RedisUserOperation.choice_redis_db('redis')  # 选择配置文件中的redis
 
     serializer_class = BindPhoneOrEmailSerializer
-
-    def get_serializer_class(self):
-        return self.serializer_class
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        kwargs['context'] = self.get_serializer_context()
-        return serializer_class(*args, **kwargs)
-
-    def get_serializer_context(self):
-        return {
-            'request': self.request,
-            'view': self,
-        }
 
     def factory(self, way, serializer, instance):
         """简单工厂管理手机号和邮箱的改绑"""
@@ -175,6 +170,8 @@ class BindEmailOrPhone(APIView):
 
 class VerifyIdCard(APIView):
     """OCR识别验证"""
+
+    permission_classes = [IsAuthenticated]
 
     @staticmethod
     def trans_sex(read_sex):
@@ -235,6 +232,8 @@ class AddressOperation(viewsets.ModelViewSet):
     # 例如以下lookup_field中设置为'user',则生成的URL为/consumer/address-chsc-api/{user}/
     # 映射到相应视图中的参数名也为user
 
+    permission_classes = [IsAuthenticated]
+
     serializer_class = AddressSerializers
 
     def get_queryset(self):
@@ -288,6 +287,8 @@ class FavoriteOperation(APIView):
     """
     收藏夹处理
     """
+
+    permission_classes = [IsAuthenticated]
 
     redis = RedisFavoritesOperation.choice_redis_db('redis')
 
@@ -382,6 +383,8 @@ class FavoriteOperation(APIView):
 class FootOperation(APIView):
     """浏览足迹处理"""
 
+    permission_classes = [IsAuthenticated]
+
     redis = FootRedisOperation.choice_redis_db('redis')
 
     serializer_class = FootSerializer  # 序列化器
@@ -465,6 +468,8 @@ class FootOperation(APIView):
 
 class ShopCartOperation(APIView):
     """购物车的相关操作"""
+
+    permission_classes = [IsAuthenticated]
 
     redis = ShopCartRedisOperation.choice_redis_db('redis')
 
