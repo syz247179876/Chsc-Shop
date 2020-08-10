@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : OrderRedis.py
 # @Software: Pycharm
+from Order_app.serializers.OrderSerializerApi import OrderCreateSerializer
 from e_mall.base_redis import BaseRedis
 
 
@@ -11,3 +12,9 @@ class RedisOrderOperation(BaseRedis):
 
     def __init__(self, redis_instance):
         super().__init__(redis_instance)
+
+    def set_order_expiration(self, pk):
+        """设置订单过期时间"""
+        key = OrderCreateSerializer.generate_orderid(pk)
+        time = 900  # 900s=15min
+        self.redis.setex(key, 3000, 1)

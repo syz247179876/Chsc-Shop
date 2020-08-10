@@ -7,6 +7,7 @@ import os
 import time
 
 from django.core.files.storage import FileSystemStorage
+from rest_framework.generics import GenericAPIView
 
 from Order_app.models.order_models import Order_basic
 from Payment_app.serializers.PaymentSerializerApi import PaymentSerializer
@@ -26,7 +27,7 @@ common_logger = Logging.logger('django')
 order_logger = Logging.logger('order_')
 
 
-class PaymentOperation(APIView):
+class PaymentOperation(GenericAPIView):
     """
     the operation of Ali payment
     """
@@ -35,14 +36,6 @@ class PaymentOperation(APIView):
 
     app_private_key_string = open(settings.APP_KEY_PRIVATE_PATH).read()
     alipay_public_key_string = open(settings.ALIPAY_PUBLIC_KEY_PATH).read()
-
-    @property
-    def get_serializer_class(self):
-        return self.serializer_class
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.serializer_class
-        return serializer_class(*args, **kwargs)
 
     @property
     def get_alipay(self):
@@ -77,6 +70,7 @@ class PaymentOperation(APIView):
         """
         user = request.user
 
+        # 不在这里创建
         order = self.get_serializer_class.create_order(request, user)
         if order is None:
             return Response(response_code.create_order_error)

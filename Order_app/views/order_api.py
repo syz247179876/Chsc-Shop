@@ -3,24 +3,24 @@
 # @Author : 司云中
 # @File : order.py
 # @Software: PyCharm
-from django.db import DataError, DatabaseError, transaction
-from rest_framework import status, viewsets
+from django.contrib.auth.decorators import login_required
+from django.db import DatabaseError, transaction
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets
-from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from Order_app.Pagination import OrderResultsSetPagination
 from Order_app.models.order_models import Order_basic
 from Order_app.redis.OrderRedis import RedisOrderOperation
-from Order_app.serializers.OrderSerializerApi import OrderBasicSerializer, PageSerializer, Page, \
-    OrderCommoditySerializer, OrderAddressSerializer
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
+from Order_app.serializers.OrderSerializerApi import OrderBasicSerializer, OrderCommoditySerializer, \
+    OrderAddressSerializer, OrderCreateSerializer
 from e_mall.loggings import Logging
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
 
 from e_mall.response_code import response_code
 
@@ -92,7 +92,7 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         return Response(response_code.delete_order_success, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
-        """获取具体的某个订单细节"""
+        """获取具体的单个订单细节"""
         instance = self.get_object()
         serializer = self.get_serializer(instance=instance)
         expire = self.redis.get_ttl('order_{pk}_expire'.format(pk=self.kwargs.get(self.lookup_field)))
@@ -107,25 +107,45 @@ class OrderListOperation(GenericAPIView):
     lookup_field = 'status'
     pagination_class = OrderResultsSetPagination
 
+    serializer_class = OrderBasicSerializer
+
     def get_queryset(self):
         """根据status返回查询集"""
-        status_ = self.kwargs.get(self.lookup_field)
+        status_ = self.kwargs.get(self.lookup_field, '0')
         return Order_basic.order_basic_.filter(status=status_, delete_consumer=False)
 
     def get(self, request, *args, **kwargs):
-        """获取具体status状态的订单操作"""
-        # common_logger.info(kwargs)
-        # queryset = self.filter_queryset(self.get_queryset())
-        #
-        # page = self.paginate_queryset(queryset)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
-        #
-        # serializer = self.get_serializer(queryset, many=True)
-        # return Response(serializer.data)
-        common_logger.info(kwargs)
-        return Response({})
+        """
+        获取具体status状态的订单集合
+        前端url中传递参数名为page
+        """
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class OrderCreateOperation(GenericAPIView):
+    """创建初始订单操作"""
+
+    permission_class = [IsAuthenticated]
+
+    serializer_class = OrderCreateSerializer
+
+    redis = RedisOrderOperation.choice_redis_db('redis')
+
+    def post(self, request):
+        """创建初始订单"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.create_order(serializer.validated_data, request.user, self.redis)
+        if result:
+            return Response(response_code.create_order_success, status=status.HTTP_200_OK)
+        else:
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # class OrderBasicOperation(GenericAPIView):

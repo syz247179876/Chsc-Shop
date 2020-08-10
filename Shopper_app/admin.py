@@ -33,9 +33,9 @@ class StoreAdmin(admin.ModelAdmin):
 
 @admin.register(Shoppers)
 class ShoppersAdmin(admin.ModelAdmin):
-    exclude = ('user',)
+    # exclude = ('user',)
     list_display = ('shopper_name', 'head_images', 'phone', 'credit', 'sex', 'is_vip')
-    readonly_fields = ('credit', 'is_vip', 'birthday')
+    readonly_fields = ('credit', 'is_vip', 'user')
 
     def sex(self, obj):
         """性别"""

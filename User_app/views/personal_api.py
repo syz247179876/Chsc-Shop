@@ -250,7 +250,6 @@ class AddressOperation(viewsets.ModelViewSet):
         单修改默认地址
         以字典形式传过来的
         """
-        common_logger.info(kwargs)
         if self.get_serializer_class().update_default_address(self.get_queryset(), kwargs.get('pk')):
             return Response(response_code.modify_default_success, status=status.HTTP_200_OK)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

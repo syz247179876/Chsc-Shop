@@ -11,7 +11,7 @@ common_logger = Logging.logger('django')
 
 
 class BaseRedis:
-    _redis_instance = {}
+    _redis_instances = {}
     _instance = {}
 
     def __init__(self, redis_instance):
@@ -25,8 +25,8 @@ class BaseRedis:
         实现每个类实例对应一个redis实例
         """
         if not cls._instance.setdefault(cls.__name__, None):
-            cls._redis_instance[db] = get_redis_connection(db)  # redis实例
-            cls._instance[cls.__name__] = cls(cls._redis_instance[db])  # 自定义操作类实例
+            cls._redis_instances[db] = get_redis_connection(db)  # redis实例
+            cls._instance[cls.__name__] = cls(cls._redis_instances[db])  # 自定义操作类实例
         return cls._instance[cls.__name__]
 
     @property

@@ -34,10 +34,10 @@ class Order_basic(models.Model):
                                )
     # 支付方式
     payment_choice = (
-        (1, '货到付款'),
-        (2, '微信支付'),
-        (3, '支付宝'),
-        (4, '银联支付')
+        ('1', '货到付款'),
+        ('2', '微信支付'),
+        ('3', '支付宝'),
+        ('4', '银联支付')
     )
     payment = models.CharField(verbose_name=_('支付方式'),
                                choices=payment_choice,
@@ -68,6 +68,7 @@ class Order_basic(models.Model):
 
     # 订单状态
     status_choice = (
+        ("0", '全部状态'),  # 所有订单综合
         ("1", '代付款'),  # 用户提交订单，尚未付款，此时会锁定库存
         ("2", '代发货'),  # 用户付款后，等待商家接单前
         ("3", '代收货'),  # 用户付款后，等待收获

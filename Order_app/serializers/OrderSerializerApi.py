@@ -3,6 +3,7 @@
 # @Author : 司云中 
 # @File : OrderSerializerApi.py
 # @Software: PyCharm
+import datetime
 import math
 
 from Order_app.models.order_models import Order_details, Order_basic
@@ -19,92 +20,11 @@ order_logger = Logging.logger('order_')
 
 # 订单显示所需序列化器
 
-class ChoiceDisplayField(serializers.ChoiceField):
-
-    def to_representation(self, value):
-        """针对value(choice)转成我们需要的格式"""
-        return self.choices[value]
-
-
-class OrderBasicSerializer(serializers.ModelSerializer):
-    """订单序列化容器"""
-
-    order_details = serializers.SerializerMethodField(read_only=True)  # 递归嵌套序列化器，订单细节
-
-    status = serializers.SerializerMethodField(required=False)  # 获取可读的status
-
-    list_pk = serializers.ListField(required=False, write_only=True, allow_empty=False,
-                                    child=serializers.IntegerField())  # 订单号集合
-
-    def get_status(self, obj):
-        return obj.get_status_display()
-
-    def get_order_details(self, obj):
-        """嵌套order_details"""
-        order_details = Order_details.order_details_.filter(order_basic=obj.pk)
-        if order_details.count() > 0:
-            return OrderDetailsSerializer(order_details, many=True).data
-        return ''
-
-    @staticmethod
-    def get_order_and_page(user, **kwargs):
-        """
-        lazy load with specific paging and status from HTPRequest.GET
-        add order into redis
-        """
-        try:
-            cur_page = int(kwargs.get('page')[0])  # from request.GET
-            limit = 4 if 'limit' not in kwargs else int(kwargs.get('limit')[0])  # every time show four order
-            status = '0' if 'limit' not in kwargs else kwargs.get('status')[0]
-            total_instances = Order_basic.order_basic_.select_related('region').filter(consumer=user) \
-                .order_by('-generate_time')
-            counts = total_instances.count()
-            start = (cur_page - 1) * limit
-            end = cur_page * limit
-            limit_instances = total_instances[start:end] if status == '0' else total_instances.filter(status=status)[
-                                                                               start:end]  # 选择特定订单状态的limit个instances
-            max_pages = math.ceil(counts / limit)
-            return limit_instances, max_pages
-        except Exception as e:
-            common_logger.info(e)
-            return None, 0
-
-    @staticmethod
-    def delete_order(**kwargs):
-        """delete order from redis"""
-        try:
-            orderId = int(kwargs.get('orderId')[0])
-            with transaction.atomic():
-                Order_basic.order_basic_.get(orderId=orderId).delete()
-        except DatabaseError as e:
-            order_logger.error(e)
-            return False
-        else:
-            return True
-
-    class Meta:
-        model = Order_basic
-        fields = ('trade_number', 'total_price', 'commodity_total_counts', 'generate_time', 'status',
-                  'order_details', 'generate_time', 'list_pk')
-
-
-class OrderDetailsSerializer(serializers.ModelSerializer):
-    """
-    订单商品详情序列化容器
-    The serializer of Order_details which used to combine with Order_basic
-    """
-
-    commodity = serializers.SerializerMethodField()  # 商品细节
-
-    def get_commodity(self, obj):
-        commodity = Commodity.commodity_.filter(order_details=obj.pk)
-        if len(commodity) > 0:
-            return CommoditySerializer(commodity, many=True).data
-        return ''
-
-    class Meta:
-        model = Order_details
-        fields = ('price', 'commodity', 'commodity_counts')
+# class ChoiceDisplayField(serializers.ChoiceField):
+#
+#     def to_representation(self, value):
+#         """针对value(choice)转成我们需要的格式"""
+#         return self.choices[value]
 
 
 class CommoditySerializer(serializers.ModelSerializer):
@@ -115,6 +35,129 @@ class CommoditySerializer(serializers.ModelSerializer):
     class Meta:
         model = Commodity
         fields = ('store_name', 'store_name', 'commodity_name', 'intro', 'category', 'discounts', 'freight', 'image')
+
+
+class OrderDetailsSerializer(serializers.ModelSerializer):
+    """
+    订单商品详情序列化容器
+    The serializer of Order_details which used to combine with Order_basic
+    """
+
+    commodity = CommoditySerializer()
+
+    # def get_commodity(self, obj):
+    #     commodity = Commodity.commodity_.filter(order_details=obj.pk)
+    #     if len(commodity) > 0:
+    #         return CommoditySerializer(commodity, many=True).data
+    #     return ''
+
+    class Meta:
+        model = Order_details
+        fields = ('price', 'commodity', 'commodity_counts')
+
+
+class OrderBasicSerializer(serializers.ModelSerializer):
+    """订单序列化容器"""
+
+    order_details = OrderDetailsSerializer(many=True)
+
+    status = serializers.SerializerMethodField(required=False)  # 获取可读的status
+
+    list_pk = serializers.ListField(required=False, write_only=True, allow_empty=False,
+                                    child=serializers.IntegerField())  # 订单号集合
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    # def get_order_details(self, obj):
+    #     """嵌套order_details"""
+    #     order_details = Order_details.order_details_.filter(order_basic=obj.pk)
+    #     if order_details.count() > 0:
+    #         return OrderDetailsSerializer(order_details, many=True).data
+    #     return ''
+
+    class Meta:
+        model = Order_basic
+        fields = ('trade_number', 'total_price', 'commodity_total_counts', 'generate_time', 'status',
+                  'order_details', 'generate_time', 'list_pk')
+
+
+class OrderCreateSerializer(serializers.ModelSerializer):
+    commodity_dict = serializers.DictField(child=serializers.IntegerField(max_value=9999), allow_empty=False)  # 商品-数量字典
+    payment = serializers.CharField()
+
+    def validate_payment(self, value):
+        if value not in (str(i) for i in range(1, 5)):
+            raise serializers.ValidationError('付款类型不正确')
+        return value
+
+    @staticmethod
+    def compute_order_details(validated_data, order_basic, **kwargs):
+        """计算初始订单的商品价格"""
+
+        total_price = 0  # 订单总价
+        commodity_dict = validated_data['commodity_dict']
+        try:
+            commodity = Commodity.commodity_.select_related('store', 'shopper').filter(
+                pk__in=[int(pk) for pk in range(commodity_dict.keys())])  # one hit database
+            for value in commodity:
+                # 创建详细订单表
+                Order_details.order_details_.create(belong_shopper=value.shopper,
+                                                    commodity=value,
+                                                    order_basic=order_basic,
+                                                    price=value.discounts * value.price,
+                                                    commodity_counts=commodity_dict.get(value.pk),
+                                                    )
+                total_price += value.price * value.discounts * commodity_dict.get(value.pk)
+        except Exception as e:
+            order_logger.error(e)
+            return 0, 0
+        else:
+            return total_price, sum((int(value) for value in commodity_dict.values()))
+
+    @staticmethod
+    def generate_orderid(pk):
+        """产生唯一订单号："""
+        now = datetime.datetime.now()
+        return '{third_year}{month}{day}{hour}{pk}{minute}{second}{microsecond}'.format(third_year=str(now.year)[2:],
+                                                                                        month=str(now.month),
+                                                                                        day=str(now.day),
+                                                                                        hour=str(now.hour),
+                                                                                        minute=str(now.minute),
+                                                                                        second=str(now.second),
+                                                                                        microsecond=str(
+                                                                                            now.microsecond),
+                                                                                        pk=str(pk))
+
+    @staticmethod
+    def get_address(user):
+        return Address.address_.get(user=user, default_address=True)
+
+    def create_order(self, validated_data, user, redis):
+        """创建初始订单"""
+        try:
+            with transaction.atomic():
+                pk = user.pk
+                orderId = self.generate_orderid(pk)  # 产生订单号
+                address = self.get_address(user)
+                common_logger.info(validated_data.get('commodity_dict'))
+                order_basic = Order_basic.order_basic_.create(consumer=user, region=address, orderId=orderId,
+                                                              payment=validated_data.get('payment'))  # 创建初始订单
+                total_price, total_counts = self.compute_order_details(validated_data, order_basic)  # 计算总价和总数量
+                # 重新修改订单表总数量
+                order_basic.total_price = total_price
+                order_basic.total_counts = total_counts
+                order_basic.save(update_fields=['total_price', 'commodity_total_counts'])
+        except DatabaseError as e:  # rollback
+            order_logger.error(e)
+            return None
+        else:
+            redis.set_order_expiration(pk)  # 设置订单过期时间
+            return order_basic
+
+    class Meta:
+        model = Order_basic
+        fields = ('commodity_dict', 'payment')
 
 
 class PageSerializer(serializers.Serializer):

@@ -32,14 +32,14 @@ class Putaway_status(admin.SimpleListFilter):
 class CommodityAdmin(admin.ModelAdmin):
     exclude = ('store', 'shopper')  # 不在form中显示
     list_display = (
-        'commodity_name', 'images', 'category', 'price', 'colored_status', 'discounts', 'stock')
+        'commodity_name', 'images', 'category', 'price', 'colored_status', 'discounts', 'stock', 'status')
     list_filter = (Putaway_status,)
     list_per_page = 20
     # model中自定义的colored_status无法用于排序和修改
     # list_editable = ('colored_status',)
     # ordering = ('colored_status',)
     actions_on_top = True
-    actions = ['make_shelve', 'make_unshelve']
+    actions = ['make_shelve', 'make_unshelve', 'sell_counts']
     search_fields = ['category', ]
 
     '''

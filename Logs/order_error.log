@@ -26,3 +26,14 @@ ERROR - 2020-06-04 07:54:17,996 - order_api - get - 7228 - 18300 - unsupported o
 ERROR - 2020-06-04 07:55:01,620 - order_api - get - 7228 - 18300 - unsupported operand type(s) for *: 'decimal.Decimal' and 'NoneType'
 ERROR - 2020-06-04 07:57:53,961 - order_api - get - 7368 - 7892 - unsupported operand type(s) for *: 'decimal.Decimal' and 'NoneType'
 ERROR - 2020-06-04 07:58:44,192 - order_api - get - 7368 - 11964 - unsupported operand type(s) for *: 'decimal.Decimal' and 'NoneType'
+ERROR - 2020-08-10 23:10:15,897 - OrderSerializerApi - create_order - 24684 - 140507433936640 - (1048, "Column 'payment' cannot be null")
+ERROR - 2020-08-10 23:14:41,865 - OrderSerializerApi - compute_order_details - 24959 - 139917689919232 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:14:56,242 - OrderSerializerApi - compute_order_details - 24959 - 139917689919232 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:15:01,239 - OrderSerializerApi - compute_order_details - 24959 - 139917689919232 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:15:09,906 - OrderSerializerApi - compute_order_details - 24959 - 139917689919232 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:15:12,672 - OrderSerializerApi - compute_order_details - 24959 - 139917689919232 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:16:07,858 - OrderSerializerApi - compute_order_details - 25051 - 140685820610304 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:16:47,896 - OrderSerializerApi - compute_order_details - 25123 - 139631041959680 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:17:03,955 - OrderSerializerApi - compute_order_details - 25169 - 140661025388288 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:17:19,684 - OrderSerializerApi - compute_order_details - 25169 - 140661025388288 - 'dict_keys' object cannot be interpreted as an integer
+ERROR - 2020-08-10 23:17:40,427 - OrderSerializerApi - compute_order_details - 25169 - 140661025388288 - 'dict_keys' object cannot be interpreted as an integer
