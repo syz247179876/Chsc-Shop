@@ -59,7 +59,7 @@ class OrderDetailsSerializer(serializers.ModelSerializer):
 class OrderBasicSerializer(serializers.ModelSerializer):
     """订单序列化容器"""
 
-    order_details = OrderDetailsSerializer(many=True)
+    order_details = OrderDetailsSerializer(many=True, read_only=True)
 
     status = serializers.SerializerMethodField(required=False)  # 获取可读的status
 
@@ -78,7 +78,7 @@ class OrderBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order_basic
-        fields = ('trade_number', 'total_price', 'commodity_total_counts', 'generate_time', 'status',
+        fields = ('orderId', 'trade_number', 'total_price', 'commodity_total_counts', 'generate_time', 'status',
                   'order_details', 'generate_time', 'list_pk')
 
 
@@ -99,21 +99,21 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         commodity_dict = validated_data['commodity_dict']
         try:
             commodity = Commodity.commodity_.select_related('store', 'shopper').filter(
-                pk__in=[int(pk) for pk in range(commodity_dict.keys())])  # one hit database
+                pk__in=[int(pk) for pk in commodity_dict.keys()])  # one hit database
             for value in commodity:
                 # 创建详细订单表
                 Order_details.order_details_.create(belong_shopper=value.shopper,
                                                     commodity=value,
                                                     order_basic=order_basic,
                                                     price=value.discounts * value.price,
-                                                    commodity_counts=commodity_dict.get(value.pk),
+                                                    commodity_counts=commodity_dict.get(str(value.pk)),
                                                     )
-                total_price += value.price * value.discounts * commodity_dict.get(value.pk)
+                total_price += value.price * value.discounts * commodity_dict.get(str(value.pk))
         except Exception as e:
             order_logger.error(e)
             return 0, 0
         else:
-            return total_price, sum((int(value) for value in commodity_dict.values()))
+            return total_price, sum(value for value in commodity_dict.values())
 
     @staticmethod
     def generate_orderid(pk):
@@ -140,7 +140,6 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 pk = user.pk
                 orderId = self.generate_orderid(pk)  # 产生订单号
                 address = self.get_address(user)
-                common_logger.info(validated_data.get('commodity_dict'))
                 order_basic = Order_basic.order_basic_.create(consumer=user, region=address, orderId=orderId,
                                                               payment=validated_data.get('payment'))  # 创建初始订单
                 total_price, total_counts = self.compute_order_details(validated_data, order_basic)  # 计算总价和总数量

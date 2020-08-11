@@ -72,16 +72,20 @@ class Commodity(models.Model):
                                 max_length=10,
                                 choices=commodity_choice,
                                 )
-    # 上架状态
-    shelve_state = (
-        ('0', '下架'),
-        ('1', '上架'),
-    )
-    status = models.CharField(verbose_name=_('上架状态'),
-                              help_text=_('请选择商品是否上架'),
-                              max_length=10,
-                              choices=shelve_state,
-                              )
+    # # 上架状态
+    # shelve_state = (
+    #     ('0', '下架'),
+    #     ('1', '上架'),
+    # )
+    # status = models.CharField(verbose_name=_('上架状态'),
+    #                           help_text=_('请选择商品是否上架'),
+    #                           max_length=10,
+    #                           choices=shelve_state,
+    #                           )
+    status = models.BooleanField(verbose_name=_('上架状态'),
+                                 help_text=_('请选择商品是否上架'),
+                                 default=False
+                                 )
 
     # 上架时间
 

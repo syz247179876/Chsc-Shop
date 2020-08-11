@@ -1,5 +1,7 @@
+from rest_framework import routers
+
 from Shop_app.views.shop import enter_introduction_page
-from Shop_app.views.shop_api import AddShopCartOperation, AddFavoritesOperation
+from Shop_app.views.shop_api import AddShopCartOperation, AddFavoritesOperation, CommoditySearchOperation
 from django.urls import path, include
 
 app_name = 'Shop_app'
@@ -9,3 +11,8 @@ urlpatterns = [
     path('add-into-shop-cart/', AddShopCartOperation.as_view(), name='add-into-shop-cart'),
     path('add-into-favorites-chsc-api/', AddFavoritesOperation.as_view(), name='add-into-favorites-chsc-api'),
 ]
+
+# DRF视图集注册
+router = routers.DefaultRouter()
+router.register(r"shop-chsc-search", CommoditySearchOperation, base_name="shop-search")
+urlpatterns += router.urls

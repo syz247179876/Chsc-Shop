@@ -1,9 +1,13 @@
 import logging
 
+from drf_haystack.viewsets import HaystackViewSet
+
 from Shop_app.redis.shop_cart_redis import ShopRedisCartOperation
 from Shop_app.redis.shop_favorites_redis import ShopRedisFavoritesOperation
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+
+from Shop_app.serializers.ShopSearchSerializerApi import ShopSearchSerializer
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from rest_framework import mixins
@@ -74,6 +78,27 @@ class AddFavoritesOperation(APIView):
             else Response(response_code.add_goods_into_favorites_error)
 
 
+class CommoditySearchOperation(HaystackViewSet):
+    """ES搜索操作"""
+
+    index_models = [Commodity]
+
+    serializer_class = ShopSearchSerializer
+
+    def list(self, request, *args, **kwargs):
+        # queryset = self.filter_queryset(self.get_queryset())
+        #
+        # page = self.paginate_queryset(queryset)
+        # if page is not None:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
+        #
+        # serializer = self.get_serializer(queryset, many=True)
+        # return Response(serializer.data)
+        queryset = self.get_queryset()
+        common_logger.info(queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 

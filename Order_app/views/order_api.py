@@ -112,6 +112,8 @@ class OrderListOperation(GenericAPIView):
     def get_queryset(self):
         """根据status返回查询集"""
         status_ = self.kwargs.get(self.lookup_field, '0')
+        if status_ == '0':
+            return Order_basic.order_basic_.filter(delete_consumer=False)
         return Order_basic.order_basic_.filter(status=status_, delete_consumer=False)
 
     def get(self, request, *args, **kwargs):

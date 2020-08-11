@@ -77,7 +77,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ],
-    'DEFAULT_THROTTLE_CLASSES': [   # 限流类
+    'DEFAULT_THROTTLE_CLASSES': [  # 限流类
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
     ],
@@ -100,14 +100,21 @@ JWT_AUTH = {
     'JWT_AUTH_COOKIE': 'JwtToken',
 }
 
-# whoosh搜索引擎的配置
+
 HAYSTACK_CONNECTIONS = {
+    # elasticSearch实现搜索引擎
     'default': {
-        # 指定使用的搜索引擎
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        # 指定索引文件存放位置
-        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
-    }
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.0.105:9200/',  # 此处为elasticsearch运行的服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'shop',  # 指定elasticsearch建立的索引库的名称
+    },
+    # # whoosh搜索引擎的配置
+    # 'default': {
+    #     # 指定使用的搜索引擎
+    #     'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+    #     # 指定索引文件存放位置
+    #     'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    # }
 }
 
 # 新增的数据自动生成索引
