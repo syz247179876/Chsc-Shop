@@ -2,6 +2,7 @@ import logging
 
 from drf_haystack.viewsets import HaystackViewSet
 
+from Shop_app.Pagination import CommodityResultsSetPagination
 from Shop_app.redis.shop_cart_redis import ShopRedisCartOperation
 from Shop_app.redis.shop_favorites_redis import ShopRedisFavoritesOperation
 from django.contrib.auth.decorators import login_required
@@ -10,9 +11,6 @@ from django.utils.decorators import method_decorator
 from Shop_app.serializers.ShopSearchSerializerApi import ShopSearchSerializer
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
-from rest_framework import mixins
-from rest_framework import generics
-from rest_framework import serializers
 from Shop_app.models.commodity_models import Commodity
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -85,20 +83,14 @@ class CommoditySearchOperation(HaystackViewSet):
 
     serializer_class = ShopSearchSerializer
 
+    pagination_class = CommodityResultsSetPagination
+
     def list(self, request, *args, **kwargs):
-        # queryset = self.filter_queryset(self.get_queryset())
-        #
-        # page = self.paginate_queryset(queryset)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
-        #
-        # serializer = self.get_serializer(queryset, many=True)
-        # return Response(serializer.data)
+        common_logger.info(request.query_params)
         queryset = self.get_queryset()
-        common_logger.info(queryset)
+        page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-
-

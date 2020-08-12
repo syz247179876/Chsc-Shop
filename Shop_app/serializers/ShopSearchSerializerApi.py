@@ -25,4 +25,4 @@ class ShopSearchSerializer(HaystackSerializer):
 
     class Meta:
         index_classes = [CommodityIndex]  # 索引类名
-        fields = ('text', 'object')  # 第一个参数为索引类中的字段，第二个参数为序列化器返回
+        fields = ('text', 'commodity_name', 'object')  # 第一个参数为索引类中的字段，第二个参数为序列化器返回

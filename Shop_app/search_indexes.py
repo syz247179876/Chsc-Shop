@@ -23,6 +23,6 @@ class CommodityIndex(indexes.SearchIndex, indexes.Indexable):
         # 返回建立索引的模型类
         return Commodity
 
-    def index_queryset(self, using='whoosh'):
+    def index_queryset(self, using=None):
         # 返回建立索引的数据查询集
         return self.get_model().commodity_.filter(status=True)

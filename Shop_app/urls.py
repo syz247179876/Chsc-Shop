@@ -14,5 +14,5 @@ urlpatterns = [
 
 # DRF视图集注册
 router = routers.DefaultRouter()
-router.register(r"shop-chsc-search", CommoditySearchOperation, base_name="shop-search")
+router.register(r'shop-chsc-search', CommoditySearchOperation, basename="shop_chsc_search")
 urlpatterns += router.urls
