@@ -71,6 +71,8 @@
           <option value="Shopper_app.models.shopper_models.Shoppers.DoesNotExist" />
           <option value="django.db.models.fields.files.ImageField.url" />
           <option value="str.fullmatch" />
+          <option value="Shop_app.ElasticSearch.ElasticSearchOperation.request" />
+          <option value="Shop_app.views.shop_api.CommoditySearchOperation.elastic" />
         </list>
       </option>
     </inspection_tool>
