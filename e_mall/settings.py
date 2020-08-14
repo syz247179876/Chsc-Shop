@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'mainsite',
     'Search_app',
     'haystack',
+    'CommonModule_app'  # 用于存放各模块公用文件
 ]
 
 MIDDLEWARE = [
@@ -367,6 +368,20 @@ EMAIL_USE_SSL = False  # 使用安全ssl加密，qq企业邮箱要求使用
 EMAIL_FROM = '拼夕夕商城<247179876@qq.com>'
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# 阿里云短信发送
+ACCESS_KEY_ID = 'LTAI4GFNoVjYuDop2313wNYC'
+ACCESS_KEY_SECRET = 'pKoWg1KrHvaHzMFQeIe3QtKNGovBdu'
+REGION = 'cn-hangzhou'
+SIGN_NAME = 'ACC商城'  # 短信签名
+
+# 不同的短信模板
+TEMPLATES_CODE_LOGIN = 'SMS_199795817'
+TEMPLATES_CODE_REGISTER = 'SMS_199795814'
+TEMPLATES_CODE_IDENTIFY = 'SMS_199805896'
+TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
+
+
 
 # 阿里OCR的AppCode
 

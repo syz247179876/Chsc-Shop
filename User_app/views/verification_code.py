@@ -8,13 +8,14 @@ from rest_framework.generics import GenericAPIView
 from User_app.models.user_models import Consumer
 from User_app.redis.user_redis import RedisUserOperation
 from User_app.serializers.VerificationSerializerApi import VerificationSerializer, VerificationModifyPwdSerializer
-from User_app.views import tasks
 from django.contrib.auth.models import User
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from rest_framework.response import Response
 from rest_framework import status
 from Shopper_app.models.shopper_models import Shoppers
+from CommonModule_app.tasks import send_phone, send_email, set_verification_code
+from e_mall.settings import TEMPLATES_CODE_REGISTER, TEMPLATES_CODE_MODIFY_PASSWORD
 
 common_logger = Logging.logger('django')
 
@@ -27,7 +28,7 @@ class SendCode:
     增强发送过程
     """
 
-    __slots__ = ('mode', 'time', 'response', 'redis')
+    __slots__ = ('mode', 'time', 'response', 'redis', 'results')
 
     def __init__(self, mode, db):
         """初始化信息"""
@@ -39,22 +40,25 @@ class SendCode:
     def __call__(self, func):
         def send(obj, way, number, **kwargs):
             """选择手机号还是邮箱进行验证码发送"""
-            is_existed = func(obj, number)  # 根据number验证用户是否存在
+            is_existed = func(obj, number)  # 根据number验证用户是否存在,obj为类实例
             if is_existed:
                 # 如果用户存在
                 response_code_func = getattr(response_code, is_existed)
                 return Response(response_code_func, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # 获取6位验证码
-            code = tasks.set_verification_code()
+            code = set_verification_code()
             try:
                 title = kwargs.pop('title')
                 content = kwargs.pop('content') % {'code': code}
                 if way == 'email':
                     # 异步队列发送验证码
-                    tasks.send_email_verification.delay(title=title, content=content, user_email=number)
+                    send_email.delay(title=title, content=content, user_email=number)
                     self.response = response_code.email_verification_success
                 elif way == 'phone':
-                    # tasks.send_email_verification.delay(title=title, content=content, user_email=number)
+                    # 发送手机验证码
+                    template_code = kwargs.pop('template_code')
+                    send_phone.delay(phone_numbers=number, template_code=template_code,
+                                     template_param={'code': code})
                     self.response = response_code.phone_verification_success
                 # 保存验证码
                 self.redis.save_code(number, code, self.time)
@@ -96,7 +100,7 @@ class VerificationBase(GenericAPIView):
             Consumer.consumer_.get(phone=phone)
             # email was existed
             return 'user_existed'
-        except User.DoesNotExist:
+        except Consumer.DoesNotExist:
             return None
 
     @SendCode('bind', 'redis')
@@ -157,9 +161,9 @@ class VerificationCodeRegister(VerificationBase):
             'phone': 'send_phone_code',
         }
         func = func_list.pop(way)
-        number = validated_data.get(way)  # email or phone or any other
+        number = validated_data.get(way)  # phone
         result = getattr(self, func)
-        return result(way, number, title=self.title, content=self.content)
+        return result(way, number, title=self.title, content=self.content, template_code=TEMPLATES_CODE_REGISTER)
 
     def post(self, request):
         """
@@ -173,7 +177,7 @@ class VerificationCodeRegister(VerificationBase):
 
 class VerificationCodeBind(VerificationBase):
     title = '吃货商城用户%(way)s绑定'
-    content = '亲爱的【吃货商城】用户,您正在绑定手机或邮箱,您的换绑验证码为%(code)s,有效期10分钟，' \
+    content = '亲爱的【吃货商城】用户,您正在绑定邮箱,您的换绑验证码为%(code)s,有效期10分钟，' \
               '如非本人操作，请勿理睬！'
 
     def factory(self, validated_data):
@@ -187,7 +191,7 @@ class VerificationCodeBind(VerificationBase):
         number = validated_data.get(way)  # email or phone or any other
         self.title = self.title % {'way': way}
         result = getattr(self, func)
-        return result(way, number, title=self.title, content=self.content)
+        return result(way, number, title=self.title, content=self.content, template_code=TEMPLATES_CODE_REGISTER)
 
     def post(self, request):
         """发送验证码（改绑/绑定）"""
@@ -211,9 +215,9 @@ class VerificationCodePay(VerificationBase):
 
 
 class VerificationCodeShopperRegister(VerificationBase):
-    title = '吃货商城用户%(way)开店'
-    content = '亲爱的【吃货商城】用户,您正在开通您的店铺,您的店铺开通的短信验证码为%(code)s,' \
-              '有效期10分钟，如非本人操作，请勿理财！'
+    # title = '吃货商城用户%(way)开店'
+    # content = '亲爱的【吃货商城】用户,您正在开通您的店铺,您的店铺开通的短信验证码为%(code)s,' \
+    #           '有效期10分钟，如非本人操作，请勿理财！'
 
     def post(self, request):
         """发送验证码（商家注册）"""
@@ -221,14 +225,15 @@ class VerificationCodeShopperRegister(VerificationBase):
         serializer.is_valid(raise_exception=True)
         way = serializer.validated_data.get('way')
         phone = serializer.validated_data.get(way)
-        return self.send_phone_code_shopper(way, phone, title=self.title, content=self.content)
+        return self.send_phone_code_shopper(way, phone, title=self.title, content=self.content,
+                                            template_code=TEMPLATES_CODE_REGISTER)
 
 
 class VerificationCodeModifyPassword(VerificationBase):
     """手机验证"""
-    title = '吃货商城用户%(way)密码修改提醒'
-    content = '亲爱的【吃货商城】用户,您正在为您的账户修改密码,您的修改密码的短信验证码为%(code)s,' \
-              '有效期10分钟，如非本人操作，请勿理睬！'
+    # title = '吃货商城用户%(way)密码修改提醒'
+    # content = '亲爱的【吃货商城】用户,您正在为您的账户修改密码,您的修改密码的短信验证码为%(code)s,' \
+    #           '有效期10分钟，如非本人操作，请勿理睬！'
 
     def post(self, request):
         """发送验证码（修改密码）"""
@@ -236,4 +241,5 @@ class VerificationCodeModifyPassword(VerificationBase):
         serializer.is_valid(raise_exception=True)
         way = serializer.validated_data.get('way')
         phone = serializer.validated_data.get(way)
-        return self.send_phone_code_modify_pwd(way, phone, title=self.title, content=self.content)
+        return self.send_phone_code_modify_pwd(way, phone, title=self.title, content=self.content,
+                                               template_code=TEMPLATES_CODE_MODIFY_PASSWORD)

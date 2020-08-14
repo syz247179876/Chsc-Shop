@@ -53,16 +53,14 @@ class RegisterAPIView(GenericAPIView):
         # 验证码正确，手机号尚未使用
         try:
             with transaction.atomic():  # 开启事务
-                save_point = transaction.savepoint()  # 创建事务保存点
                 user = User.objects.create_user(
                     username='chch%s' % phone,
                     password=validated_data.get('password'),
                 )
                 Consumer.consumer_.create(user=user, phone=phone)
             # 使用jwt登录，跳转到登录界面
-        except Exception as e:
+        except DatabaseError as e:
             consumer_logger.error('register_email_create_error:{}'.format(e))
-            transaction.savepoint_rollback(save_point)   # 回滚
             return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(response_code.register_success, status=status.HTTP_200_OK)
