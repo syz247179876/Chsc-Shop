@@ -101,7 +101,7 @@ class Consumer(models.Model):
         # permissions = [('can_view_address','can_v')]
 
     def __str__(self):
-        return self.user
+        return self.user.get_username()
 
     @property
     def get_username(self):

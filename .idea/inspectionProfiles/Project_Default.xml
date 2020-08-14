@@ -73,6 +73,7 @@
           <option value="str.fullmatch" />
           <option value="Shop_app.ElasticSearch.ElasticSearchOperation.request" />
           <option value="Shop_app.views.shop_api.CommoditySearchOperation.elastic" />
+          <option value="tick.custom_button.action_url" />
         </list>
       </option>
     </inspection_tool>

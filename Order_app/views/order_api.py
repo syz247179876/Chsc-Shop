@@ -15,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from Order_app.Pagination import OrderResultsSetPagination
+from Order_app.pagination import OrderResultsSetPagination
 from Order_app.models.order_models import Order_basic
 from Order_app.redis.OrderRedis import RedisOrderOperation
 from Order_app.serializers.OrderSerializerApi import OrderBasicSerializer, OrderCommoditySerializer, \

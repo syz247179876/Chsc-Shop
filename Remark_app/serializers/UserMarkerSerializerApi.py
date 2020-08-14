@@ -22,63 +22,46 @@ class ChoiceDisplayField(serializers.ChoiceField):
 
 
 class UserMarkerSerializer(serializers.ModelSerializer):
-    grade = serializers.SerializerMethodField()
+    GRADE_CHOICE = (
+        (1, '一星好评'),
+        (2, '二星好评'),
+        (3, '三星好评'),
+        (4, '四星好评'),
+        (5, '五星好评'),
+    )
+    grade = serializers.ChoiceField(choices=GRADE_CHOICE, write_only=True)
 
-    commodity_name = serializers.CharField(source='commodity.commodity_name')
+    grade_human = serializers.SerializerMethodField(read_only=True)
 
-    price = serializers.IntegerField(source='commodity.price')
+    commodity_name = serializers.CharField(source='commodity.commodity_name', read_only=True)
 
-    category = serializers.CharField(source='commodity.category')
+    price = serializers.IntegerField(source='commodity.price', read_only=True)
 
-    image = serializers.ImageField(source='commodity.image')
+    category = serializers.CharField(source='commodity.category', read_only=True)
 
-    @property
-    def context(self):
-        """extra context"""
-        return super().context
+    image = serializers.ImageField(source='commodity.image', read_only=True)
 
-    def get_grade(self, obj):
+    def get_grade_human(self, obj):
         return obj.get_grade_display()
 
-    @staticmethod
-    def get_remark_and_page(user, **kwargs):
-        try:
-            limit = int(kwargs.get('limit')[0]) if 'limit' in kwargs else 5
-            page = int(kwargs.get('page')[0])
-            start = (page - 1) * limit
-            end = page * limit
-            counts = Remark.remark_.select_related('commodity').filter(consumer=user).count()
-            instances = Remark.remark_.select_related('commodity').filter(consumer=user)[start:end]
-            page = math.ceil(counts / limit)
-            return instances, page
-        except Exception as e:
-            evaluate_logger.error(e)
-            return None
+    # @staticmethod
+    # def get_remark_and_page(user, **kwargs):
+    #     try:
+    #         limit = int(kwargs.get('limit')[0]) if 'limit' in kwargs else 5
+    #         page = int(kwargs.get('page')[0])
+    #         start = (page - 1) * limit
+    #         end = page * limit
+    #         counts = Remark.remark_.select_related('commodity').filter(consumer=user).count()
+    #         instances = Remark.remark_.select_related('commodity').filter(consumer=user)[start:end]
+    #         page = math.ceil(counts / limit)
+    #         return instances, page
+    #     except Exception as e:
+    #         evaluate_logger.error(e)
+    #         return None
 
     class Meta:
         model = Remark
         fields = ['commodity_name', 'grade', 'reward_content', 'reward_time', 'price', 'category', 'image']
 
 
-class PageSerializer(serializers.Serializer):
-    """页数序列器"""
 
-    page = serializers.IntegerField()
-
-    data = serializers.SerializerMethodField()
-
-    @property
-    def serializer_class(self):
-        """data serializer"""
-        return self.context.get('serializer')
-
-    def get_data(self, obj):
-        instances = self.context.get('instances')
-        return self.serializer_class(instances, many=True).data
-
-
-class Page:
-    """the instance of page"""
-
-    def __init__(self, page):
-        self.page = page

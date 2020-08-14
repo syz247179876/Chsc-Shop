@@ -69,9 +69,3 @@ def send_phone(phone_numbers, template_code, template_param):
     return response
 
 
-__business_id = uuid.uuid1()
-print(__business_id)
-params = {"code": "456789"}
-print(send_phone("13787833290", TEMPLATES_CODE_REGISTER, params))
-
-
