@@ -233,6 +233,14 @@ VALIDATION_ERROR = 400
 
 CREATE_SHOPPER_SUCCESS = 691
 
+# 删除评论成功
+
+DELETE_REMARK_SUCCESS = 681
+
+# 修改头像成功
+
+MODIFY_HEAD_IMAGE_SUCCESS = 721
+
 
 class ResponseCode:
     result = {
@@ -630,6 +638,18 @@ class ResponseCode:
     def create_shopper_success(self):
         """商家创建成功"""
         self.result.update(dict(code=CREATE_SHOPPER_SUCCESS, msg='create_success', status='success'))
+        return self.result
+
+    @property
+    def delete_remark_success(self):
+        """评论删除成功"""
+        self.result.update(dict(code=DELETE_REMARK_SUCCESS, msg='delete_success', status='success'))
+        return self.result
+
+    @property
+    def modify_head_image_success(self):
+        """修改头像成功"""
+        self.result.update(dict(code=MODIFY_HEAD_IMAGE_SUCCESS, msg='modify_success', status='success'))
         return self.result
 
 

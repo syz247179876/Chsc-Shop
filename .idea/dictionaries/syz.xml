@@ -5,6 +5,8 @@
       <w>asgi</w>
       <w>commonmodule</w>
       <w>elasticsearch</w>
+      <w>fdfs</w>
+      <w>filebuffer</w>
       <w>fullmatch</w>
       <w>mult</w>
       <w>orderid</w>

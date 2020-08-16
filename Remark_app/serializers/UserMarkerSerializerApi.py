@@ -61,7 +61,7 @@ class UserMarkerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Remark
-        fields = ['commodity_name', 'grade', 'reward_content', 'reward_time', 'price', 'category', 'image']
+        fields = ['commodity_name', 'grade_human', 'grade', 'reward_content', 'reward_time', 'price', 'category', 'image']
 
 
 

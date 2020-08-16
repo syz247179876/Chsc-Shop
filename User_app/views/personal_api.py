@@ -4,7 +4,9 @@
 # @File : personal_api.py
 # @Software: PyCharm
 import datetime
+import importlib
 
+from django.http import Http404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -20,7 +22,7 @@ from User_app.serializers.AddressSerializerApi import AddressSerializers
 
 from User_app.redis.user_redis import RedisUserOperation
 from User_app.serializers.FootSerializerApi import FootSerializer
-from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSerializer
+from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSerializer, HeadImageSerializer
 from User_app.serializers.PageSerializerApi import Page, PageSerializer
 from User_app.serializers.PasswordSerializerApi import PasswordSerializer
 from User_app.serializers.ShopCartSerializerApi import ShopCartSerializer
@@ -34,9 +36,45 @@ from e_mall.response_code import response_code
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
+from django.conf import settings
 
 common_logger = Logging.logger('django')
 consumer_logger = Logging.logger('consumer_')
+
+
+class HeadImageOperation(GenericAPIView):
+    """
+    修改头像
+    """
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = HeadImageSerializer
+
+    storage_class = settings.DEFAULT_FILE_STORAGE
+
+    def get_storage_class(self):
+        return self.storage_class
+
+    def get_storage(self, *args, **kwargs):
+        storage_class = self.get_storage_class().split('.')
+        storage = getattr(importlib.import_module('.'.join(storage_class[:-1])), storage_class[-1])
+        return storage(**kwargs)
+
+    def get_object(self):
+        try:
+            return Consumer.consumer_.get(user=self.request.user)
+        except Consumer.DoesNotExist:
+            raise Http404
+
+    def put(self, request):
+        """修改头像"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        is_modify = serializer.update_head_image(self.get_object(), serializer.validated_data, self.get_storage())
+        if is_modify:
+            return Response(response_code.modify_head_image_success, status=status.HTTP_200_OK)
+        else:
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SaveInformation(GenericAPIView):

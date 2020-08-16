@@ -101,7 +101,6 @@ JWT_AUTH = {
     'JWT_AUTH_COOKIE': 'JwtToken',
 }
 
-
 HAYSTACK_CONNECTIONS = {
     # elasticSearch实现搜索引擎，不走DRF，直接请求索引库
     'default': {
@@ -381,8 +380,6 @@ TEMPLATES_CODE_REGISTER = 'SMS_199795814'
 TEMPLATES_CODE_IDENTIFY = 'SMS_199805896'
 TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
 
-
-
 # 阿里OCR的AppCode
 
 ALI_APPCODE = '990dad198d304f8da8c0c599593f686c'
@@ -401,6 +398,15 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# 配置django文件存储为fdfs
+DEFAULT_FILE_STORAGE = 'e_mall.storage.FastDFSStorage'
+
+# FastDfs服务器地址
+FDFS_URL = 'http://192.168.0.105:80'
+
+# FastDfs的客户端路径
+FDFS_CLIENT_CONF = '/etc/fdfs/client.conf'
 
 # Home page address
 SIMPLEUI_INDEX = '/'

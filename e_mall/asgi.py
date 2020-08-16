@@ -8,6 +8,7 @@ import os
 import django
 from channels.routing import get_default_application
 
+
 project_name = os.path.split(os.path.dirname(__file__))[-1]  # dirname当前目录的上一级==去掉文件名，返回目录
 project_settings = "{}.settings".format(project_name)  # 获取setting配置文件
 

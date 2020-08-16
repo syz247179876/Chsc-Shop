@@ -22,19 +22,18 @@ class EmailOrUsername(ModelBackend):
     邮箱规则：正常邮箱规则
     """
 
-    def authenticate(self, request=None, username=None, password=None, **kwargs):
-        global consumer
+    def authenticate(self, request=None, username=None, password=None, way=None):
+        global user
         try:
-
             if validators.username_validate(username) or validators.email_validate(username):
-                consumer = User.objects.get(Q(username=username) | Q(email=username))
+                user = User.objects.get(Q(username=username) | Q(email=username))
             else:
                 return None  # 用户名不正确
         except User.DoesNotExist:
             return None
         else:
-            if consumer.check_password(password):
-                return consumer
+            if user.check_password(password):
+                return user
             return None  # 密码不正确
 
 
@@ -44,21 +43,27 @@ class Phone(ModelBackend):
     手机号：正常手机号格式
     """
 
-    def authenticate(self, request=None, username=None, password=None, **kwargs):
+    def authenticate(self, request=None, username=None, password=None, way=None):
         """authenticate consumer, only phones are allowed to login"""
-        global consumer
+        global user
         try:
             if validators.phone_validate(username):
-                consumer = Consumer.consumer_.get(phone=username)
+                user = User.objects.select_related('consumer').get(consumer__phone=username)
             else:
                 return None
-        except Consumer.DoesNotExist:
+        except user.DoesNotExist:
             return None
         else:
-            if consumer.check_password(password):
-                return consumer
+            if user.check_password(password):
+                return user
             return None
+
+
+class PhoneCode(ModelBackend):
+    """手机+验证码登录"""
+    pass
 
 
 email_or_username = EmailOrUsername()
 phone = Phone()
+phone_code = PhoneCode()

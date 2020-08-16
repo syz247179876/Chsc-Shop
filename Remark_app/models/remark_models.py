@@ -52,7 +52,7 @@ class Remark(models.Model):
     reward_time = models.DateTimeField(auto_now_add=True, verbose_name=_('评论时间'))
 
     # 判断用户是否已经评论
-    is_reward = models.BooleanField(default=True)
+    is_remark = models.BooleanField(default=True)
 
     remark_ = Manager()
 
