@@ -55,7 +55,7 @@ class ShopperSerializer(serializers.ModelSerializer):
                 'nationality': identify_instance_face.get_detail('nationality')
             }
             if User.objects.filter(first_name=identify_instance_face.get_detail('actual_name')).count() == 1:
-                raise serializers.ValidationError('身份已被认证过！')
+                raise serializers.ValidationError('身份证已被认证过！')
             else:
                 attrs.update(OCR_attrs)
                 return attrs

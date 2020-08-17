@@ -22,7 +22,8 @@ from User_app.serializers.AddressSerializerApi import AddressSerializers
 
 from User_app.redis.user_redis import RedisUserOperation
 from User_app.serializers.FootSerializerApi import FootSerializer
-from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSerializer, HeadImageSerializer
+from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSerializer, HeadImageSerializer, \
+    VerifyIdCardSerializer
 from User_app.serializers.PageSerializerApi import Page, PageSerializer
 from User_app.serializers.PasswordSerializerApi import PasswordSerializer
 from User_app.serializers.ShopCartSerializerApi import ShopCartSerializer
@@ -56,8 +57,8 @@ class HeadImageOperation(GenericAPIView):
         return self.storage_class
 
     def get_storage(self, *args, **kwargs):
-        storage_class = self.get_storage_class().split('.')
-        storage = getattr(importlib.import_module('.'.join(storage_class[:-1])), storage_class[-1])
+        module_path, class_name = self.get_storage_class().rsplit('.', 1)
+        storage = getattr(importlib.import_module(module_path), class_name)
         return storage(**kwargs)
 
     def get_object(self):
@@ -206,59 +207,25 @@ class BindEmailOrPhone(GenericAPIView):
             return Response(response_code.bind_email_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class VerifyIdCard(APIView):
-    """OCR识别验证"""
+class VerifyIdCard(GenericAPIView):
+    """OCR身份识别验证"""
 
     permission_classes = [IsAuthenticated]
 
-    @staticmethod
-    def trans_sex(read_sex):
-        """ 转换性别 """
-        return 'm' if read_sex == '男' else 'f'
+    serializer_class = VerifyIdCardSerializer
 
-    @staticmethod
-    def trans_birth(read_birth):
-        """
-        重构生日
-        返回日期类型
-        """
-        year = read_birth[0:4]
-        month = read_birth[4:6]
-        day = read_birth[6:8]
-        birth_str = '%(year)s-%(month)s-%(day)s' % ({'year': year, 'month': month, 'day': day})
-        birthday = datetime.datetime.strptime(birth_str, '%Y-%m-%d')
-        return birthday
+    def get_object(self):
+        """获取inner join的用户对象"""
+        return Consumer.consumer_.select_related('user').get(user=self.request.user)  # 如果没有对象在权限会那抛出404
 
-    def verify(self, pk, image, card_type):
-        """阿里OCR识别身份证"""
-        user = User.objects.get(pk=pk)  # inner join
-        identify_instance = Interface_identify(image, card_type)  # 返回识别实例
-
-        if not identify_instance.is_success:  # 判断是否识别成功
-            return Response(response_code.real_name_authentication_error)
-        else:
-            user.first_name = identify_instance.get_detail('actual_name')
-            sex = identify_instance.get_detail('sex')
-            birth = identify_instance.get_detail('birth')
-            user.consumer.sex = self.trans_sex(sex)
-            user.consumer.birthday = self.trans_birth(birth)
-        try:
-            with transaction.atomic():
-                # 开启事务，原子修改
-                user.consumer.save(update_fields=['sex', 'birthday'])
-                user.save(update_fields=['first_name'])
-        except DatabaseError:
-            return Response(response_code.server_error)
-        else:
-            return Response(response_code.real_name_authentication_success)
-
-    def post(self, request):
+    def put(self, request):
         """处理POST请求"""
-        pk = request.user.pk
-        image = request.data.get('image')
-        card_type = request.data.get('card_type')
-        # both image.file.read() and image.read() is efficient to get type of binary
-        return self.verify(pk, image.file.read(), card_type)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        is_update = serializer.update(self.get_object(), serializer.validated_data)
+        if is_update:
+            return Response(response_code.verify_id_card_success, status=status.HTTP_200_OK)
+        return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class AddressOperation(viewsets.ModelViewSet):

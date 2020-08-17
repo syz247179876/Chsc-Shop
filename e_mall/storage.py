@@ -10,7 +10,9 @@ from e_mall.settings import FDFS_URL, FDFS_CLIENT_CONF
 from django.utils.deconstruct import deconstructible
 
 from fdfs_client.client import Fdfs_client, get_tracker_conf
+
 common_logger = Logging.logger('django')
+
 
 @deconstructible
 class FastDFSStorage(Storage):

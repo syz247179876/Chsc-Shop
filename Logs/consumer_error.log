@@ -288,3 +288,5 @@ ERROR - 2020-08-14 09:57:45,234 - verification_code - send - 10615 - 14033513130
 ERROR - 2020-08-14 09:58:33,775 - verification_code - send - 10725 - 140558924764928 - register-send_email:must be str, not bytes
 ERROR - 2020-08-14 10:03:21,517 - verification_code - send - 10837 - 140015282063104 - register-send_email:must be str, not bytes
 ERROR - 2020-08-14 10:04:22,803 - verification_code - send - 11205 - 140096942622464 - register-send_email:must be str, not bytes
+ERROR - 2020-08-17 21:39:19,375 - ali_card_ocr - get_posturl_result - 103855 - 139973872772864 - HTTP Error 463: 463
+ERROR - 2020-08-17 21:39:24,619 - ali_card_ocr - get_posturl_result - 103855 - 139973872772864 - HTTP Error 463: 463

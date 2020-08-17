@@ -34,7 +34,7 @@ class OcrIdCard:
     }
 
     def __init__(self, image, card_type):
-        image = str(base64.b64encode(image), encoding='utf-8')  # 对二进制进行base64编码
+        image = str(base64.b64encode(image.read()), encoding='utf-8')  # 对二进制进行base64编码
         configure = {"side": card_type}
         self.params.update({'image': image, 'configure': configure})
         self.json_result = None   # 存储返回的结果

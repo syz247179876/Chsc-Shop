@@ -87,6 +87,14 @@ class Consumer(models.Model):
         default=60,
     )
 
+    nationality = models.CharField(
+        _('详细地址'),
+        help_text=_('详细地址信息'),
+        max_length=30,
+        null=True,
+        blank=True
+    )
+
     USER_FIELD = 'user'
     PHONE_FIELD = 'phone'
     HEAD_IMAGE_FIELD = 'head_image'
