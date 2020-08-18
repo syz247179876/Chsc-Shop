@@ -28,3 +28,4 @@ def send_verification(title, content, user_email):
         send_mail(title, content, EMAIL_HOST_USER, [user_email], fail_silently=False)
     except Exception as e:
         print(e)
+

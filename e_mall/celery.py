@@ -22,7 +22,7 @@ environ.setdefault("DJANGO_SETTINGS_MODULE", project_settings)
 app = Celery('tasks', broker=BROKER_URL)
 
 # 使用django的settings文件配置celery，一些基础参数，比如任务队列存放的位置redis中，执行返回的结果保存的位置，BROKER_URL，CELERY_RESULT_BACKEND等
-app.config_from_object("django.conf:settings", namespace='CELERY')
+app.config_from_object("django.conf.settings", namespace='CELERY')
 
 # Celery利用反射机制扫描加载所有注册的应用
 app.autodiscover_tasks(settings.INSTALLED_APPS)

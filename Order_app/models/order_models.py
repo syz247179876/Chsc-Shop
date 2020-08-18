@@ -1,16 +1,12 @@
-from datetime import datetime
-
-from User_app.models.user_models import Consumer, Address
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
-from Shopper_app.models.shopper_models import Shoppers
-from Shop_app.models.commodity_models import Commodity
-# Create your models here.
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils.translation import gettext_lazy as _
+
+from Shop_app.models.commodity_models import Commodity
+from User_app.models.user_models import Address
 
 
 class Order_basic(models.Model):
@@ -18,7 +14,7 @@ class Order_basic(models.Model):
 
     # 订单号
     orderId = models.CharField(
-        max_length=100, verbose_name="支付流水号")
+        max_length=100, verbose_name=_("支付流水号"))
 
     # 用户，一个用户多个收货地址
     consumer = models.ForeignKey(User, verbose_name=_('用户名'),

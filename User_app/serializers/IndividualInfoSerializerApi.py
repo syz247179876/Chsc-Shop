@@ -4,13 +4,11 @@
 # @File : IndividualInfoSerializerApi.py
 # @Software: Pycharm
 from django.contrib.auth.models import User
-from django.db import transaction, DataError, DatabaseError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from User_app.models.user_models import Consumer
 from User_app.validators import DRFUsernameValidator
-from User_app.views.ali_card_ocr import Interface_identify
+from User_app.views.tasks import ocr
 from e_mall.loggings import Logging
 
 common_logger = Logging.logger('django')
@@ -24,7 +22,7 @@ class IndividualInfoSerializer(serializers.ModelSerializer):
                                      validators=[DRFUsernameValidator(), UniqueValidator(queryset=User.objects.all())])
 
     phone = serializers.CharField(max_length=11, source='consumer.phone', read_only=True)
-    head_image = serializers.CharField(source='consumer.head_image', read_only=True)
+    head_image = serializers.ImageField(source='consumer.head_image', read_only=True)
     birthday = serializers.DateField(source='consumer.birthday', read_only=True)
     sex = serializers.CharField(source='consumer.get_sex_display', read_only=True)
     rank = serializers.CharField(source='consumer.get_rank_display', read_only=True)
@@ -92,9 +90,11 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
         """
         if self.context.get('request').user.first_name != '':
             raise serializers.ValidationError('身份已被认证过！')
-        identify_instance_face = Interface_identify(attrs.get('face'), 'face')
-        identify_instance_back = Interface_identify(attrs.get('back'), 'back')
-        is_success = identify_instance_face.is_success and identify_instance_back.is_success  # 检查身份验证是否全部正确
+        identify_instance_face = ocr.apply_async(args=(attrs.get('face'), 'face'))  # 扔到任务队列中调度
+        identify_instance_back = ocr.apply_async(args=(attrs.get('back'), 'face'))
+        # identify_instance_face = Interface_identify(attrs.get('face'), 'face')
+        # identify_instance_back = Interface_identify(attrs.get('back'), 'back')
+        is_success = identify_instance_face.get() and identify_instance_back.get()  # 检查身份验证是否全部正确
         if is_success:
             OCR_attrs = {
                 'first_name': identify_instance_face.get_detail('actual_name'),

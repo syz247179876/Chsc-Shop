@@ -5,14 +5,15 @@
 # @Software: PyCharm
 
 from django.contrib.auth.models import User
-from django.db import transaction, DatabaseError
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from Shopper_app.models.shopper_models import Shoppers, Store
 from Shopper_app.validators import DRFPhoneValidator, DRFStoreNameValidator
-from User_app.views.ali_card_ocr import Interface_identify
 from e_mall.loggings import Logging
+
+from User_app.views.tasks import ocr
 
 common_logger = Logging.logger('django')
 
@@ -44,9 +45,9 @@ class ShopperSerializer(serializers.ModelSerializer):
         OCR识别身份正反
         验证阶段验证身份信息是否正确或是否已被验证
         """
-        identify_instance_face = Interface_identify(attrs.get('face'), 'face')
-        identify_instance_back = Interface_identify(attrs.get('back'), 'back')
-        is_success = identify_instance_face.is_success and identify_instance_back.is_success  # 检查身份验证是否全部正确
+        identify_instance_face = ocr.apply_async(args=(attrs.get('face'), 'face'))  # 扔到任务队列中调度
+        identify_instance_back = ocr.apply_async(args=(attrs.get('back'), 'face'))
+        is_success = identify_instance_face.get() and identify_instance_back.get()  # 检查身份验证是否全部正确
         if is_success:
             OCR_attrs = {
                 'first_name': identify_instance_face.get_detail('actual_name'),

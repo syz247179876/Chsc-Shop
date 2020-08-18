@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'mainsite',
     'Search_app',
+    'Integral_app',
     'haystack',
     'CommonModule_app'  # 用于存放各模块公用文件
 ]

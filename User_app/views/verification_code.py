@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : verification_code.py
 # @Software: PyCharm
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models.query import QuerySet
 from rest_framework.generics import GenericAPIView
 
@@ -17,7 +18,7 @@ from rest_framework import status
 from Shopper_app.models.shopper_models import Shoppers
 from CommonModule_app.tasks import send_phone, send_email, set_verification_code
 from e_mall.settings import TEMPLATES_CODE_REGISTER, TEMPLATES_CODE_MODIFY_PASSWORD
-QuerySet
+
 common_logger = Logging.logger('django')
 
 consumer_logger = Logging.logger('consumer_')
@@ -148,7 +149,7 @@ class VerificationBase(GenericAPIView):
             return None
         except Consumer.DoesNotExist:
             return 'user_not_existed'
-
+InMemoryUploadedFile
 
 class VerificationCodeRegister(VerificationBase):
     title = '吃货商城用户注册'
