@@ -15,10 +15,16 @@ consumer_logger = Logging.logger('consumer_')
 class FootSerializer(serializers.ModelSerializer):
     """the serializer of Foot(足迹)"""
 
-    status = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField(read_only=True)
+    pk = serializers.IntegerField()
 
     def get_status(self, obj):
         return obj.get_status_display()
+
+    def validate_pk(self, value):
+        if not Commodity.commodity_.all().exists():
+            raise serializers.ValidationError('商品信息无效')
+        return value
 
     @staticmethod
     def get_foot(commodity_list, **kwargs):

@@ -5,6 +5,7 @@
 # @Software: PyCharm
 
 import datetime
+import time
 
 from User_app.views.ali_card_ocr import Interface_identify
 from e_mall import celery_app as app
@@ -29,3 +30,4 @@ def ocr(image_instance, type_):
     """
     identify_instance = Interface_identify(image_instance, type_)
     return identify_instance.is_success
+

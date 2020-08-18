@@ -7,6 +7,8 @@ import datetime
 import math
 import time
 
+from User_app.Pagination import CommodityResultsSetPagination
+from User_app.views.tasks import add_foot
 from e_mall.base_redis import BaseRedis
 from e_mall.loggings import Logging
 
@@ -37,6 +39,31 @@ class FootRedisOperation(BaseRedis):
         max_score_timestamp = int(time.mktime(time.strptime(max_score_str, "%Y-%m-%d %H:%M:%S")))
         return min_score_timestamp, max_score_timestamp
 
+    # def get_foot_commodity_id_and_page(self, user_id, **kwargs):
+    #     """
+    #     obtain limit list of commodity that stored in redis(use zset有序集合) to hit database
+    #     :param user_id:用户id
+    #     :param kwargs:request.data的Querydict实例
+    #     :return:list
+    #     """
+    #     try:
+    #         key = self.key('foot', user_id)
+    #         page = kwargs.pop('page')
+    #         pipe = self.redis.pipeline()
+    #         min_score_timestamp, max_score_timestamp = self.get_time_scope(CommodityResultsSetPagination.page_size, page)
+    #         foot_limit_list = self.redis.zrangebyscore(key, min_score_timestamp,
+    #                                                    max_score_timestamp)
+    #         foot_score_counts = self.redis.zcount(key, min_score_timestamp, max_score_timestamp)  # 获取scope范围内的总个数
+    #         foot_total_counts = self.redis.zcard(key)  # 获取foot的总个数
+    #         page = math.ceil(foot_total_counts / foot_score_counts)
+    #         foot_limit_list_decode = [int(pk.decode()) for pk in foot_limit_list]  # decode
+    #         return foot_limit_list_decode, page
+    #     except Exception as e:
+    #         consumer_logger.error(e)
+    #         return None, 0
+    #     finally:
+    #         self.redis.close()
+
     def get_foot_commodity_id_and_page(self, user_id, **kwargs):
         """
         obtain limit list of commodity that stored in redis(use zset有序集合) to hit database
@@ -46,48 +73,43 @@ class FootRedisOperation(BaseRedis):
         """
         try:
             key = self.key('foot', user_id)
-            limit = 2 if 'limit' not in kwargs else int(kwargs.get('limit')[0])
-            page = int(kwargs.get('page')[0])
-            min_score_timestamp, max_score_timestamp = self.get_time_scope(limit, page)
-            foot_limit_list = self.redis.zrangebyscore(key, min_score_timestamp,
-                                                       max_score_timestamp)  # 获取scope范围内的commodity_id
-            foot_score_counts = self.redis.zcount(key, min_score_timestamp, max_score_timestamp)  # 获取scope范围内的总个数
-            foot_total_counts = self.redis.zcard(key)  # 获取foot的总个数
-            page = math.ceil(foot_total_counts/foot_score_counts)
-            foot_limit_list_decode = [int(pk.decode()) for pk in foot_limit_list]  # decode
-            return foot_limit_list_decode, page
+            page = kwargs.get('page', 1)
+            count = kwargs.get('count')
+            commodity_list = [int(pk) for pk in self.redis.zrevrange(key, (page - 1) * count, page * count)]
+            return commodity_list
         except Exception as e:
             consumer_logger.error(e)
-            return None, 0
+            return None
         finally:
             self.redis.close()
 
     def add_foot_commodity_id(self, user_id, **kwargs):
         """
-        get id of commodity when consumer browse a product
+        消费者浏览某个商品，添加足迹
         :param user_id:用户id
-        :param kwargs:request.data的Querydict实例
+        :param kwargs:额外参数
         :return:boolean
         """
         try:
             key = self.key('foot', user_id)
             timestamp = int(time.time())  # 毫秒级别的时间戳
-            commodity_id = int(kwargs.get('commodity_id'))
-            self.redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），时间戳（分数值），商品id
+            commodity_id = kwargs.get('commodity_id')
+            pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
+            pipe.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），时间戳（分数值），商品id
             # 每个用户最多缓存100条历史记录
-            if self.redis.zcard(key) == 100:
-                self.redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
+            if pipe.zcard(key) >= 100:  # 集合中key为键的数量
+                pipe.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
+            pipe.execute()
+            return True
         except Exception as e:
             consumer_logger.error(e)
             return False
-        else:
-            return True
         finally:
             self.redis.close()
 
     def delete_foot_commodity_id(self, user_id, **kwargs):
         """
-        delete one or all of id of commodity when consumer intend to eliminate his(her) historical footprints
+        删除用户单/多条浏览记录
         :param user_id:用户id
         :param kwargs:request.data的Querydict实例
         :return:boolean
@@ -95,10 +117,10 @@ class FootRedisOperation(BaseRedis):
         try:
             key = self.key('foot', user_id)
             if 'is_all' not in kwargs:
-                commodity_id = int(kwargs.get('commodity_id'))
+                commodity_id = kwargs.get('commodity_id')
                 delete_counts = self.redis.zrem(key, commodity_id)  # 移除zset中某商品号元素
             else:
-                delete_counts = self.redis.delete(key)
+                delete_counts = self.redis.delete(key)  # 删除全部的记录
             return True if delete_counts else False
         except Exception as e:
             consumer_logger.error(e)

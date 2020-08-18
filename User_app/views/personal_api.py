@@ -10,7 +10,10 @@ from django.http import Http404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import GenericViewSet
 
+from Shop_app.models.commodity_models import Commodity
+from User_app.Pagination import FootResultsSetPagination
 from User_app.models.user_models import Address, Consumer
 from User_app.redis.favorites_redis import RedisFavoritesOperation
 from User_app.redis.foot_redis import FootRedisOperation
@@ -384,90 +387,63 @@ class FavoriteOperation(APIView):
             return Response(response_code.delete_favorites_error)
 
 
-class FootOperation(APIView):
+class FootOperation(GenericViewSet):
     """浏览足迹处理"""
 
     permission_classes = [IsAuthenticated]
 
     redis = FootRedisOperation.choice_redis_db('redis')
 
+    pagination_class = FootResultsSetPagination
+
     serializer_class = FootSerializer  # 序列化器
 
-    ultimate_class = PageSerializer
+    def get_queryset(self):
+        """获取足迹固定数量查询集"""
+        page_size = FootResultsSetPagination.page_size
+        page = self.request.query_params[self.pagination_class.page_query_param]
+        # 查询固定范围内的商品pk列表
+        commodity_list = self.redis.get_foot_commodity_id_and_page(self.request.user.pk, page=page, page_size=page_size)
+        return Commodity.commodity_.filter(pk__in=commodity_list) if commodity_list else []
 
-    def context(self, instances):
-        return {'instances': instances, 'serializer': self.get_serializer_class}
+    def create(self, request):
+        """单增用户足迹"""
+        user = request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.redis.add_foot_commodity_id(user.pk, serializer.validated_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @property
-    def get_serializer_class(self):
-        return self.serializer_class
-
-    @property
-    def get_ultimate_serializer_class(self):
-        return self.ultimate_class
-
-    def get_serializer(self, *args, **kwargs):
-        serializer = self.get_serializer_class
-        return serializer(*args, **kwargs)
-
-    def get_ultimate_serializer(self, *args, **kwargs):
-        serializer = self.get_ultimate_serializer_class
-        return serializer(*args, **kwargs)
-
-    # @method_decorator(login_required(login_url='consumer/login/'))
-    # def post(self, request):
-    #     """add footprints"""
-    #     user = request.user
-    #     data = request.data
-    #     is_success = self.redis.add_foot_commodity_id(user.pk, data)
-    #     return Response(response_code.add_foot_success) if is_success else Response(response_code.add_foot_error)
-
-    @method_decorator(login_required(login_url='consumer/login/'))
     # @method_decorator(cache_page(30, cache='redis'))
-    def get(self, request):
+    def list(self, request, *args, **kwargs):
         """
-        处理查询收藏夹GET请求
-        返回格式例如：
-        {
-           'page':2,
-           'data':[
-           {
-             'commodity_name':'衬衫',
-             'price':'125',
-             'intro':'酷～',
-             'time':'2020-04-05',
-             ...
-           },
-           {
-             'commodity_name':'袜子',
-             'price':'15',
-             'intro':'纯棉～',
-             'time':'2020-04-06',
-             ...
-           },
-           ...
-           ]
-        }
+        处理某用户固定数量的足迹
         """
         try:
-            user = request.user
-            data = request.GET
-            footprints, page = self.redis.get_foot_commodity_id_and_page(user.pk, **data)
-            instances = self.get_serializer_class.get_foot(footprints)
-            page = Page(page)
-            serializer = self.get_ultimate_serializer_class(page, context=self.context(instances))
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
         except Exception as e:
             consumer_logger.error(e)
-            return Response(None)
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @method_decorator(login_required(login_url='consumer/login/'))
-    def delete(self, request):
-        """delete footprints"""
+    def destroy(self, request, *args, **kwargs):
+        """删除一条记录"""
         user = request.user
-        data = request.data
-        is_success = self.redis.delete_foot_commodity_id(user.pk, data)
-        return Response(response_code.delete_foot_success) if is_success else Response(response_code.delete_foot_error)
+        pk = kwargs.get('pk')
+        self.redis.delete_foot_commodity_id(user.pk, commodity_id=pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)  # 删完前端刷新就行了
+
+    @action(methods=['delete'], detail=True)
+    def destroy_all(self, request, *args, **kwargs):
+        """删除全部记录"""
+        user = request.user
+        self.redis.delete_foot_commodity_id(user.pk, is_all=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ShopCartOperation(APIView):
