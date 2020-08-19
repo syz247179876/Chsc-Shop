@@ -390,7 +390,7 @@ class FavoriteOperation(APIView):
 class FootOperation(GenericViewSet):
     """浏览足迹处理"""
 
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     redis = FootRedisOperation.choice_redis_db('redis')
 
@@ -398,13 +398,28 @@ class FootOperation(GenericViewSet):
 
     serializer_class = FootSerializer  # 序列化器
 
+    def get_serializer_context(self):
+        return {
+            'timestamp': self.get_commodity_dict
+        }
+
+    @property
+    def get_commodity_dict(self):
+        if hasattr(self, 'commodity_dict'):
+            return self.commodity_dict
+        else:
+            return {}
+
     def get_queryset(self):
         """获取足迹固定数量查询集"""
         page_size = FootResultsSetPagination.page_size
-        page = self.request.query_params[self.pagination_class.page_query_param]
+        page = self.request.query_params.get(self.pagination_class.page_query_param, 1)  # 默认使用第一页
         # 查询固定范围内的商品pk列表
-        commodity_list = self.redis.get_foot_commodity_id_and_page(self.request.user.pk, page=page, page_size=page_size)
-        return Commodity.commodity_.filter(pk__in=commodity_list) if commodity_list else []
+        commodity_dict = self.redis.get_foot_commodity_id_and_page(self.request.user.pk, page=page, page_size=page_size)
+        setattr(self, 'commodity_dict', commodity_dict)
+        ordering = 'FIELD(`id`,{})'.format(','.join((str(pk) for pk in commodity_dict.keys())))
+        return Commodity.commodity_.filter(pk__in=commodity_dict.keys()).extra(select={"ordering": ordering},
+                                                                               order_by=("ordering",)) if commodity_dict else []
 
     def create(self, request):
         """单增用户足迹"""
@@ -420,7 +435,7 @@ class FootOperation(GenericViewSet):
         处理某用户固定数量的足迹
         """
         try:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.get_queryset()
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)

@@ -15,11 +15,12 @@ consumer_logger = Logging.logger('consumer_')
 class FootSerializer(serializers.ModelSerializer):
     """the serializer of Foot(足迹)"""
 
-    status = serializers.SerializerMethodField(read_only=True)
-    pk = serializers.IntegerField()
+    pk = serializers.IntegerField(write_only=True)
+    timestamp = serializers.SerializerMethodField()
 
-    def get_status(self, obj):
-        return obj.get_status_display()
+    def get_timestamp(self, obj):
+        timestamp_dict = self.context.get('timestamp')
+        return timestamp_dict.get(obj.pk)
 
     def validate_pk(self, value):
         if not Commodity.commodity_.all().exists():
@@ -43,5 +44,7 @@ class FootSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Commodity
-        fields = ['commodity_name', 'price', 'intro',
-                  'category', 'status', 'discounts', 'image']
+        fields = ('id', 'timestamp', 'commodity_name', 'price', 'intro',
+                  'category', 'status', 'discounts', 'image', 'pk')
+        read_only_fields = (
+            'id', 'commodity_name', 'price', 'intro', 'category', 'status', 'discounts', 'image')

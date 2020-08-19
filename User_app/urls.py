@@ -43,11 +43,11 @@ urlpatterns = [
     path('email-or-phone-binding-chsc-api/', BindEmailOrPhone.as_view(), name='email-or-phone-binding-chsc-api'),
     path('verification-name-chsc-api/', VerifyIdCard.as_view(), name='verification-name-chsc-api'),
     path('favorites-operation-chsc-api/', FavoriteOperation.as_view(), name='favorites-operation-chsc-api'),
-    path('foot-operation-chsc-api/', FootOperation.as_view(), name='foot-operation-chsc-api'),
     path('shop-cart-operation-chsc-api/', ShopCartOperation.as_view(), name='shop-cart-operation-chsc-api'),
     path('shop-head-image-chsc-api/', HeadImageOperation.as_view(), name='shop-head-image-chsc-api')
 ]
 
 router = DefaultRouter()
 router.register(r'address-chsc-api', AddressOperation, basename='address')
+router.register(r'foot-chsc-api', FootOperation, basename='foot')
 urlpatterns += router.urls

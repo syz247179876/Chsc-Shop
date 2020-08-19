@@ -4,13 +4,13 @@
 # @File : foot_redis.py 
 # @Software: PyCharm
 import datetime
+import json
 import math
 import time
-
-from User_app.Pagination import CommodityResultsSetPagination
-from User_app.views.tasks import add_foot
+import pickle
 from e_mall.base_redis import BaseRedis
 from e_mall.loggings import Logging
+from User_app.views.tasks import add_foot
 
 common_logger = Logging.logger('django')
 
@@ -69,37 +69,40 @@ class FootRedisOperation(BaseRedis):
         obtain limit list of commodity that stored in redis(use zset有序集合) to hit database
         :param user_id:用户id
         :param kwargs:request.data的Querydict实例
-        :return:list
+        :return:Dict
         """
         try:
             key = self.key('foot', user_id)
             page = kwargs.get('page', 1)
-            count = kwargs.get('count')
-            commodity_list = [int(pk) for pk in self.redis.zrevrange(key, (page - 1) * count, page * count)]
-            return commodity_list
+            count = kwargs.get('page_size')
+            # zrevrange 返回 [(name,score),...]
+            commodity_dict = {int(name): score for name, score in
+                              self.redis.zrevrange(key, (page - 1) * count, page * count, withscores=True)}
+            return commodity_dict
         except Exception as e:
             consumer_logger.error(e)
             return None
         finally:
             self.redis.close()
 
-    def add_foot_commodity_id(self, user_id, **kwargs):
+    def add_foot_commodity_id(self, user_id, validated_data):
         """
         消费者浏览某个商品，添加足迹
+        :param validated_data: 验证后的数据
         :param user_id:用户id
-        :param kwargs:额外参数
         :return:boolean
         """
+        # add_foot.apply_async(args=(pickle.dumps(self), user_id, validated_data))  # can't pickle _thread.lock objects
         try:
             key = self.key('foot', user_id)
             timestamp = int(time.time())  # 毫秒级别的时间戳
-            commodity_id = kwargs.get('commodity_id')
-            pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
-            pipe.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），时间戳（分数值），商品id
+            commodity_id = validated_data['pk']
+            # pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
+            self.redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），时间戳（分数值），商品id
             # 每个用户最多缓存100条历史记录
-            if pipe.zcard(key) >= 100:  # 集合中key为键的数量
-                pipe.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
-            pipe.execute()
+            if self.redis.zcard(key) >= 100:  # 集合中key为键的数量
+                self.redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
+            # pipe.execute()
             return True
         except Exception as e:
             consumer_logger.error(e)
@@ -116,7 +119,7 @@ class FootRedisOperation(BaseRedis):
         """
         try:
             key = self.key('foot', user_id)
-            if 'is_all' not in kwargs:
+            if kwargs.get('is_all', None):  # 是否删除所有足迹
                 commodity_id = kwargs.get('commodity_id')
                 delete_counts = self.redis.zrem(key, commodity_id)  # 移除zset中某商品号元素
             else:
