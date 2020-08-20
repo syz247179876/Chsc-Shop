@@ -13,8 +13,16 @@ consumer_logger = Logging.logger('consumer_')
 
 
 class FavoritesSerializer(serializers.ModelSerializer):
-    """the serializer of favorites(收藏夹）"""
+    """收藏夹序列化器"""
+
+    # 收藏商铺
+    store = serializers.IntegerField(source='store', required=False)
+
+    # 商铺名
     store_name = serializers.CharField(source='store.store_name')
+
+    # 收藏商品
+    commodity = serializers.CharField(source='commodity', required=False)
 
     attention = serializers.IntegerField(source='store.attention')
 
@@ -26,22 +34,11 @@ class FavoritesSerializer(serializers.ModelSerializer):
     def get_status(self, obj):
         return obj.get_status_display()
 
-    @staticmethod
-    def get_favorites(commodity_list, **kwargs):
-        """
-        get instance(queryset) of model,
-        lazy load with specific paging and status from HTPRequest.GET
-        :param commodity_list:商品id列表
-        :param data: Querydict
-        :return:
-        """
-        try:
-            return Commodity.commodity_.select_related('store').filter(pk__in=commodity_list)
-        except Exception as e:
-            consumer_logger.error(e)
-            return None
-
     class Meta:
         model = Commodity
-        fields = ['pk', 'store_name', 'commodity_name', 'price', 'intro',
-                  'category', 'status', 'discounts', 'sell_counts', 'image', 'shop_grade', 'attention']
+        fields = ('store', 'commodity', 'pk', 'store_name', 'commodity_name', 'price', 'intro',
+                  'category', 'status', 'discounts', 'sell_counts', 'image', 'shop_grade', 'attention')
+
+        read_only_fields = (
+        'pk', 'store_name', 'commodity_name', 'price', 'intro', 'category', 'status', 'discounts', 'sell_counts',
+        'image', 'shop_grade', 'attention')

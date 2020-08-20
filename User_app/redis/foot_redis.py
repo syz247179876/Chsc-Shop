@@ -10,7 +10,6 @@ import time
 import pickle
 from e_mall.base_redis import BaseRedis
 from e_mall.loggings import Logging
-from User_app.views.tasks import add_foot
 
 common_logger = Logging.logger('django')
 

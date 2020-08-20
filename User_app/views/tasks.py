@@ -9,7 +9,8 @@ import time
 
 from User_app.views.ali_card_ocr import Interface_identify
 from e_mall import celery_app as app
-
+import json
+from collections import OrderedDict
 
 # @app.task
 # def delete_outdated(self):
@@ -32,27 +33,37 @@ def ocr(image_instance, type_):
     return identify_instance.is_success
 
 
+# @app.task
+# def add_foot(obj, user_id, validated_data):
+#     """
+#     添加足迹
+#     :param obj: redis链接对象
+#     :param user_id:用户id
+#     :param validated_data: 验证后的数据
+#     :return: Bool
+#     """
+#     try:
+#         key = obj.key('foot', user_id)
+#         timestamp = int(time.time())  # 毫秒级别的时间戳
+#         commodity_id = validated_data['pk']
+#         # pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
+#         obj.redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），时间戳（分数值），商品id
+#         # 每个用户最多缓存100条历史记录
+#         if obj.redis.zcard(key) >= 100:  # 集合中key为键的数量
+#             obj.redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
+#         # pipe.execute()
+#         return True
+#     except Exception as e:
+#         return False
+#     finally:
+#         obj.redis.close()
+
+
 @app.task
-def add_foot(obj, user_id, validated_data):
-    """
-    添加足迹
-    :param obj: redis链接对象
-    :param user_id:用户id
-    :param validated_data: 验证后的数据
-    :return: Bool
-    """
-    try:
-        key = obj.key('foot', user_id)
-        timestamp = int(time.time())  # 毫秒级别的时间戳
-        commodity_id = validated_data['pk']
-        # pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
-        obj.redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），时间戳（分数值），商品id
-        # 每个用户最多缓存100条历史记录
-        if obj.redis.zcard(key) >= 100:  # 集合中key为键的数量
-            obj.redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
-        # pipe.execute()
-        return True
-    except Exception as e:
-        return False
-    finally:
-        obj.redis.close()
+def format_data(data):
+    """格式化数据"""
+    if isinstance(data, list):
+        data = [{key.decode():value.decode() for key, value in orderdict.items()} for orderdict in data]
+    return json.dumps(data)
+
+

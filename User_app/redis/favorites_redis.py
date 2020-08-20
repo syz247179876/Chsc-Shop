@@ -3,10 +3,12 @@
 # @Author : 司云中 
 # @File : favorites_redis.py 
 # @Software: PyCharm
+import datetime
 import math
-
+import time
+from User_app.models.user_models import Collection
 from e_mall.base_redis import BaseRedis
-
+from User_app.views.tasks import format_data
 from e_mall.loggings import Logging
 
 
@@ -20,6 +22,48 @@ class RedisFavoritesOperation(BaseRedis):
 
     def __init__(self, redis_instance):
         super().__init__(redis_instance)
+
+
+    def get_resultSet(self, user, page, page_size, **kwargs):
+        """
+        考虑缓存击穿：即使空结果集也放到缓存中去
+        redis使用有序集合+hash表+List实现数据存储和获取
+        确保有序，使用有序集合，在redis层面提升排序性能
+        return: list（读取redis)， 查询集（读取mysql）
+        """
+        key = self.key('favorites', user.pk)  # 集合键
+        commodity_dict = {int(name.decode()): score for name, score in
+                          self.redis.zrevrange(key, (page-1)*page_size, page*page_size,  withscores=True)}
+        if commodity_dict:   # 缓存命中,寻找对应的商品hash表
+            list_resultSet = []
+            for key in commodity_dict.keys():
+                if key == 0:   # 如果数据库未命中，缓存中的0代表空数据
+                    return list_resultSet
+                hash_key = self.key('favorites', user.pk, key)
+                offset, hresult = self.redis.hscan(hash_key)
+                if offset != 0:
+                    hresult.update(self.redis.hscan(hash_key,cursor=offset))   # 从上一次的offset中读取,防止hscan一次性没读完
+                list_resultSet.append(hresult)
+            # list扔到任务队列中去将字典中的bytes-->str,解析，转换成我需要的数据格式
+            list_result_format = format_data.apply_async(args=(list_resultSet,))
+            return list_result_format
+
+        try:                 # 为命中缓存
+            queryset = Collection.collection_.select_related('user').prefetch_related('commodity').filter(user=user)[(page-1)*page_size : page*page_size]
+            pipe_two = self.redis.pipeline()  # 建立管道
+            if queryset:   # 存在查询集
+                for query in queryset:
+                    timestamp = time.mktime(query.time.timetuple())
+                    pipe_two.zadd(key, {query.pk:timestamp})
+            else:
+                pipe_two.zadd(key, {0:time.mktime(datetime.datetime.now().timetuple())})  # 添加0，防止缓存击穿
+            pipe_two.expire(key, 30)  # 为每个有序集合设置30s的TTL
+            pipe_two.execute()
+            return queryset
+        except Exception as e:
+            consumer_logger.error(e)
+            return None
+
 
     def get_favorites_goods_id_and_page(self, user_id, **kwargs):
         """

@@ -228,6 +228,8 @@ class Collection(models.Model):
     # 浏览时间
     time = models.DateField(auto_now_add=True, verbose_name=_('收藏时间'))
 
+    collection_ = Manager()
+
     class Meta:
         db_table = 'Collection'
         verbose_name = _('收藏夹')

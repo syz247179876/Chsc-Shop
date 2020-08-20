@@ -19,6 +19,7 @@ class FootSerializer(serializers.ModelSerializer):
     timestamp = serializers.SerializerMethodField()
 
     def get_timestamp(self, obj):
+        """为每个足迹追加时间戳"""
         timestamp_dict = self.context.get('timestamp')
         return timestamp_dict.get(obj.pk)
 
@@ -26,21 +27,6 @@ class FootSerializer(serializers.ModelSerializer):
         if not Commodity.commodity_.all().exists():
             raise serializers.ValidationError('商品信息无效')
         return value
-
-    @staticmethod
-    def get_foot(commodity_list, **kwargs):
-        """
-        get instance(queryset) of Commodity,
-        lazy load with specific paging and status from HTPRequest.GET
-        :param commodity_list:商品id列表
-        :param data: Querydict
-        :return:
-        """
-        try:
-            return Commodity.commodity_.select_related('store').filter(pk__in=commodity_list)
-        except Exception as e:
-            consumer_logger.error(e)
-            return None
 
     class Meta:
         model = Commodity

@@ -3,44 +3,41 @@
 # @Author : 司云中
 # @File : personal_api.py
 # @Software: PyCharm
-import datetime
 import importlib
+import time
 
+from celery.result import AsyncResult
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.db.models.query import QuerySet
 from django.http import Http404
+from django.utils.decorators import method_decorator
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from Shop_app.models.commodity_models import Commodity
-from User_app.Pagination import FootResultsSetPagination
+from User_app.Pagination import FootResultsSetPagination, FavoritesPagination
 from User_app.models.user_models import Address, Consumer
 from User_app.redis.favorites_redis import RedisFavoritesOperation
 from User_app.redis.foot_redis import FootRedisOperation
 from User_app.redis.shopcart_redis import ShopCartRedisOperation
-
+from User_app.redis.user_redis import RedisUserOperation
+from User_app.serializers.AddressSerializerApi import AddressSerializers
 from User_app.serializers.BindEmailOrPhoneSerializersApi import BindPhoneOrEmailSerializer
 from User_app.serializers.FavoritesSerializersApi import FavoritesSerializer
-from User_app.serializers.AddressSerializerApi import AddressSerializers
-
-from User_app.redis.user_redis import RedisUserOperation
 from User_app.serializers.FootSerializerApi import FootSerializer
 from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSerializer, HeadImageSerializer, \
     VerifyIdCardSerializer
 from User_app.serializers.PageSerializerApi import Page, PageSerializer
 from User_app.serializers.PasswordSerializerApi import PasswordSerializer
 from User_app.serializers.ShopCartSerializerApi import ShopCartSerializer
-from User_app.views.ali_card_ocr import Interface_identify
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.db import transaction, DatabaseError
-from django.utils.decorators import method_decorator
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
-from django.conf import settings
 
 common_logger = Logging.logger('django')
 consumer_logger = Logging.logger('consumer_')
@@ -290,10 +287,8 @@ class AddressOperation(viewsets.ModelViewSet):
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class FavoriteOperation(APIView):
-    """
-    收藏夹处理
-    """
+class FavoriteOperation(GenericViewSet):
+    """收藏夹处理"""
 
     permission_classes = [IsAuthenticated]
 
@@ -301,82 +296,70 @@ class FavoriteOperation(APIView):
 
     serializer_class = FavoritesSerializer  # favorites序列化类
 
-    ultimate_class = PageSerializer  # 页序列化类
+    pagination_class = FavoritesPagination
 
-    def context(self, instances):
-        """额外context数据"""
-        return {'instances': instances, 'serializer': self.get_serializer_class}
 
-    def get_serializer(self, *args, **kwargs):
-        """产生序列化对象"""
-        serializer_class = self.get_serializer_class
-        return serializer_class(*args, **kwargs)
+    def get_queryset(self):
+        """
+        先hit缓存数据库，如果过期则重新添加到缓存中，否则直接从缓存中取
+        :return 结果集/异步任务
+        """
+        page_size = FootResultsSetPagination.page_size
+        page = self.request.query_params.get(self.pagination_class.page_query_param, 1)  # 默认使用第一页
+        resultSet = self.redis.get_resultSet(self.request.user, page=page, page_size=page_size)
+        return resultSet
 
-    def get_ultimate_serializer(self, *args, **kwargs):
-        serializer_class = self.get_ultimate_serializer_class
-        return serializer_class(*args, **kwargs)
-
-    @property
-    def get_ultimate_serializer_class(self):
-        return self.ultimate_class
-
-    @property
-    def get_serializer_class(self):
-        return self.serializer_class
-
-    def get_favorites(self, favorites_list, **kwargs):
-        """收藏夹商品查集对象"""
-        return self.get_serializer_class.get_favorites(favorites_list, **kwargs)
-
-    @method_decorator(login_required(login_url='consumer/login/'))
     # @method_decorator(cache_page(10 * 1, cache='redis'))
-    def get(self, request):
-        """
-        处理查询收藏夹GET请求
-        返回格式例如：
-        {
-           'page':3,
-           'data':[
-           {
-             'pk':1,
-             'store_name':'小司店铺',
-             ...
-           },
-           {
-             'pk':1,
-             'store_name':'小云店铺',
-             ...
-           },
-           ...
-           ]
-        }
-        """
+    def list(self, request):
+        """处理查询收藏夹GET请求"""
         try:
-            user = request.user
-            data = request.GET
-            favorites_list, page = self.redis.get_favorites_goods_id_and_page(user.pk, **data)  # redis获取商品id和最大页数
-            instances = self.get_favorites(favorites_list)  # generate instances of commodity
-            # generate instance of serializer
-            page = Page(page=page)
-            serializer = self.get_ultimate_serializer(page, context=self.context(instances))
-            return Response(serializer.data)
+            queryset = self.get_queryset()
+            if isinstance(queryset, QuerySet):  # 命中数据库
+                page = self.paginate_queryset(queryset)
+                if not page:
+                    serializer = self.get_serializer(page, many=True)
+                    return self.get_paginated_response(serializer.data)
+                serializer = self.get_serializer(queryset, many=True)
+                return Response(serializer.data)
+            elif isinstance(queryset, AsyncResult):   # 命中缓存
+                # 最迟2s获取数据
+                limit = 2
+                while not queryset.get() or limit:  # 轮循一直有结果才返回get()
+                    time.sleep(1)
+                    limit -= 1
+                return Response(queryset.get())
+            elif isinstance(queryset, list):       # 缓存为空，数据库也为空，防止缓存击穿
+                return Response({'data':''})
+            else:
+                return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             consumer_logger.error(e)
-        return Response(None)
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # @method_decorator(login_required(login_url='consumer/login/'))
-    # def post(self, request):
-    #     """add single commodity to consumer favorites"""
-    #     user = request.user
-    #     data = request.data
-    #     is_success = self.redis.add_favorites_goods_id(user.pk, **data)
-    #     if is_success:
-    #         return Response(response_code.add_favorites_success)
-    #     else:
-    #         return Response(response_code.add_favorites_error)
+        # try:
+        #     user = request.user
+        #     data = request.GET
+        #     favorites_list, page = self.redis.get_favorites_goods_id_and_page(user.pk, **data)  # redis获取商品id和最大页数
+        #     instances = self.get_favorites(favorites_list)  # generate instances of commodity
+        #     # generate instance of serializer
+        #     page = Page(page=page)
+        #     serializer = self.get_ultimate_serializer(page, context=self.context(instances))
+        #     return Response(serializer.data)
+        # except Exception as e:
+        #     consumer_logger.error(e)
+        # return Response(None)
 
-    @method_decorator(login_required(login_url='consumer/login/'))
-    def delete(self, request):
+    def create(self, request):
+        """add single commodity to consumer favorites"""
+        user = request.user
+        data = request.data
+        is_success = self.redis.add_favorites_goods_id(user.pk, **data)
+        if is_success:
+            return Response(response_code.add_favorites_success)
+        else:
+            return Response(response_code.add_favorites_error)
+
+    def destroy(self, request):
         """delete single or the whole favorites"""
         user = request.user
         data = request.data
