@@ -147,7 +147,7 @@ class Commodity(models.Model):
         verbose_name_plural = _('商品表')
 
     def __str__(self):
-        return self.commodity_name
+        return  'commodity_name:{}'.format(self.commodity_name)
 
     def colored_status(self):
         """替换状态颜色"""

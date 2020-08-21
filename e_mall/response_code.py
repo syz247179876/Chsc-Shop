@@ -540,8 +540,8 @@ class ResponseCode:
 
     @property
     def add_favorites_success(self):
-        """suuceed to add favorites"""
-        self.result.update(dict(code=ADD_FAVORITES_SUCCESS, msg='add_success', status='error'))
+        """succeed to add favorites"""
+        self.result.update(dict(code=ADD_FAVORITES_SUCCESS, msg='add_success', status='success'))
         return self.result
 
     @property

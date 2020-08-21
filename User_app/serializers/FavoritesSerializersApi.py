@@ -4,6 +4,8 @@
 # @File : FavoritesSerializersApi.py 
 # @Software: PyCharm
 from Shop_app.models.commodity_models import Commodity
+from Shopper_app.models.shopper_models import Store
+from User_app.models.user_models import Collection, Address
 from e_mall.loggings import Logging
 from rest_framework import serializers
 
@@ -12,33 +14,54 @@ common_logger = Logging.logger('django')
 consumer_logger = Logging.logger('consumer_')
 
 
+
+class CommoditySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Commodity
+        exclude = ('store', 'shopper', 'onshelve_time', 'unshelve_time')
+
+class StoreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Store
+        fields = '__all__'
+
+
 class FavoritesSerializer(serializers.ModelSerializer):
     """收藏夹序列化器"""
 
     # 收藏商铺
-    store = serializers.IntegerField(source='store', required=False)
-
-    # 商铺名
-    store_name = serializers.CharField(source='store.store_name')
+    store_pk = serializers.IntegerField(required=False, write_only=True)
 
     # 收藏商品
-    commodity = serializers.CharField(source='commodity', required=False)
+    commodity_pk = serializers.CharField(required=False, write_only=True)
 
-    attention = serializers.IntegerField(source='store.attention')
+    commodity = CommoditySerializer(read_only=True)    # 必须和外键名同名
 
-    shop_grade = serializers.DecimalField(source='store.shop_grade', max_digits=2,
-                                          decimal_places=1)
+    store = StoreSerializer(read_only=True)
 
-    status = serializers.SerializerMethodField()
 
-    def get_status(self, obj):
-        return obj.get_status_display()
+    def validate(self, attrs):
+        if not any([attrs.get('store_pk', None), attrs.get('commodity_pk', None)]):
+            raise serializers.ValidationError('店铺和商品二选一')
+        return attrs
+
+    @staticmethod
+    def get_store_commodity(validated_data):
+        """获取store/commodity对象"""
+        store_pk = validated_data.get('store_pk', None)
+        commodity_pk = validated_data.get('commodity_pk', None)
+        store = None
+        commodity = None
+        if store_pk and Store.store_.filter(pk=store_pk).exists():
+            store =  Store.store_.filter(pk=store_pk)
+        if commodity_pk and Commodity.commodity_.filter(pk=commodity_pk).exists():
+            commodity = Commodity.commodity_.filter(pk=commodity_pk)
+        return store, commodity
 
     class Meta:
-        model = Commodity
-        fields = ('store', 'commodity', 'pk', 'store_name', 'commodity_name', 'price', 'intro',
-                  'category', 'status', 'discounts', 'sell_counts', 'image', 'shop_grade', 'attention')
+        model = Collection
+        fields =('commodity_pk', 'store_pk', 'commodity', 'store')
+        read_only_fields = ('commodity_name', )
 
-        read_only_fields = (
-        'pk', 'store_name', 'commodity_name', 'price', 'intro', 'category', 'status', 'discounts', 'sell_counts',
-        'image', 'shop_grade', 'attention')

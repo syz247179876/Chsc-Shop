@@ -40,7 +40,8 @@ class BaseRedis:
     def key(self, *args):
         """encryption , if param in args not str , convert into str"""
         keywords = (str(value) if not isinstance(value, str) else value for value in args)
-        return make_password('-'.join(keywords), salt=self.salt)
+        # return make_password('-'.join(keywords), salt=self.salt)   # 加密贼耗时
+        return '-'.join(keywords)
 
     def check_code(self, key, value):
         """compare key-value code and code in redis for equality """

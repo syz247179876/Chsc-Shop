@@ -10,6 +10,7 @@
       <w>fullmatch</w>
       <w>mult</w>
       <w>orderid</w>
+      <w>zset</w>
     </words>
   </dictionary>
 </component>

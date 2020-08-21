@@ -4,6 +4,7 @@
 # @File : user_models.py
 # @Software: PyCharm
 from Shop_app.models.commodity_models import Commodity
+from Shopper_app.models.shopper_models import Store
 from User_app.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User
@@ -223,10 +224,14 @@ class Collection(models.Model):
     user = models.ForeignKey(User, related_name='collections', on_delete=True, verbose_name=_('用户'))
 
     # 商品
-    commodity = models.ManyToManyField(Commodity, related_name='collections', verbose_name=_('商品'))
+    commodity = models.ForeignKey(Commodity, related_name='collections', verbose_name=_('商品'), on_delete=True, null=True)
+
+    # 店铺
+    store = models.ForeignKey(Store, related_name='store' ,verbose_name=_('店铺'), on_delete=True, null=True)
 
     # 浏览时间
-    time = models.DateField(auto_now_add=True, verbose_name=_('收藏时间'))
+    datetime = models.DateTimeField(auto_now_add=True, verbose_name=_('收藏时间'))
+
 
     collection_ = Manager()
 
@@ -234,10 +239,15 @@ class Collection(models.Model):
         db_table = 'Collection'
         verbose_name = _('收藏夹')
         verbose_name_plural = _('收藏夹')
-        ordering = ('time',)
+        ordering = ('datetime',)
 
     def __str__(self):
-        return '收藏商品id:{}'.format(self.commodity)
+        """对模型进行序列化"""
+        return {
+            'user':self.user
+        }
+
+
 
 
 

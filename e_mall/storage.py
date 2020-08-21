@@ -99,7 +99,7 @@ class FastDFSStorage(Storage):
         :param name: 数据库中保存的文件名
         :return: 完整的URL
         """
-        return self.base_url + name
+        return self.base_url + '/' + name
 
     def exists(self, name):
         """

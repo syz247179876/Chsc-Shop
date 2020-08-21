@@ -74,6 +74,8 @@
           <option value="Shop_app.ElasticSearch.ElasticSearchOperation.request" />
           <option value="Shop_app.views.shop_api.CommoditySearchOperation.elastic" />
           <option value="tick.custom_button.action_url" />
+          <option value="Shopper_app.models.shopper_models.Store.DoesNotExist" />
+          <option value="User_app.models.user_models.Collection.DoesNotExist" />
         </list>
       </option>
     </inspection_tool>

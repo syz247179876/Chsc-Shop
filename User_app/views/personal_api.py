@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : personal_api.py
 # @Software: PyCharm
+import datetime
 import importlib
 import time
 
@@ -22,8 +23,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from Shop_app.models.commodity_models import Commodity
 from User_app.Pagination import FootResultsSetPagination, FavoritesPagination
-from User_app.models.user_models import Address, Consumer
-from User_app.redis.favorites_redis import RedisFavoritesOperation
+from User_app.models.user_models import Address, Consumer, Collection
+from User_app.redis.favorites_redis import RedisFavoritesOperation, favorites_redis
 from User_app.redis.foot_redis import FootRedisOperation
 from User_app.redis.shopcart_redis import ShopCartRedisOperation
 from User_app.redis.user_redis import RedisUserOperation
@@ -36,6 +37,7 @@ from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSeria
 from User_app.serializers.PageSerializerApi import Page, PageSerializer
 from User_app.serializers.PasswordSerializerApi import PasswordSerializer
 from User_app.serializers.ShopCartSerializerApi import ShopCartSerializer
+from User_app.signals import add_favorites, delete_favorites
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 
@@ -292,7 +294,7 @@ class FavoriteOperation(GenericViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    redis = RedisFavoritesOperation.choice_redis_db('redis')
+    redis = favorites_redis
 
     serializer_class = FavoritesSerializer  # favorites序列化类
 
@@ -302,72 +304,136 @@ class FavoriteOperation(GenericViewSet):
     def get_queryset(self):
         """
         先hit缓存数据库，如果过期则重新添加到缓存中，否则直接从缓存中取
-        :return 结果集/异步任务
+        :return 结果集/异步任务/空列表 QuerySet/AsyncResult/List
         """
         page_size = FootResultsSetPagination.page_size
         page = self.request.query_params.get(self.pagination_class.page_query_param, 1)  # 默认使用第一页
         resultSet = self.redis.get_resultSet(self.request.user, page=page, page_size=page_size)
         return resultSet
 
+    def get_object(self):
+        """
+        查找对应pk的收藏夹记录
+        :return: Model
+        """
+        try:
+            return Collection.collection_.get(user=self.request.user,pk=self.kwargs.get('pk'))
+        except Collection.DoesNotExist:
+            raise Http404
+
+    def get_delete_queryset(self):
+        """
+        欲删除指定用户的所有收藏目录
+        :return:结果集合  QuerySet
+        """
+        return Collection.collection_.filter(user=self.request.user)
+
     # @method_decorator(cache_page(10 * 1, cache='redis'))
     def list(self, request):
-        """处理查询收藏夹GET请求"""
+        """显示收藏夹的商品"""
+
+        queryset = self.get_queryset()
+
+        if isinstance(queryset, QuerySet):  # 命中数据库
+            common_logger.info(33)
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        queryset = self.get_queryset()
+        if isinstance(queryset, QuerySet):  # 命中数据库
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        # if isinstance(queryset, AsyncResult):   # 命中缓存
+        #     # 最迟2s获取数据
+        #     limit = 2
+        #     while not queryset.get() or limit:  # 轮循一直有结果才返回get()
+        #         time.sleep(1)
+        #         limit -= 1
+        #     return Response(queryset.get())
+        elif isinstance(queryset, str):        # 命中缓存，读取缓存中的数据
+            # 将redis中的序列化数据格式成分页器
+            return Response({'data':queryset})
+        elif isinstance(queryset, list):       # 缓存为空，数据库也为空，防止缓存击穿
+            return Response({'data':queryset})
+        else:
+            common_logger.info(type(queryset))
+            return Response(response_code.verification_code_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def create_collection(self,type, queryset):
+        """
+        创建某用户收藏记录
+        :param type: 功能类型 'commodity',  str
+        :param queryset: {'commodity':QuerySet}, dict
+        :return:Bool
+        """
+        queryset = queryset.get(type)    # 为了可序列化，取QuerySet的第一个元素，反正也只有一个
         try:
-            queryset = self.get_queryset()
-            if isinstance(queryset, QuerySet):  # 命中数据库
-                page = self.paginate_queryset(queryset)
-                if not page:
-                    serializer = self.get_serializer(page, many=True)
-                    return self.get_paginated_response(serializer.data)
-                serializer = self.get_serializer(queryset, many=True)
-                return Response(serializer.data)
-            elif isinstance(queryset, AsyncResult):   # 命中缓存
-                # 最迟2s获取数据
-                limit = 2
-                while not queryset.get() or limit:  # 轮循一直有结果才返回get()
-                    time.sleep(1)
-                    limit -= 1
-                return Response(queryset.get())
-            elif isinstance(queryset, list):       # 缓存为空，数据库也为空，防止缓存击穿
-                return Response({'data':''})
+            if queryset:
+                now = datetime.datetime.now()  # 生产时间戳
+                queryset_first = {type:queryset.first()}
+                instance = Collection.collection_.create(user=self.request.user, datetime=now, **queryset_first)
+                add_favorites.send(    # 发送信号，同步redis
+                    sender=Collection,
+                    instance=instance,
+                    user=self.request.user,
+                    queryset=queryset,
+                )
+                return True if instance else False
             else:
-                return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return False
         except Exception as e:
             consumer_logger.error(e)
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # try:
-        #     user = request.user
-        #     data = request.GET
-        #     favorites_list, page = self.redis.get_favorites_goods_id_and_page(user.pk, **data)  # redis获取商品id和最大页数
-        #     instances = self.get_favorites(favorites_list)  # generate instances of commodity
-        #     # generate instance of serializer
-        #     page = Page(page=page)
-        #     serializer = self.get_ultimate_serializer(page, context=self.context(instances))
-        #     return Response(serializer.data)
-        # except Exception as e:
-        #     consumer_logger.error(e)
-        # return Response(None)
+            return False
 
     def create(self, request):
-        """add single commodity to consumer favorites"""
-        user = request.user
-        data = request.data
-        is_success = self.redis.add_favorites_goods_id(user.pk, **data)
-        if is_success:
+        """添加商品到收藏夹"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        store, commodity = self.get_serializer_class().get_store_commodity(serializer.validated_data)
+        is_created = False
+        if store:
+            is_created = self.create_collection('store', {'store':store})
+        elif commodity:
+            is_created = self.create_collection('commodity', {'commodity':commodity})
+            common_logger.info(is_created)
+        if is_created:
             return Response(response_code.add_favorites_success)
         else:
-            return Response(response_code.add_favorites_error)
+            raise Http404
 
-    def destroy(self, request):
-        """delete single or the whole favorites"""
-        user = request.user
-        data = request.data
-        is_success = self.redis.delete_favorites_goods_id(user.pk, **data)
-        if is_success:
+    def destroy(self, request, *args, **kwargs):
+        """单删收藏夹商品"""
+        obj = self.get_object()
+        is_deleted, delete_dict = obj.delete()
+        if is_deleted:
+            delete_favorites.send(
+                sender=Collection,
+                user=self.request.user,
+                collection_pk=self.kwargs.get('pk'),
+                is_all=False
+            )
             return Response(response_code.delete_favorites_success)
         else:
             return Response(response_code.delete_favorites_error)
+
+    @action(methods=['delete'], detail=False)
+    def destroy_all(self, request):
+        """全删收藏夹"""
+        queryset = self.get_delete_queryset()
+        delete_counts, dict_delete = queryset.delete()
+        if delete_counts:
+            return Response(response_code.delete_favorites_success)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)  # 无响应内容，避免显示已删除
 
 
 class FootOperation(GenericViewSet):

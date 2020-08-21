@@ -20,6 +20,8 @@ from collections import OrderedDict
 #     previous = now - delta
 #     key = previous.strftime('%Y-%m-%d')
 #     self.redis.delete(key)
+from e_mall.loggings import Logging
+
 
 @app.task
 def ocr(image_instance, type_):
@@ -58,12 +60,13 @@ def ocr(image_instance, type_):
 #     finally:
 #         obj.redis.close()
 
+common_logger = Logging.logger('django')
 
-@app.task
-def format_data(data):
-    """格式化数据"""
-    if isinstance(data, list):
-        data = [{key.decode():value.decode() for key, value in orderdict.items()} for orderdict in data]
-    return json.dumps(data)
+# @app.task
+# def format_commodity_data(data):
+#     """格式化数据"""
+#     if isinstance(data, list):
+#         data = [{key.decode():value.decode() for key, value in orderdict.items() if not isinstance(value,str)} for orderdict in data]
+#     return data
 
 

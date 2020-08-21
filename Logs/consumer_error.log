@@ -367,3 +367,142 @@ ERROR - 2020-08-20 11:37:29,759 - personal_api - list - 39081 - 140595111040768 
 ERROR - 2020-08-20 11:37:30,928 - personal_api - list - 39081 - 140595111040768 - 'Redis' object has no attribute 'hsacn'
 ERROR - 2020-08-20 11:37:31,935 - personal_api - list - 39081 - 140595111040768 - 'Redis' object has no attribute 'hsacn'
 ERROR - 2020-08-20 11:37:32,846 - personal_api - list - 39081 - 140595111040768 - 'Redis' object has no attribute 'hsacn'
+ERROR - 2020-08-20 20:04:05,931 - favorites_redis - sync_favorites_add_callback - 63306 - 140453676558080 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:05:06,284 - favorites_redis - sync_favorites_add_callback - 63445 - 140020348782336 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:05:08,923 - favorites_redis - sync_favorites_add_callback - 63445 - 140020348782336 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:09:07,333 - favorites_redis - sync_favorites_add_callback - 63775 - 139858664208128 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:09:09,561 - favorites_redis - sync_favorites_add_callback - 63775 - 139858664208128 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:10:00,600 - favorites_redis - sync_favorites_add_callback - 63885 - 140696750257920 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:10:02,119 - favorites_redis - sync_favorites_add_callback - 63885 - 140696750257920 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:11:15,379 - favorites_redis - sync_favorites_add_callback - 64003 - 140550089385728 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:12:06,941 - favorites_redis - sync_favorites_add_callback - 64131 - 140328126818048 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:13:06,932 - favorites_redis - sync_favorites_add_callback - 64209 - 140424073156352 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:13:55,641 - favorites_redis - sync_favorites_add_callback - 64269 - 140271249663744 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:14:04,809 - favorites_redis - sync_favorites_add_callback - 64269 - 140271249663744 - 'Collection' object is not iterable
+ERROR - 2020-08-20 20:20:46,365 - favorites_redis - sync_favorites_add_callback - 64714 - 140520432400128 - 'Collection' object is not iterable
+ERROR - 2020-08-20 21:41:55,744 - personal_api - create_collection - 70113 - 139956757460736 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:43:04,871 - personal_api - create_collection - 70187 - 139740767581952 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:43:24,197 - personal_api - create_collection - 70244 - 140215708526336 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:43:24,918 - personal_api - create_collection - 70244 - 140215708526336 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:44:02,951 - personal_api - create_collection - 70301 - 139818935760640 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:44:18,975 - personal_api - create_collection - 70348 - 140560950077184 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:44:23,056 - personal_api - create_collection - 70348 - 140560950077184 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:44:39,662 - personal_api - create_collection - 70417 - 140701755418368 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:44:41,836 - personal_api - create_collection - 70417 - 140701755418368 - too many values to unpack (expected 2)
+ERROR - 2020-08-20 21:45:46,329 - favorites_redis - sync_favorites_add_callback - 70596 - 140514696902400 - 'Collection' object has no attribute 'get'
+ERROR - 2020-08-20 21:46:32,841 - favorites_redis - sync_favorites_add_callback - 70669 - 139719088715520 - 'list' object has no attribute 'get'
+ERROR - 2020-08-20 21:49:25,476 - favorites_redis - sync_favorites_add_callback - 70852 - 140229272909568 - 'list' object has no attribute 'get'
+ERROR - 2020-08-20 21:49:52,686 - favorites_redis - sync_favorites_add_callback - 70907 - 140428135794432 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 21:50:44,077 - favorites_redis - sync_favorites_add_callback - 70959 - 139885694846720 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 21:53:40,818 - favorites_redis - sync_favorites_add_callback - 71134 - 140421455910656 - 'list' object has no attribute 'get'
+ERROR - 2020-08-20 21:53:41,886 - favorites_redis - sync_favorites_add_callback - 71134 - 140421455910656 - 'list' object has no attribute 'get'
+ERROR - 2020-08-20 21:53:42,686 - favorites_redis - sync_favorites_add_callback - 71134 - 140421455910656 - 'list' object has no attribute 'get'
+ERROR - 2020-08-20 21:54:18,845 - favorites_redis - sync_favorites_add_callback - 71272 - 140215372982016 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 21:54:40,481 - favorites_redis - sync_favorites_add_callback - 71340 - 139843265275648 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 21:55:47,245 - favorites_redis - sync_favorites_add_callback - 71427 - 140251231155968 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 21:57:00,007 - favorites_redis - sync_favorites_add_callback - 71505 - 140306322278144 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 21:59:01,672 - favorites_redis - sync_favorites_add_callback - 71869 - 140392844924672 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 21:59:58,240 - favorites_redis - sync_favorites_add_callback - 72021 - 140636569720576 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 22:04:40,856 - favorites_redis - sync_favorites_add_callback - 72647 - 139768002684672 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 22:05:28,644 - favorites_redis - sync_favorites_add_callback - 72748 - 140573524596480 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 22:06:35,034 - favorites_redis - sync_favorites_add_callback - 72839 - 140025222567680 - Invalid input of type: 'bool'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 22:39:08,257 - favorites_redis - get_resultSet - 75544 - 140025751045888 - 'Collection' object has no attribute 'time'
+ERROR - 2020-08-20 22:39:10,742 - favorites_redis - get_resultSet - 75544 - 140025751045888 - 'Collection' object has no attribute 'time'
+ERROR - 2020-08-20 22:39:47,565 - personal_api - list - 75657 - 140535560509184 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 22:39:48,734 - personal_api - list - 75657 - 140535560509184 - int() argument must be a string, a bytes-like object or a number, not 'tuple'
+ERROR - 2020-08-20 22:40:27,006 - personal_api - list - 75719 - 140464039036672 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 22:40:28,421 - personal_api - list - 75719 - 140464039036672 - int() argument must be a string, a bytes-like object or a number, not 'tuple'
+ERROR - 2020-08-20 22:40:59,105 - personal_api - list - 75790 - 140301098714880 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 22:42:58,740 - personal_api - list - 75790 - 140301098714880 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 22:43:02,238 - personal_api - list - 75790 - 140301098714880 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 22:43:03,378 - personal_api - list - 75790 - 140301098714880 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 22:43:13,731 - personal_api - list - 76001 - 140286723024640 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 22:43:15,515 - personal_api - list - 76001 - 140286723024640 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 22:43:16,930 - personal_api - list - 76001 - 140286723024640 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 22:43:25,018 - personal_api - list - 76045 - 140606913808128 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 22:43:29,354 - personal_api - list - 76045 - 140606913808128 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:03:37,598 - favorites_redis - get_resultSet - 77357 - 140248149821184 - 'Collection' object has no attribute 'get'
+ERROR - 2020-08-20 23:03:38,938 - favorites_redis - get_resultSet - 77357 - 140248149821184 - 'Collection' object has no attribute 'get'
+ERROR - 2020-08-20 23:07:26,655 - favorites_redis - get_resultSet - 77698 - 139900265862912 - 'Collection' object has no attribute 'get'
+ERROR - 2020-08-20 23:07:27,985 - favorites_redis - get_resultSet - 77698 - 139900265862912 - 'Collection' object has no attribute 'get'
+ERROR - 2020-08-20 23:07:29,048 - favorites_redis - get_resultSet - 77698 - 139900265862912 - 'Collection' object has no attribute 'get'
+ERROR - 2020-08-20 23:08:43,353 - favorites_redis - get_resultSet - 77819 - 140631693764352 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:08:45,636 - favorites_redis - get_resultSet - 77819 - 140631693764352 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:09:08,199 - favorites_redis - get_resultSet - 77890 - 140609078077184 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:09:09,715 - favorites_redis - get_resultSet - 77890 - 140609078077184 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:09:38,674 - favorites_redis - get_resultSet - 77943 - 140189102413568 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:09:54,766 - favorites_redis - get_resultSet - 77992 - 140381945575168 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:13:59,785 - favorites_redis - get_resultSet - 78303 - 139835536811776 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:14:15,849 - favorites_redis - get_resultSet - 78594 - 139860775950080 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:17:02,875 - favorites_redis - get_resultSet - 78811 - 140112849024768 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:17:08,883 - favorites_redis - get_resultSet - 78811 - 140112849024768 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:17:52,275 - personal_api - create_collection - 78811 - 140112849024768 - (1048, "Column 'store_id' cannot be null")
+ERROR - 2020-08-20 23:17:55,028 - personal_api - create_collection - 78811 - 140112849024768 - (1048, "Column 'store_id' cannot be null")
+ERROR - 2020-08-20 23:22:39,017 - personal_api - list - 79332 - 140360456505088 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:22:41,864 - personal_api - list - 79332 - 140360456505088 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:23:41,675 - favorites_redis - get_resultSet - 79332 - 140360456505088 - Invalid input of type: 'NoneType'. Convert to a bytes, string, int or float first.
+ERROR - 2020-08-20 23:26:37,889 - favorites_redis - get_resultSet - 79540 - 139796163245824 - string index out of range
+ERROR - 2020-08-20 23:26:40,555 - favorites_redis - get_resultSet - 79540 - 139796163245824 - string index out of range
+ERROR - 2020-08-20 23:27:16,520 - favorites_redis - get_resultSet - 79634 - 140159121536768 - string index out of range
+ERROR - 2020-08-20 23:27:19,441 - favorites_redis - get_resultSet - 79634 - 140159121536768 - string index out of range
+ERROR - 2020-08-20 23:27:53,618 - favorites_redis - get_resultSet - 79709 - 140248183375616 - string index out of range
+ERROR - 2020-08-20 23:27:55,936 - favorites_redis - get_resultSet - 79709 - 140248183375616 - string index out of range
+ERROR - 2020-08-20 23:28:28,101 - favorites_redis - get_resultSet - 79781 - 140499939727104 - string index out of range
+ERROR - 2020-08-20 23:28:30,539 - favorites_redis - get_resultSet - 79781 - 140499939727104 - string index out of range
+ERROR - 2020-08-20 23:28:55,367 - favorites_redis - get_resultSet - 79854 - 140446361691904 - string index out of range
+ERROR - 2020-08-20 23:29:48,694 - favorites_redis - get_resultSet - 79936 - 140036567619328 - string index out of range
+ERROR - 2020-08-20 23:30:34,140 - favorites_redis - get_resultSet - 80015 - 140507156481792 - 'str' object does not support item assignment
+ERROR - 2020-08-20 23:30:37,176 - favorites_redis - get_resultSet - 80015 - 140507156481792 - 'str' object does not support item assignment
+ERROR - 2020-08-20 23:31:00,900 - personal_api - list - 80079 - 139635870201600 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:31:19,074 - personal_api - list - 80079 - 139635870201600 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:31:30,958 - personal_api - list - 80079 - 139635870201600 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:32:29,997 - personal_api - list - 80221 - 140637714224896 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:32:35,953 - personal_api - list - 80221 - 140637714224896 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:32:43,757 - personal_api - list - 80221 - 140637714224896 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:33:49,677 - personal_api - list - 80344 - 139831501317888 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:33:53,061 - personal_api - list - 80344 - 139831501317888 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:34:32,467 - personal_api - list - 80455 - 140358306469632 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:34:38,062 - personal_api - list - 80455 - 140358306469632 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:34:41,726 - personal_api - list - 80455 - 140358306469632 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:35:07,368 - personal_api - list - 80556 - 140512821507840 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:35:53,267 - personal_api - list - 80647 - 139638743541504 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:36:48,955 - personal_api - list - 80727 - 140066049918720 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:36:52,078 - personal_api - list - 80727 - 140066049918720 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:37:20,720 - personal_api - list - 80800 - 139979339593472 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:37:41,088 - personal_api - list - 80862 - 140586372290304 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:37:44,732 - personal_api - list - 80862 - 140586372290304 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:38:14,134 - personal_api - list - 80938 - 139809075685120 - __str__ returned non-string (type dict)
+ERROR - 2020-08-20 23:38:20,707 - personal_api - list - 80938 - 139809075685120 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:38:24,130 - personal_api - list - 80938 - 139809075685120 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:38:26,729 - personal_api - list - 80938 - 139809075685120 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:39:08,136 - personal_api - list - 81022 - 139718803494656 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:39:13,741 - personal_api - list - 81022 - 139718803494656 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:39:27,410 - personal_api - list - 81022 - 139718803494656 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:39:32,299 - personal_api - list - 81022 - 139718803494656 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:40:18,950 - personal_api - list - 81168 - 140023880390400 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:42:38,408 - personal_api - list - 81314 - 140486352733952 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:42:41,650 - personal_api - list - 81314 - 140486352733952 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:42:44,525 - personal_api - list - 81314 - 140486352733952 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-20 23:43:49,928 - personal_api - list - 81435 - 140518690830080 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:45:32,774 - personal_api - list - 81840 - 139695300794112 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-20 23:46:17,968 - personal_api - list - 81951 - 139968219428608 - 'Collection' object has no attribute 'get_status_display'
+ERROR - 2020-08-21 09:01:42,124 - personal_api - list - 85040 - 140237294970624 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:01:43,778 - personal_api - list - 85040 - 140237294970624 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:02:28,650 - personal_api - list - 85123 - 140183974426368 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:02:30,560 - personal_api - list - 85123 - 140183974426368 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:02:32,328 - personal_api - list - 85123 - 140183974426368 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:02:37,963 - personal_api - list - 85123 - 140183974426368 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:03:22,790 - personal_api - list - 85231 - 140387417499392 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:24:10,816 - personal_api - list - 86344 - 139733515908864 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:24:13,052 - personal_api - list - 86344 - 139733515908864 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:24:41,363 - personal_api - list - 86423 - 140210004272896 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:24:42,357 - personal_api - list - 86423 - 140210004272896 - 'str' object has no attribute 'decode'
+ERROR - 2020-08-21 09:47:56,114 - personal_api - create_collection - 88529 - 139688344463104 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:47:56,984 - personal_api - create_collection - 88529 - 139688344463104 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:47:57,744 - personal_api - create_collection - 88529 - 139688344463104 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:48:22,314 - personal_api - create_collection - 88599 - 140055622883072 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:48:36,100 - personal_api - create_collection - 88664 - 139692449199872 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:48:37,072 - personal_api - create_collection - 88664 - 139692449199872 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:48:38,310 - personal_api - create_collection - 88664 - 139692449199872 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:49:03,725 - personal_api - create_collection - 88711 - 140550190049024 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-21 09:49:04,561 - personal_api - create_collection - 88711 - 140550190049024 - 'bool' object has no attribute 'first'
