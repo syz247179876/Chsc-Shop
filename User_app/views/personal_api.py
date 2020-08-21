@@ -431,6 +431,11 @@ class FavoriteOperation(GenericViewSet):
         queryset = self.get_delete_queryset()
         delete_counts, dict_delete = queryset.delete()
         if delete_counts:
+            delete_favorites.send(
+                sender=Collection,
+                user=self.request.user,
+                is_all=True
+            )
             return Response(response_code.delete_favorites_success)
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)  # 无响应内容，避免显示已删除

@@ -62,10 +62,11 @@ class RedisFavoritesOperation(BaseRedis):
         collection_dict = {int(key.decode()): value for key, value in
                            self.redis.zrevrange(zset_key, (page - 1) * page_size, page * page_size, withscores=True)}
 
+        if 0 in collection_dict:  # 如果数据库未命中，缓存中的0代表空数据
+            return 'null'
         if collection_dict:  # 缓存命中,寻找对应的商品hash表
             list_resultSet = []
-            if 0 in collection_dict:  # 如果数据库未命中，缓存中的0代表空数据
-                return 'null'
+
             for key in collection_dict:
                 hash_key = self.hash_key_commodity(user_pk, key)
                 offset, hresult = self.redis.hscan(hash_key)
@@ -78,41 +79,30 @@ class RedisFavoritesOperation(BaseRedis):
             return list_result_format
 
         # 为命中缓存
-        queryset = Collection.collection_.select_related('commodity').filter(user=user)[
-                   (page - 1) * page_size: page * page_size]
+        queryset = Collection.collection_.select_related('commodity').filter(user=user)[(page - 1) * page_size : page * page_size]
+
         pipe_two = self.redis.pipeline()  # 建立管道
 
-        commodity_list = [query.commodity for query in queryset]  # 商品查询集
-        serializer_commodity = serializers.serialize('python', commodity_list)  # 对商品集序列化
-        for serializer, query in zip(serializer_commodity, queryset):  # 将同迭代次数的可迭代元素打包程元祖
-            commodity_pk = serializer.get('pk')  # 获取每个商品的pk
-            commodity_fields = serializer.get('fields')  # 获取每个商品的fields
-            commodity_fields.update({'pk': commodity_pk})  # 将pk添加进fields字典中
-            collection_pk = query.pk  # 收藏记录的pk
-            pipe_two.zadd(zset_key, {collection_pk: time.time()})  # 添加到有序集合中
-            pipe_two.expire(zset_key, 30)  # 设置30sTTL
-            hash_value_commodity = self.hash_key_commodity(user_pk, collection_pk)
-            pipe_two.hmset(hash_value_commodity, self.serializer_commodity_data(commodity_fields))  # 将商品信息添加到hash表中
-            pipe_two.expire(hash_value_commodity, 30)
-        pipe_two.execute()
+        if queryset:
 
+            commodity_list = [query.commodity for query in queryset]  # 商品查询集
+            serializer_commodity = serializers.serialize('python', commodity_list)  # 对商品集序列化
+            for serializer, query in zip(serializer_commodity, queryset):  # 将同迭代次数的可迭代元素打包程元祖
+                commodity_pk = serializer.get('pk')  # 获取每个商品的pk
+                commodity_fields = serializer.get('fields')  # 获取每个商品的fields
+                commodity_fields.update({'pk': commodity_pk})  # 将pk添加进fields字典中
+                collection_pk = query.pk  # 收藏记录的pk
+                pipe_two.zadd(zset_key, {collection_pk: time.time()})  # 添加到有序集合中
+                pipe_two.expire(zset_key, 30)  # 设置30sTTL
+                hash_value_commodity = self.hash_key_commodity(user_pk, collection_pk)
+                pipe_two.hmset(hash_value_commodity, self.serializer_commodity_data(commodity_fields))  # 将商品信息添加到hash表中
+                pipe_two.expire(hash_value_commodity, 30)
+        else:
+            pipe_two.zadd(zset_key, {0:0})   # 防止缓存击穿
+            pipe_two.expire(zset_key,6)      # TTL为6
+        pipe_two.execute()
         return queryset  # 返回商品查询集
 
-    # def delete_favorites_goods_id(self, user, **kwargs):
-    #     """
-    #     delete id of goods which in favorites into redis
-    #     :param user_id: 商品id
-    #     :param data: request.data的Querydict实例
-    #     :return:是否删除成功
-    #     """
-    #     key = self.zset_key_commodity(user.pk)
-    #     if 'is_all' not in kwargs:
-    #         commodity_id = int(kwargs.get('commodity_id')[0])
-    #         delete_counts = self.redis.lrem(key, commodity_id)  # delete commodity_id from the list once
-    #     else:
-    #         delete_counts = self.redis.delete(key)  # delete this key
-    #     self.redis.close()
-    #     return True if delete_counts else False
 
     def serializer_commodity_data(self, data):
         """
@@ -184,10 +174,11 @@ class RedisFavoritesOperation(BaseRedis):
                 hash_temp_key = self.hash_key_commodity(user_pk, pk)
                 pipe.delete(hash_temp_key)
         else:
-            hash_key = self.hash_key_commodity(user, collection_pk)
+            hash_key = self.hash_key_commodity(user_pk, collection_pk)
             pipe.zrem(zset_key, collection_pk)
             pipe.delete(hash_key)  # 删除某一个hash表
-        pipe.execute()
+        result = pipe.execute()
+        common_logger.info(result)
         self.redis.close()
 
 

@@ -62,6 +62,6 @@ class FavoritesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Collection
-        fields =('commodity_pk', 'store_pk', 'commodity', 'store')
-        read_only_fields = ('commodity_name', )
+        fields =('pk', 'commodity_pk', 'store_pk', 'commodity', 'store')
+        read_only_fields = ('commodity_name', 'pk')
 
