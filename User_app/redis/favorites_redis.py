@@ -162,7 +162,7 @@ class RedisFavoritesOperation(BaseRedis):
             timestamp = time.time()
             pipe.zadd(zset_key, {collection_pk: timestamp})  # 向有序集合中添加收藏夹元素
             hash_key_store = self.hash_key_commodity(user_pk, collection_pk)
-            pipe.hmset(hash_key_store, self.serializer_format_hash(fields))  # 深度格式成JSON数据
+            pipe.hmset(hash_key_store, self.serializer_commodity_data(fields))  # 深度格式成JSON数据
             pipe.expire(zset_key, 30)  # 过期时间30s
             pipe.expire(hash_key_store, 30)
         pipe.execute()
