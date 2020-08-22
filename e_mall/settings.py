@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'mainsite',
     'Search_app',
     'Integral_app',
-    'Analysis_app',      # 行为分析
+    'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app预防信号可能注册失败
     'haystack',
     'CommonModule_app',  # 用于存放各模块公用文件
 ]

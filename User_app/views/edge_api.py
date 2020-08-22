@@ -6,10 +6,12 @@
 import datetime
 
 from django.contrib.auth.models import User
+from django.core.cache import caches
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 
 from e_mall.loggings import Logging
 
@@ -18,7 +20,12 @@ common_logger = Logging.logger('django')
 from Analysis_app.signals import login_user_browser_times, user_browser_times
 
 
+class OncePerDayUserThrottle(UserRateThrottle):
+    rate = '1/day'
+    cache = caches['analysis']
+
 @api_view()
+@throttle_classes([OncePerDayUserThrottle])   # 每个用户只记录一次登录
 @permission_classes([IsAuthenticated])  # 必须登录
 def record_browsing_login(request):
     """
@@ -27,12 +34,11 @@ def record_browsing_login(request):
     :return: 
     """
     user = request.user
-    result = login_user_browser_times.send(
+    login_user_browser_times.send(
         sender=User,
         instance=user,
         date=datetime.date.today()
     )
-    common_logger.info(result)
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view()
@@ -49,12 +55,11 @@ def record_browsing_every(request):
     else:
         ip = request.META.get('REMOTE_ADDR')  # 这里获得代理ip,如果没有代理也是真实IP
     common_logger.info(ip)
-    result = user_browser_times.send(
+    user_browser_times.send(
         sender=None,
         ip=ip,
         date=datetime.date.today()
     )
-    common_logger.info(result)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
