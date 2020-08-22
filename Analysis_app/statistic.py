@@ -25,6 +25,7 @@ class StatisticRedis(BaseRedis):
         """注册信号"""
         login_user_browser_times.connect(self.statistic_login_user_browsing_times, sender=User)
         user_browser_times.connect(self.statistic_user_browsing_times, sender=None)
+        common_logger.info('success')
 
     @staticmethod
     def trans_date(date):

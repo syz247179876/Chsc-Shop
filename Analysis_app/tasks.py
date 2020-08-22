@@ -5,10 +5,15 @@
 # @Software: Pycharm
 
 from e_mall.celery import app
+from e_mall.loggings import Logging
+from django_redis import get_redis_connection
+common_logger = Logging.logger('django')
 
 
 @app.task
-def task_statistic_login_times():
+def statistic_login_times(x,y ):
     """发送统计每日用户活跃量的定时信号"""
 
-    pass
+    redis = get_redis_connection('analysis')
+    redis.incrby('syz')
+    common_logger.info('success')

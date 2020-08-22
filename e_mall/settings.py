@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'mainsite',
     'Search_app',
     'Integral_app',
-    'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app预防信号可能注册失败
+    'Analysis_app',
+    # 'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app预防信号可能注册失败
     'haystack',
     'CommonModule_app',  # 用于存放各模块公用文件
 ]
@@ -285,11 +286,21 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIME_ZONE = TIME_ZONE
 
 
-CELERYBEAT_SCHEDULE = {
-    'every-day-statistic-login-times':{
-        'task':'Anaylsis_app.',
-        'schedule':crontab(minute=0, hour=0)  # 每天0点执行
-    }
+CELERY_BEAT_SCHEDULE = {
+    # 'every-day-statistic-login-times':{
+    #     'task':'Anaylsis_app',
+    #     'schedule':crontab(minute=0, hour=0)  # 每天0点执行
+    # },
+    'add-every-monday-morning':{
+        'task': 'Analysis_app.tasks.statistic_login_times',
+        'schedule': 5.0,
+        'args':(5, 5),
+    },
+    # 'add-every-monday-morning': {
+    #     'task': 'Analysis_app.tasks.add',
+    #     'schedule': 5.0,
+    #     'args': (16, 16),
+    # },
 
 }
 
