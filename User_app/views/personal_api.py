@@ -5,9 +5,7 @@
 # @Software: PyCharm
 import datetime
 import importlib
-import time
 
-from celery.result import AsyncResult
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models.query import QuerySet
@@ -24,7 +22,7 @@ from rest_framework.viewsets import GenericViewSet
 from Shop_app.models.commodity_models import Commodity
 from User_app.Pagination import FootResultsSetPagination, FavoritesPagination
 from User_app.models.user_models import Address, Consumer, Collection
-from User_app.redis.favorites_redis import RedisFavoritesOperation, favorites_redis
+from User_app.redis.favorites_redis import favorites_redis
 from User_app.redis.foot_redis import FootRedisOperation
 from User_app.redis.shopcart_redis import ShopCartRedisOperation
 from User_app.redis.user_redis import RedisUserOperation

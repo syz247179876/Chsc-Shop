@@ -1,5 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
+from User_app.views.edge_api import record_browsing_login, record_browsing_every
 from User_app.views.login_register_api import RegisterAPIView, LoginAPIView
 from User_app.views.personal_api import *
 from User_app.views.verification_code import VerificationCodeBind, VerificationCodePay, \
@@ -31,6 +32,10 @@ urlpatterns = [
     path('personal_idcard/', personal_idcard, name='personal_idcard'),
     path('personal_question/', personal_question, name='personal_question'),
     path(r'personal_edit_address/chsc_p=<str:pk>/', edit_address, name='edit_address'),
+
+    path('record-browser-login/', record_browsing_login, name='record-browser-login'),
+    path('record-browser/', record_browsing_every, name='record-browser'),
+
     path('login-chsc-api/', LoginAPIView.as_view(), name='login-chsc-api'),
     path('register-chsc-api/', RegisterAPIView.as_view(), name='register-chsc-api'),
     path('verification-code-chsc-register-api/', VerificationCodeRegister.as_view(), name='verification-code-chsc-api'),
@@ -43,8 +48,10 @@ urlpatterns = [
     path('email-or-phone-binding-chsc-api/', BindEmailOrPhone.as_view(), name='email-or-phone-binding-chsc-api'),
     path('verification-name-chsc-api/', VerifyIdCard.as_view(), name='verification-name-chsc-api'),
     path('shop-cart-operation-chsc-api/', ShopCartOperation.as_view(), name='shop-cart-operation-chsc-api'),
-    path('shop-head-image-chsc-api/', HeadImageOperation.as_view(), name='shop-head-image-chsc-api')
+    path('shop-head-image-chsc-api/', HeadImageOperation.as_view(), name='shop-head-image-chsc-api'),
 ]
+
+
 
 router = DefaultRouter()
 router.register(r'address-chsc-api', AddressOperation, basename='address')

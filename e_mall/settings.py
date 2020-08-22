@@ -15,7 +15,9 @@ import datetime
 
 # from django.conf.global_settings import EMAIL_HOST_USER
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+# Build paths inside the project like this: ostatistic_user_mouths.path.join(BASE_DIR, ...)
+from celery.schedules import crontab
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -53,7 +55,8 @@ INSTALLED_APPS = [
     'Search_app',
     'Integral_app',
     'haystack',
-    'CommonModule_app'  # 用于存放各模块公用文件
+    'CommonModule_app',  # 用于存放各模块公用文件
+    'Analysis_app'       # 行为分析
 ]
 
 MIDDLEWARE = [
@@ -281,6 +284,15 @@ CELERY_RESULT_SERIALIZER = 'json'
 # celery时区设置，使用settings中TIME_ZONE同样的时区
 CELERY_TIME_ZONE = TIME_ZONE
 
+
+CELERYBEAT_SCHEDULE = {
+    'every-day-statistic-login-times':{
+        'task':'Anaylsis_app.',
+        'schedule':crontab(minute=0, hour=0)  # 每天0点执行
+    }
+
+}
+
 # 缓存
 CACHES = {
     'redis':
@@ -291,6 +303,19 @@ CACHES = {
                 'redis://192.168.0.105:6381/2',
                 'redis://192.168.0.105:6380/2',
                 'redis://192.168.0.105:6379/2'
+            ],
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        },
+    'analysis':    # 用于用户和商家行为分析
+        {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            # 'LOCATION': 'redis://:syzxss247179876@127.0.0.1:6379/2',
+            'LOCATION': [
+                'redis://192.168.0.105:6381/3',
+                'redis://192.168.0.105:6380/3',
+                'redis://192.168.0.105:6379/3'
             ],
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',

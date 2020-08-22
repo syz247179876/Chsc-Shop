@@ -239,3 +239,4 @@ def logout_mall(request):
     """退出商城，重定向到首页"""
     logout(request)  # 清除request.user和对应的request.session
     return redirect('/')
+
