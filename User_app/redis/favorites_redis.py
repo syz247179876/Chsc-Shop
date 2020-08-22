@@ -3,18 +3,13 @@
 # @Author : 司云中 
 # @File : favorites_redis.py 
 # @Software: PyCharm
-import datetime
 import json
-import pickle
 import time
 
 from django.core import serializers
-from django.dispatch import receiver
 
-from Shop_app.models.commodity_models import Commodity
 from User_app import signals
 from User_app.models.user_models import Collection
-from User_app.signals import add_favorites, delete_favorites
 from e_mall.base_redis import BaseRedis
 from e_mall.json_serializer import JsonCustomEncoder
 from e_mall.loggings import Logging

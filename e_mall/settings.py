@@ -54,9 +54,9 @@ INSTALLED_APPS = [
     'mainsite',
     'Search_app',
     'Integral_app',
+    'Analysis_app',      # 行为分析
     'haystack',
     'CommonModule_app',  # 用于存放各模块公用文件
-    'Analysis_app'       # 行为分析
 ]
 
 MIDDLEWARE = [

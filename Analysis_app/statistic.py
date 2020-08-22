@@ -26,6 +26,7 @@ class StatisticRedis(BaseRedis):
         login_user_browser_times.connect(self.statistic_login_user_browsing_times, sender=User)
         user_login_mouth.connect(self.statistic_user_mouth,sender=User)
         user_browser_times.connect(self.statistic_user_browsing_times, sender=None)
+        common_logger.info('注册成功！')
 
     def trans_date(self, date):
         """
@@ -33,6 +34,7 @@ class StatisticRedis(BaseRedis):
         :return:
         """
         date_str = datetime.date.strftime(date, "%Y-%m-%d")
+        return date_str
 
 
     def statistic_login_user_browsing_times(self, sender, instance, date, **kwargs):
@@ -81,5 +83,5 @@ class StatisticRedis(BaseRedis):
         return 'success'
 
 
-static_redis = StatisticRedis.choice_redis_db('analysis')
+statistic_redis = StatisticRedis.choice_redis_db('analysis')
 
