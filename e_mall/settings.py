@@ -293,8 +293,8 @@ CELERY_BEAT_SCHEDULE = {
     # },
     'add-every-monday-morning':{
         'task': 'Analysis_app.tasks.statistic_login_times',
-        'schedule': 5.0,
-        'args':(5, 5),
+        'schedule': crontab(minute=0,hour=0),
+        'args':(),
     },
     # 'add-every-monday-morning': {
     #     'task': 'Analysis_app.tasks.add',

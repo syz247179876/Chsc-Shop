@@ -71,7 +71,7 @@ class StatisticRedis(BaseRedis):
 
     def statistic_user_browsing_times(self, sender, ip, date, **kwargs):
         """
-        统计每天登录网站浏览的次数
+        统计每天登录网站浏览的次数，无需登录
         :param sender: 发送者
         :param date:  日期类型
         :param kwargs: 额外参数

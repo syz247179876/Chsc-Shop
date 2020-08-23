@@ -16,11 +16,11 @@ from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from Shop_app.models.commodity_models import Commodity
-from User_app.Pagination import FootResultsSetPagination, FavoritesPagination
+from User_app.Pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
+from User_app.models.trolley_models import Trolley
 from User_app.models.user_models import Address, Consumer, Collection
 from User_app.redis.favorites_redis import favorites_redis
 from User_app.redis.foot_redis import FootRedisOperation
@@ -298,7 +298,6 @@ class FavoriteOperation(GenericViewSet):
 
     pagination_class = FavoritesPagination
 
-
     def get_queryset(self):
         """
         先hit缓存数据库，如果过期则重新添加到缓存中，否则直接从缓存中取
@@ -315,7 +314,7 @@ class FavoriteOperation(GenericViewSet):
         :return: Model
         """
         try:
-            return Collection.collection_.get(user=self.request.user,pk=self.kwargs.get('pk'))
+            return Collection.collection_.get(user=self.request.user, pk=self.kwargs.get('pk'))
         except Collection.DoesNotExist:
             raise Http404
 
@@ -356,30 +355,29 @@ class FavoriteOperation(GenericViewSet):
         #         time.sleep(1)
         #         limit -= 1
         #     return Response(queryset.get())
-        elif isinstance(queryset, str):        # 命中缓存，读取缓存中的数据
+        elif isinstance(queryset, str):  # 命中缓存，读取缓存中的数据
             # 将redis中的序列化数据格式成分页器
-            return Response({'data':queryset})
-        elif isinstance(queryset, list):       # 缓存为空，数据库也为空，防止缓存击穿
-            return Response({'data':queryset})
+            return Response({'data': queryset})
+        elif isinstance(queryset, list):  # 缓存为空，数据库也为空，防止缓存击穿
+            return Response({'data': queryset})
         else:
             common_logger.info(type(queryset))
             return Response(response_code.verification_code_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-    def create_collection(self,type, queryset):
+    def create_collection(self, type, queryset):
         """
         创建某用户收藏记录
         :param type: 功能类型 'commodity',  str
         :param queryset: {'commodity':QuerySet}, dict
         :return:Bool
         """
-        queryset = queryset.get(type)    # 为了可序列化，取QuerySet的第一个元素，反正也只有一个
+        queryset = queryset.get(type)  # 为了可序列化，取QuerySet的第一个元素，反正也只有一个
         try:
             if queryset:
                 now = datetime.datetime.now()  # 生产时间戳
-                queryset_first = {type:queryset.first()}
+                queryset_first = {type: queryset.first()}
                 instance = Collection.collection_.create(user=self.request.user, datetime=now, **queryset_first)
-                add_favorites.send(    # 发送信号，同步redis
+                add_favorites.send(  # 发送信号，同步redis
                     sender=Collection,
                     instance=instance,
                     user=self.request.user,
@@ -399,9 +397,9 @@ class FavoriteOperation(GenericViewSet):
         store, commodity = self.get_serializer_class().get_store_commodity(serializer.validated_data)
         is_created = False
         if store:
-            is_created = self.create_collection('store', {'store':store})
+            is_created = self.create_collection('store', {'store': store})
         elif commodity:
-            is_created = self.create_collection('commodity', {'commodity':commodity})
+            is_created = self.create_collection('commodity', {'commodity': commodity})
             common_logger.info(is_created)
         if is_created:
             return Response(response_code.add_favorites_success)
@@ -457,10 +455,8 @@ class FootOperation(GenericViewSet):
 
     @property
     def get_commodity_dict(self):
-        if hasattr(self, 'commodity_dict'):
-            return self.commodity_dict
-        else:
-            return {}
+        """缓存{commodity_pk:timestamp}"""
+        return self.commodity_dict if  hasattr(self, 'commodity_dict') else {}
 
     def get_queryset(self):
         """获取足迹固定数量查询集"""
@@ -471,7 +467,8 @@ class FootOperation(GenericViewSet):
         setattr(self, 'commodity_dict', commodity_dict)
         ordering = 'FIELD(`id`,{})'.format(','.join((str(pk) for pk in commodity_dict.keys())))
         return Commodity.commodity_.filter(pk__in=commodity_dict.keys()).extra(select={"ordering": ordering},
-                                                                               order_by=("ordering",)) if commodity_dict else []
+                                                                               order_by=(
+                                                                                   "ordering",)) if commodity_dict else []
 
     def create(self, request):
         """单增用户足迹"""
@@ -513,8 +510,10 @@ class FootOperation(GenericViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ShopCartOperation(APIView):
+class ShopCartOperation(GenericViewSet):
     """购物车的相关操作"""
+
+    model_class = Trolley
 
     permission_classes = [IsAuthenticated]
 
@@ -522,107 +521,135 @@ class ShopCartOperation(APIView):
 
     serializer_class = ShopCartSerializer  # 序列化器
 
-    ultimate_class = PageSerializer
+    pagination_class = TrolleyResultsSetPagination
 
-    def context(self, instances, store_commodity_dict, commodity_and_store, commodity_and_price):
-        return {'instances': instances, 'serializer': self.get_serializer_class,
-                'context': {'store_and_commodity': store_commodity_dict,
-                            'commodity_and_store': commodity_and_store,
-                            'commodity_and_price': commodity_and_price}}
+    def get_model_class(self):
+        return self.model_class
 
-    @property
-    def get_serializer_class(self):
-        return self.serializer_class
+    def get_queryset(self):
+        return self.get_model_class().trolley_.select_related('commodity', 'store').filter(user=self.request.user)
 
-    @property
-    def get_ultimate_serializer_class(self):
-        return self.ultimate_class
+    def get_delete_queryset(self ,pk_list):
+        return self.get_model_class().trolley_.filter(user=self.request.user, pk__in=pk_list)
 
-    def get_serializer(self, *args, **kwargs):
-        serializer = self.get_serializer_class
-        return serializer(*args, **kwargs)
+    def list(self, request, *args, **kwargs):
+        """显示购物车列表"""
 
-    def get_ultimate_serializer(self, *args, **kwargs):
-        serializer = self.get_ultimate_serializer_class
-        return serializer(*args, **kwargs)
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
-    @method_decorator(login_required(login_url='consumer/login/'))
-    def get(self, request):
-        """
-        查询购物车相关商品GET请求
-        格式如下：
-{
-    "page": 2,
-    "data": [
-        {
-            "commodity_name": "旺仔牛奶",
-            "grade": "四星好评",
-            "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
-            "reward_time": "2020-05-29T15:20:53",
-            "price": 5,
-            "category": "食品",
-            "image": null
-        },
-        {
-            "commodity_name": "鹿皮棉袄",
-            "grade": "四星好评",
-            "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
-            "reward_time": "2020-05-28T15:20:53",
-            "price": 300,
-            "category": "衣服",
-            "image": null
-        },
-    ]
-}
-        """
-
-        try:
-            user = request.user
-            data = request.GET
-            # retrieve information based on dict form and page(int)
-            store_commodity_dict, price_commodity_dict, commodity_counts_dict, page = \
-                self.redis.get_shop_cart_id_and_page(user.pk, **data)
-            # generate instances of store
-            store_instances = self.get_serializer_class.get_stores(store_commodity_dict.keys())
-            page = Page(page)
-            # 这里序列化器嵌套调用
-            serializer = self.get_ultimate_serializer_class(page,
-                                                            context=self.context(store_instances, store_commodity_dict,
-                                                                                 commodity_counts_dict,
-                                                                                 price_commodity_dict))
-            return Response(serializer.data)
-        except Exception as e:
-            consumer_logger.error(e)
-            return Response(None)
-
-    # @method_decorator(login_required(login_url='consumer/login/'))
-    # def post(self, request):
-    #     """add new goods into shop cart under the account of consumer who send request"""
-    #     pass
-
-    @method_decorator(login_required(login_url='consumer/login/'))
-    def put(self, request):
-        """修改购物车的商品的数量PUT请求"""
-        user = request.user
-        data = request.data
-        is_success = self.redis.edit_one_good(user.pk, **data)
-        if is_success:
-            return Response(response_code.edit_shop_cart_good_success)
-        else:
-            return Response(response_code.edit_shop_cart_good_error)
-
-    @method_decorator(login_required(login_url='consumer/login/'))
-    def delete(self, request):
-        """删除商品DELETE请求"""
-
-        user = request.user
-        data = request.data
-
-        # 单删
-        is_success = self.redis.delete_one_good(user.pk, **data)
-
-        # 群删
-        if is_success:
+    def destroy(self, request, *args, **kwargs):
+        """单删购物车"""
+        obj = self.get_object()
+        row_counts, delete_dict = obj.delete()
+        if row_counts:
             return Response(response_code.delete_shop_cart_good_success)
-        else:
-            return Response(response_code.delete_shop_cart_good_error)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['delete'], detail=False)
+    def destroy_many(self, request, *args, **kwargs):
+        """群删购物车"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        queryset = self.get_delete_queryset(serializer.validated_data.get('pk_list'))
+        row_counts, delete_dict = queryset.delete()
+        if row_counts:
+            return Response(response_code.delete_shop_cart_good_success)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    def create(self, request, *args, **kwargs):
+        """添加购物车"""
+        pass
+
+    # def context(self, instances, store_commodity_dict, commodity_and_store, commodity_and_price):
+    #     return {'instances': instances, 'serializer': self.get_serializer_class,
+    #             'context': {'store_and_commodity': store_commodity_dict,
+    #                         'commodity_and_store': commodity_and_store,
+    #                         'commodity_and_price': commodity_and_price}}
+
+#     @method_decorator(login_required(login_url='consumer/login/'))
+#     def get(self, request):
+#         """
+#         查询购物车相关商品GET请求
+#         格式如下：
+# {
+#     "page": 2,
+#     "data": [
+#         {
+#             "commodity_name": "旺仔牛奶",
+#             "grade": "四星好评",
+#             "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
+#             "reward_time": "2020-05-29T15:20:53",
+#             "price": 5,
+#             "category": "食品",
+#             "image": null
+#         },
+#         {
+#             "commodity_name": "鹿皮棉袄",
+#             "grade": "四星好评",
+#             "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
+#             "reward_time": "2020-05-28T15:20:53",
+#             "price": 300,
+#             "category": "衣服",
+#             "image": null
+#         },
+#     ]
+# }
+#         """
+#
+#         try:
+#             user = request.user
+#             data = request.GET
+#             # retrieve information based on dict form and page(int)
+#             store_commodity_dict, price_commodity_dict, commodity_counts_dict, page = \
+#                 self.redis.get_shop_cart_id_and_page(user.pk, **data)
+#             # generate instances of store
+#             store_instances = self.get_serializer_class.get_stores(store_commodity_dict.keys())
+#             page = Page(page)
+#             # 这里序列化器嵌套调用
+#             serializer = self.get_ultimate_serializer_class(page,
+#                                                             context=self.context(store_instances, store_commodity_dict,
+#                                                                                  commodity_counts_dict,
+#                                                                                  price_commodity_dict))
+#             return Response(serializer.data)
+#         except Exception as e:
+#             consumer_logger.error(e)
+#             return Response(None)
+#
+#     # @method_decorator(login_required(login_url='consumer/login/'))
+#     # def post(self, request):
+#     #     """add new goods into shop cart under the account of consumer who send request"""
+#     #     pass
+#
+#     @method_decorator(login_required(login_url='consumer/login/'))
+#     def put(self, request):
+#         """修改购物车的商品的数量PUT请求"""
+#         user = request.user
+#         data = request.data
+#         is_success = self.redis.edit_one_good(user.pk, **data)
+#         if is_success:
+#             return Response(response_code.edit_shop_cart_good_success)
+#         else:
+#             return Response(response_code.edit_shop_cart_good_error)
+#
+#     @method_decorator(login_required(login_url='consumer/login/'))
+#     def delete(self, request):
+#         """删除商品DELETE请求"""
+#
+#         user = request.user
+#         data = request.data
+#
+#         # 单删
+#         is_success = self.redis.delete_one_good(user.pk, **data)
+#
+#         # 群删
+#         if is_success:
+#             return Response(response_code.delete_shop_cart_good_success)
+#         else:
+#             return Response(response_code.delete_shop_cart_good_error)

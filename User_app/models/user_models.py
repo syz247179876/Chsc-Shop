@@ -3,14 +3,14 @@
 # @Author : 司云中
 # @File : user_models.py
 # @Software: PyCharm
-from Shop_app.models.commodity_models import Commodity
-from Shopper_app.models.shopper_models import Store
-from User_app.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
-from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
+
+from Shop_app.models.commodity_models import Commodity
+from Shopper_app.models.shopper_models import Store
+from User_app.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
 
 
 class Consumer(models.Model):
@@ -246,7 +246,6 @@ class Collection(models.Model):
         return {
             'user':self.user
         }
-
 
 
 
