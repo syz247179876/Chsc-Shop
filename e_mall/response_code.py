@@ -379,7 +379,7 @@ class ResponseCode:
     @property
     def server_error(self):
         """服务器无响应"""
-        self.result.update(dict(code=SERVER_ERROR, msg='服务器无响应', status='error'))
+        self.result.update(dict(code=SERVER_ERROR, msg='请求出错', status='error'))
         return self.result
 
     @property

@@ -13,13 +13,27 @@ from Shopper_app.models.shopper_models import Store
 
 
 class Trolley(models.Model):
+
+    # 用户
     user = models.ForeignKey(User, verbose_name=_('用户'), on_delete=True, related_name='trolley')
 
+    # 商品
     commodity = models.ForeignKey(Commodity, verbose_name=_('商品'), on_delete=True, related_name='trolley')
 
+    # 店铺
     store = models.ForeignKey(Store, verbose_name=_('店铺'), on_delete=True, related_name='trolley')
 
+    # 加入时间
     time = models.DateTimeField(auto_now_add=True)
+
+    # 该商品数量
+    count = models.PositiveIntegerField(verbose_name=_('商品数量'),default=1)
+
+    # 该商品价格
+    price = models.DecimalField(verbose_name=_('商品价格'), decimal_places=2, max_digits=11)
+
+    # 商品类型选择标签
+    label = models.TextField(verbose_name=_('标签'))
 
     trolley_ = Manager()
 

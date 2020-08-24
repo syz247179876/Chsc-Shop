@@ -13,6 +13,7 @@ from django.http import Http404
 from django.utils.decorators import method_decorator
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -456,7 +457,7 @@ class FootOperation(GenericViewSet):
     @property
     def get_commodity_dict(self):
         """缓存{commodity_pk:timestamp}"""
-        return self.commodity_dict if  hasattr(self, 'commodity_dict') else {}
+        return self.commodity_dict if hasattr(self, 'commodity_dict') else {}
 
     def get_queryset(self):
         """获取足迹固定数量查询集"""
@@ -529,7 +530,7 @@ class ShopCartOperation(GenericViewSet):
     def get_queryset(self):
         return self.get_model_class().trolley_.select_related('commodity', 'store').filter(user=self.request.user)
 
-    def get_delete_queryset(self ,pk_list):
+    def get_delete_queryset(self, pk_list):
         return self.get_model_class().trolley_.filter(user=self.request.user, pk__in=pk_list)
 
     def list(self, request, *args, **kwargs):
@@ -544,7 +545,7 @@ class ShopCartOperation(GenericViewSet):
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        """单删购物车"""
+        """单删购物车中的商品"""
         obj = self.get_object()
         row_counts, delete_dict = obj.delete()
         if row_counts:
@@ -553,7 +554,7 @@ class ShopCartOperation(GenericViewSet):
 
     @action(methods=['delete'], detail=False)
     def destroy_many(self, request, *args, **kwargs):
-        """群删购物车"""
+        """群删购物车中的商品"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         queryset = self.get_delete_queryset(serializer.validated_data.get('pk_list'))
@@ -562,10 +563,14 @@ class ShopCartOperation(GenericViewSet):
             return Response(response_code.delete_shop_cart_good_success)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
     def create(self, request, *args, **kwargs):
-        """添加购物车"""
-        pass
+        """添加商品到购物车"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        is_created = serializer.add_trolley(serializer.validated_data)
+        if is_created:
+            return Response(response_code.add_goods_into_shop_cart_success)
+        return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # def context(self, instances, store_commodity_dict, commodity_and_store, commodity_and_price):
     #     return {'instances': instances, 'serializer': self.get_serializer_class,

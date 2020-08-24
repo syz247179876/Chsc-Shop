@@ -72,16 +72,8 @@ class Commodity(models.Model):
                                 max_length=10,
                                 choices=commodity_choice,
                                 )
-    # # 上架状态
-    # shelve_state = (
-    #     ('0', '下架'),
-    #     ('1', '上架'),
-    # )
-    # status = models.CharField(verbose_name=_('上架状态'),
-    #                           help_text=_('请选择商品是否上架'),
-    #                           max_length=10,
-    #                           choices=shelve_state,
-    #                           )
+
+
     status = models.BooleanField(verbose_name=_('上架状态'),
                                  help_text=_('请选择商品是否上架'),
                                  default=False
@@ -116,6 +108,10 @@ class Commodity(models.Model):
 
     # 商品主图片
     image = models.ImageField(verbose_name=_('图片'), upload_to='commodity_head', help_text=_('商品主图片'), null=True)
+
+    # 商品不同款式标签
+
+    label = models.TextField(verbose_name=_('商品标签'))
 
     def images(self):
         # 显示图片而不是文件名

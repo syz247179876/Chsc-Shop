@@ -506,3 +506,15 @@ ERROR - 2020-08-21 09:48:37,072 - personal_api - create_collection - 88664 - 139
 ERROR - 2020-08-21 09:48:38,310 - personal_api - create_collection - 88664 - 139692449199872 - 'bool' object has no attribute 'first'
 ERROR - 2020-08-21 09:49:03,725 - personal_api - create_collection - 88711 - 140550190049024 - 'bool' object has no attribute 'first'
 ERROR - 2020-08-21 09:49:04,561 - personal_api - create_collection - 88711 - 140550190049024 - 'bool' object has no attribute 'first'
+ERROR - 2020-08-24 20:16:10,908 - ShopCartSerializerApi - add_trolley - 40985 - 139799996827392 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:16:11,660 - ShopCartSerializerApi - add_trolley - 40985 - 139799996827392 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:16:26,702 - ShopCartSerializerApi - add_trolley - 41047 - 139631542650624 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:16:27,583 - ShopCartSerializerApi - add_trolley - 41047 - 139631542650624 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:17:23,260 - ShopCartSerializerApi - add_trolley - 41119 - 140480729822976 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:18:02,343 - ShopCartSerializerApi - add_trolley - 41176 - 140398596966144 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:18:09,752 - ShopCartSerializerApi - add_trolley - 41220 - 139985852274432 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:18:11,367 - ShopCartSerializerApi - add_trolley - 41220 - 139985852274432 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:21:14,348 - ShopCartSerializerApi - add_trolley - 41296 - 140550573364992 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:21:15,986 - ShopCartSerializerApi - add_trolley - 41296 - 140550573364992 - [ErrorDetail(string='不存在标签', code='invalid')]
+ERROR - 2020-08-24 20:21:51,377 - ShopCartSerializerApi - add_trolley - 41392 - 140408942659328 - exceptions must derive from BaseException
+ERROR - 2020-08-24 20:21:52,337 - ShopCartSerializerApi - add_trolley - 41392 - 140408942659328 - exceptions must derive from BaseException
