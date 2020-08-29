@@ -58,7 +58,7 @@ class RemarkOperation(GenericViewSet):
 
         # TODO 后期利用 gensim 对用户的评论进行分析，符合文明素质用于允许评论
         query_object = self.get_user_remark().filter(is_remark=False)
-        if query_object.exists():
+        if query_object.exists():  # 存在机会为True，每个商品只能评论一次
             query_object.update(is_reward=True, **serializer.validated_data)
             return Response(response_code.remark_success, status.HTTP_200_OK)
         else:

@@ -44,7 +44,7 @@ class HeadImageSerializer(serializers.Serializer):
     def _upload(validated_data, storage):
         """上传用户新的头像"""
         head_image = validated_data.get('head_image')
-        is_upload, file_information = storage.upload(filebuffer=head_image.read())  # 调用client进行文件上传
+        is_upload, file_information = storage.upload(file=head_image)  # 调用client进行文件上传
         return is_upload, file_information
 
     @staticmethod

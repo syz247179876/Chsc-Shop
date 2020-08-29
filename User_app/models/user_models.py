@@ -27,7 +27,6 @@ class Consumer(models.Model):
     head_image = models.ImageField(
         verbose_name=_('头像'),
         help_text=_('上传您的头像'),
-        upload_to='head',
         null=True,
         blank=True,
     )

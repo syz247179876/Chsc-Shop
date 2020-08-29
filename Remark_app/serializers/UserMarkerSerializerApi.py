@@ -44,21 +44,6 @@ class UserMarkerSerializer(serializers.ModelSerializer):
     def get_grade_human(self, obj):
         return obj.get_grade_display()
 
-    # @staticmethod
-    # def get_remark_and_page(user, **kwargs):
-    #     try:
-    #         limit = int(kwargs.get('limit')[0]) if 'limit' in kwargs else 5
-    #         page = int(kwargs.get('page')[0])
-    #         start = (page - 1) * limit
-    #         end = page * limit
-    #         counts = Remark.remark_.select_related('commodity').filter(consumer=user).count()
-    #         instances = Remark.remark_.select_related('commodity').filter(consumer=user)[start:end]
-    #         page = math.ceil(counts / limit)
-    #         return instances, page
-    #     except Exception as e:
-    #         evaluate_logger.error(e)
-    #         return None
-
     class Meta:
         model = Remark
         fields = ['commodity_name', 'grade_human', 'grade', 'reward_content', 'reward_time', 'price', 'category', 'image']

@@ -1,11 +1,6 @@
 {% load i18n static %}
 {% load simpletags %}
 {% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
-<!--
-   The project use: django-simpleui
-   source code：
-   https://github.com/newpanjing/simpleui
--->
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
@@ -128,7 +123,6 @@
                         <span v-if="menuTextShow" slot="title" v-text="item.name"></span>
                     </el-menu-item>
 
-
                     <el-submenu v-else :index="item.eid+''">
                         <template slot="title">
                             <i :class="item.icon"></i>
@@ -180,12 +174,12 @@
                             <el-button icon="fas fa-home" @click="goIndex('{{ 'SIMPLEUI_INDEX'|get_config }}')" circle
                                        v-waves></el-button>
                             {% verbatim mycode %}
-                                <el-button @click="themeDialogVisible=true" v-waves>
-                                    <i class="fas fa-palette"></i>
-                                    <span v-text="getLanuage('Change theme')"></span><i
-                                        class="el-icon-arrow-down el-icon--right"></i>
-                                </el-button>
-
+<!--                               改变主题-->
+<!--                                <el-button @click="themeDialogVisible=true" v-waves>-->
+<!--                                    <i class="fas fa-palette"></i>-->
+<!--                                    <span v-text="getLanuage('Change theme')"></span><i-->
+<!--                                        class="el-icon-arrow-down el-icon&#45;&#45;right"></i>-->
+<!--                                </el-button>-->
                             {% endverbatim mycode %}
                             <el-dropdown>
                                 <el-button v-waves>
@@ -222,6 +216,7 @@
                          :style="isResize?'height:100%':'height: calc(100% - 97px)'" @edit="handleTabsEdit"
                          @tab-click="tabClick">
 
+                    <!-- 对应多个选项卡-->
                     <el-tab-pane v-for="(item,index) in tabs" :closable="index!=0" :label="item.name" :name="item.id"
                                  :key="item.id" lazy="true">
 
@@ -240,8 +235,10 @@
                             <i :class="item.loading?'el-icon-loading':item.icon"></i>
                             <span v-text="item.name"></span>
                         {% endblock %}
+
                         </span>
 
+                                <!-- 首页选项卡的iframe -->
                         <div v-if="index==0" style="height:100%">
                             {% if home %}
                                 <iframe :src="'{{ home }}'"></iframe>
@@ -249,6 +246,7 @@
                                 {% include './home.html' %}
                             {% endif %}
                         </div>
+                                <!--其他选项卡的iframe -->
                         <div v-else class="iframe-wrap">
                             <iframe :src="item.url" :id="item.id" @load="iframeLoad(item,$event)"></iframe>
                             {% if "SIMPLEUI_LOADING"|get_config != False %}
@@ -259,10 +257,8 @@
                                     </div>
                                 </div>
                             {% endif %}
-
                         </div>
                     </el-tab-pane>
-
 
                 </el-tabs>
             </el-main>
@@ -311,6 +307,7 @@
             </div>
         </el-dialog>
     {% endblock %}
+
 </div>
 {% block base_script %}
     <script type="text/javascript">
@@ -349,9 +346,6 @@
 
         function localeError(e) {
             console.warn("Please add the {% get_language %}.js language file to the '/simpleui-x/theme' directory.")
-            console.log("See simpleui i18n:https://github.com/newpanjing/simpleui/blob/master/i18n.md")
-            console.log("或者加入QQ群:786576510 (Join QQ Group.)")
-
         }
     </script>
 
@@ -386,8 +380,6 @@
 {% endblock %}
 {% load_analysis %}
 {% block script %}
-    {#    预留脚本block 可以实现基础该页面，添加自定义脚本#}
-
 {% endblock %}
 </body>
 </html>

@@ -452,7 +452,10 @@ SIMPLEUI_INDEX = '/'
 SIMPLEUI_LOGO = 'https://django-blog-syz.oss-cn-shanghai.aliyuncs.com/login.jpg'
 
 # hide server information
-SIMPLEUI_HOME_INFO = False
+SIMPLEUI_HOME_INFO = True
+
+# default theme
+SIMPLEUI_DEFAULT_THEME = 'layui.css'
 
 # hide recent actions
 SIMPLEUI_HOME_ACTION = True
@@ -623,57 +626,56 @@ ALIPAY_NOTIFY_URL = "http://127.0.0.1:8000/payment/payment-chsc-api/"
 # print(os.path.join(BASE_DIR, 'Payment_app/keys/application_key.pem').replace('\\', '/'))
 # create custom menu
 
-'''
 
-SIMPLEUI_CONFIG = {
-    'system_keep':False,
-    'menu_display':['订单管理','库存管理','卖家评论','信誉查看','店铺管理','商品管理','个人信息'],
-    'dynamic': False,
-    'menus': [{
-        'name': '订单管理',
-        'icon': 'fa fa-hand-peace-o',
-        'models': [{
-            'name': '一个月内的订单记录',
-            'icon': 'fa fa-line-chart',
-            'url': '/admin/'
-        }]
-    }, {
-        'name': '库存管理',
-        'icon': 'fa fa-truck',
-        'url': '/admin/',
-    }, {
-        'name': '卖家评论',
-        'icon': 'fa fa-handshake-o',
-        'models': [{
-            'name': '回复管理',
-            'url': '/admin/',
-            'icon': 'fa fa-handshake-o'
-        }]
-    }, {
-        'name': '信誉查看',
-        'icon': 'fa fa-diamond',
-        'url': '/admin',
-    }, {
-        'name': '店铺管理',
-        'icon': 'fa fa-database',
-        'url':'/admin/',
-    },{
-        'name': '商品管理',
-        'icon': 'fa fa-suitcase',
-        'url':'/admin/',
-    }, {
-        'name': '个人信息',
-        'icon': 'fa fa-user-o',
-        'models': [{
-            'name': '修改资料',
-            'url': '/admin/',
-            'icon': 'fa fa-id-card-o'
-        }, {
-            'name': '密码修改',
-            'icon': 'fa fa-id-card-o',
-            'url': '/admin/'
-        }]
-    }]
-}
 
-'''
+# SIMPLEUI_CONFIG = {
+#     'system_keep':False,
+#     'menu_display':['订单管理','库存管理','卖家评论','信誉查看','店铺管理','商品管理','个人信息'],
+#     'dynamic': False,
+#     'menus': [{
+#         'name': '订单管理',
+#         'icon': 'fa fa-hand-peace-o',
+#         'models': [{
+#             'name': '一个月内的订单记录',
+#             'icon': 'fa fa-line-chart',
+#             'url': '/admin/'
+#         }]
+#     }, {
+#         'name': '库存管理',
+#         'icon': 'fa fa-truck',
+#         'url': '/admin/',
+#     }, {
+#         'name': '卖家评论',
+#         'icon': 'fa fa-handshake-o',
+#         'models': [{
+#             'name': '回复管理',
+#             'url': '/admin/',
+#             'icon': 'fa fa-handshake-o'
+#         }]
+#     }, {
+#         'name': '信誉查看',
+#         'icon': 'fa fa-diamond',
+#         'url': '/admin',
+#     }, {
+#         'name': '店铺管理',
+#         'icon': 'fa fa-database',
+#         'url':'/admin/',
+#     },{
+#         'name': '商品管理',
+#         'icon': 'fa fa-suitcase',
+#         'url':'/admin/',
+#     }, {
+#         'name': '个人信息',
+#         'icon': 'fa fa-user-o',
+#         'models': [{
+#             'name': '修改资料',
+#             'url': '/admin/',
+#             'icon': 'fa fa-id-card-o'
+#         }, {
+#             'name': '密码修改',
+#             'icon': 'fa fa-id-card-o',
+#             'url': '/admin/'
+#         }]
+#     }]
+# }
+

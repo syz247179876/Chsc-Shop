@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : storage.py
 # @Software: Pycharm
+from django.core.files import File
 from django.core.files.storage import Storage
 
 from e_mall.loggings import Logging
@@ -31,13 +32,45 @@ class FastDFSStorage(Storage):
         self.client_conf = client_conf
 
     def _open(self, name, mode='rb'):
+        return File(open(self.path(name), mode))
+
+    def open(self, name, mode='rb'):
         """
-        暂且不需要打开文件
+        从Fastdfs中取出文件
         :param name: 文件名
         :param mode: 打开的模式
         :return:
         """
-        pass
+        return self._open(name, mode)
+
+    def _save(self, name, content):
+        """
+        存储文件到fastdfs上
+        :param name:  文件名（无卵用)
+        :param content: 打开的file对象
+        :return:
+        """
+        filebuffer = content.read()  # 读取二进制内容
+        is_save, ret_upload = self.upload(filebuffer)
+        return ret_upload.get('Remote file_id').decode() if is_save else None
+
+    def save(self, name, content, max_length=None):
+        """
+        Save new content to the file specified by name. The content should be
+        a proper File object or any Python file-like object, ready to be read
+        from the beginning.
+        """
+        # Get the proper name for the file, as it will actually be saved.
+        # 要不要name无所谓，只是为了尽量不改底层源码
+        if name is None:
+            name = content.name
+
+        if not hasattr(content, 'chunks'):
+            content = File(content, name)
+
+        name = self.get_available_name(name, max_length=max_length)  # 截取固定大小的文件名长度
+        return self._save(name, content)
+
 
     def update(self, filebuffer, remote_file_id):
         """
@@ -53,7 +86,6 @@ class FastDFSStorage(Storage):
         try:
             remote_file_id = bytes(remote_file_id.encode("utf-8"))  # 旧的file_id
             ret_update = client.modify_by_buffer(filebuffer, remote_file_id)
-            common_logger.info(ret_update)
             if ret_update.get("Status") != 'Modify successed.':
                 raise Exception
             return True, ret_update
