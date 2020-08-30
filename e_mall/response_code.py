@@ -241,6 +241,10 @@ DELETE_REMARK_SUCCESS = 681
 
 MODIFY_HEAD_IMAGE_SUCCESS = 721
 
+# 评论点赞/差评成功
+
+ADD_ACTION_REMARK_SUCCESS = 877
+
 
 class ResponseCode:
     result = {
@@ -652,5 +656,10 @@ class ResponseCode:
         self.result.update(dict(code=MODIFY_HEAD_IMAGE_SUCCESS, msg='modify_success', status='success'))
         return self.result
 
+    @property
+    def add_action_remark_success(self, data):
+        """点赞/差评成功"""
+        self.result.update(dict(code=ADD_ACTION_REMARK_SUCCESS, msg='modify_success', status='success', data=data))
+        return self.result
 
 response_code = ResponseCode()

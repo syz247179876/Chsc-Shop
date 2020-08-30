@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'Manager_app',
-    'Remark_app',
+    # 'Remark_app',
+    'Remark_app.apps.RemarkConfig',
     'Shop_app',
     'Shopper_app',
     'User_app',
@@ -55,7 +56,7 @@ INSTALLED_APPS = [
     'Search_app',
     'Integral_app',
     'Analysis_app',
-    # 'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app预防信号可能注册失败
+    # 'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app信号可能注册失败
     'haystack',
     'CommonModule_app',  # 用于存放各模块公用文件
 ]
@@ -327,6 +328,19 @@ CACHES = {
                 'redis://192.168.0.105:6381/3',
                 'redis://192.168.0.105:6380/3',
                 'redis://192.168.0.105:6379/3'
+            ],
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        },
+    'remark':    # 用于评论模块的缓存操作
+        {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            # 'LOCATION': 'redis://:syzxss247179876@127.0.0.1:6379/2',
+            'LOCATION': [
+                'redis://192.168.0.105:6381/4',
+                'redis://192.168.0.105:6380/4',
+                'redis://192.168.0.105:6379/4'
             ],
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',

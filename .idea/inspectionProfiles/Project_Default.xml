@@ -76,6 +76,7 @@
           <option value="tick.custom_button.action_url" />
           <option value="Shopper_app.models.shopper_models.Store.DoesNotExist" />
           <option value="User_app.models.user_models.Collection.DoesNotExist" />
+          <option value="Remark_app.models.remark_models.Remark.DoesNotExist" />
         </list>
       </option>
     </inspection_tool>

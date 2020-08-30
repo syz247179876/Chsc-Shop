@@ -9,8 +9,11 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class Remark(models.Model):
-    """评论表"""
-    '''商家不能修改评论表'''
+    """
+    评论表
+    商家不能修改评论表
+    """
+
     # 商家
     shopper = models.ForeignKey(User,
                                 verbose_name=_('商家'),
@@ -54,6 +57,16 @@ class Remark(models.Model):
     # 判断用户是否已经评论
     is_remark = models.BooleanField(default=True)
 
+    # 点赞个数
+    praise = models.PositiveIntegerField(verbose_name=_('点赞数'), default=0)
+
+    # 差评个数
+    against = models.PositiveIntegerField(verbose_name=_('差评数'), default=0)
+
+    # 是否已经点赞还是差评
+    is_action = models.BooleanField(default=False)
+
+
     remark_ = Manager()
 
     class Meta:
@@ -87,6 +100,15 @@ class Remark_reply(models.Model):
                                    related_name='remark_reply',
                                    on_delete=models.CASCADE
                                    )
+
+    # 点赞个数
+    praise = models.PositiveIntegerField(verbose_name=_('点赞数'), default=0)
+
+    # 差评个数
+    against = models.PositiveIntegerField(verbose_name=_('差评数'), default=0)
+
+    # 是否已经点赞还是差评
+    is_action = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'Remark_reply'

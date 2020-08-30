@@ -42,6 +42,7 @@ class RedisFavoritesOperation(BaseRedis):
         return self.key('favorites', user_pk, 'commodity', collection_pk)
 
     def connect(self):
+        common_logger.info(4444)
         signals.add_favorites.connect(self.sync_favorites_add_callback, sender=Collection)
         signals.delete_favorites.connect(self.sync_favorites_delete_callback, sender=Collection)
 
@@ -73,7 +74,7 @@ class RedisFavoritesOperation(BaseRedis):
             list_result_format = self.deserializer_commodity_data(list_resultSet)  # 反序列化
             return list_result_format
 
-        # 为命中缓存
+        # 未命中缓存
         queryset = Collection.collection_.select_related('commodity').filter(user=user)[(page - 1) * page_size : page * page_size]
 
         pipe_two = self.redis.pipeline()  # 建立管道

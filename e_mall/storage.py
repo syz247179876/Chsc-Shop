@@ -32,11 +32,12 @@ class FastDFSStorage(Storage):
         self.client_conf = client_conf
 
     def _open(self, name, mode='rb'):
+        """返回封装后的文件对象"""
         return File(open(self.path(name), mode))
 
     def open(self, name, mode='rb'):
         """
-        从Fastdfs中取出文件
+        从FastDfs中取出文件
         :param name: 文件名
         :param mode: 打开的模式
         :return:

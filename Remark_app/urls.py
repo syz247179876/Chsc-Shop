@@ -5,7 +5,7 @@ from Remark_app.views.remark import personal_comment, personal_news
 
 from django.urls import path, include
 
-from Remark_app.views.remark_api import RemarkOperation
+from Remark_app.views.remark_api import RemarkOperation, AttitudeRemarkOperation
 
 app_name = 'Remark_app'
 
@@ -16,4 +16,5 @@ urlpatterns = [
 
 router = DefaultRouter()
 router.register(r'remark-chsc-api', RemarkOperation, basename='remark')
+router.register('remark-action-chsc-api', AttitudeRemarkOperation, basename='remark-action')
 urlpatterns += router.urls
