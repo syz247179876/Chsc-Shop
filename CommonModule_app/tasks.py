@@ -10,7 +10,7 @@ import uuid
 
 from django.core.mail import send_mail
 
-from e_mall import celery_app as app
+from e_mall import celery_apps as app
 from e_mall.send_sms import send_sms
 from e_mall.settings import EMAIL_HOST_USER
 from e_mall.settings import SIGN_NAME

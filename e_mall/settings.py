@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
 import os
 import datetime
 
@@ -255,7 +254,7 @@ USE_TZ = False
 # 静态文件路由
 STATIC_URL = '/static/'
 
-# 静态文件
+# 静态文件,用于没有uwsgi的时候
 STATICFILES_DIRS = [
     # 替换反斜杠
     os.path.join(BASE_DIR, 'static').replace('\\', '/')

@@ -6,7 +6,7 @@
 import datetime
 
 from e_mall.base_redis import BaseRedis
-from e_mall.celery import app
+from e_mall import celery_apps as app
 from e_mall.loggings import Logging
 from django_redis import get_redis_connection
 common_logger = Logging.logger('django')

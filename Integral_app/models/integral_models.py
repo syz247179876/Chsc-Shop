@@ -38,3 +38,32 @@ class Integrals(models.Model):
 
     def __str__(self):
         return '用户:{}'.format(self.user.get_username())
+
+
+class Integral_commodity(models.Model):
+    """积分商品表"""
+
+    # 商品名
+    # 商品名称
+    commodity_name = models.CharField(verbose_name=_('商品名称'),
+                                      help_text=_('Please enter the name of the product'),
+                                      max_length=50,
+                                      validators=[]
+                                      )
+
+    # 兑换积分值
+    integral_price = models.PositiveIntegerField(verbose_name=_('积分值'))
+
+    # 商品剩余量
+    surplus = models.PositiveIntegerField(verbose_name=_('商品剩余量'), help_text=_('Quantity of merchandise exchanged'))
+
+
+    class Meta:
+        db_table = 'Integral_commodity'
+        verbose_name = _('积分商品表')
+        verbose_name_plural = _('积分商品表')
+
+
+
+
+

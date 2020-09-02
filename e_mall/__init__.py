@@ -1,5 +1,5 @@
 # 暴露接口
 
-from .celery import app as celery_app
+from e_mall.celery_app import app as celery_apps
 
-__all__ = ['celery_app', 'tasks']
+__all__ = ['celery_apps']

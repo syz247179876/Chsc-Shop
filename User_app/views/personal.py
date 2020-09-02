@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
+from django.views.decorators.cache import cache_page
+
 from User_app.models.user_models import Address
 from e_mall.loggings import Logging
 import datetime
@@ -17,7 +19,7 @@ from dateutil.relativedelta import relativedelta
 common_logger = Logging.logger('django')
 
 consumer_logger = Logging.logger('consumer_')
-
+@cache_page
 
 def range_year():
     """允许注册用户的合法年龄"""

@@ -95,6 +95,11 @@ class Consumer(models.Model):
         blank=True
     )
 
+    integral = models.PositiveIntegerField(
+        _('积分值'),
+        default=0
+    )
+
     USER_FIELD = 'user'
     PHONE_FIELD = 'phone'
     HEAD_IMAGE_FIELD = 'head_image'

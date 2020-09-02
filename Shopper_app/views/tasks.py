@@ -2,7 +2,7 @@ import string
 
 from e_mall.settings import EMAIL_HOST_USER
 # from django.conf.global_settings import EMAIL_HOST_USER
-from e_mall import celery_app as app
+from e_mall import celery_apps as app
 from django.core.mail import send_mail
 import random
 
