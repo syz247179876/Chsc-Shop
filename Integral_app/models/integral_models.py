@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/18 下午8:50
 # @Author : 司云中
@@ -62,6 +63,9 @@ class Integral_commodity(models.Model):
         db_table = 'Integral_commodity'
         verbose_name = _('积分商品表')
         verbose_name_plural = _('积分商品表')
+
+    def __str__(self):
+        return self.commodity_name
 
 
 

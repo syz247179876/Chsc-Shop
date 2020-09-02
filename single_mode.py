@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : single_mode.py
 # @Software: PyCharm
-
+import tasks
 # 单例模式的五大创建方法
 
 # 第一种__new__魔法方法

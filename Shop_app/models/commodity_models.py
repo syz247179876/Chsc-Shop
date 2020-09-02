@@ -218,3 +218,5 @@ class Promotion(models.Model):
         db_table = "Promotion_commodity"
         verbose_name = _('促销商品')
         verbose_name_plural = _('促销商品')
+
+
