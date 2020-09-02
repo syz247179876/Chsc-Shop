@@ -1,9 +1,12 @@
 
+# Create your models here.
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/18 下午8:50
 # @Author : 司云中
 # @File : __init__.py.py
 # @Software: Pycharm
+
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Manager
