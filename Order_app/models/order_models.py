@@ -118,7 +118,7 @@ class Order_details(models.Model):
                                        related_name='order_details',
                                        )
     # 商品，商品下架，订单详情销毁
-    commodity = models.ForeignKey(Commodity,
+    commodity = models.OneToOneField(Commodity,
                                   verbose_name=_('商品'),
                                   related_name='order_details',
                                   on_delete=models.CASCADE,
@@ -142,6 +142,9 @@ class Order_details(models.Model):
         validators=[
             MaxValueValidator(10000, message=_('订单中商品总数不超过10000件'))]
     )
+
+    # 该商品标签（尺寸，颜色，规格等）
+    label = models.CharField(max_length=25,default='无')
 
     order_details_ = Manager()
 

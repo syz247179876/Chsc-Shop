@@ -5,7 +5,10 @@
 # @Software: PyCharm
 import time
 
+from django.contrib.auth.models import User
+
 from Order_app.models.order_models import Order_basic, Order_details
+from Payment_app.models.Alipay_models import PayInformation
 from Shop_app.models.commodity_models import Commodity
 from User_app.models.user_models import Address
 from e_mall.loggings import Logging
@@ -18,15 +21,62 @@ common_logger = Logging.logger('django')
 order_logger = Logging.logger('order_')
 
 
+class AddressSuccessSerializer(serializers.ModelSerializer):
+    """地址序列化器（成功支付）"""
+
+    class Meta:
+        model = Address
+        fields = ('recipients','region', 'phone')
+
+class UserSuccessSerializer(serializers.ModelSerializer):
+    """用户序列化器（成功支付）"""
+
+    class Meta:
+        model = User
+        fields = ('username',)
+
+class CommoditySuccessSerializer(serializers.ModelSerializer):
+    """商品序列化器（成功支付）"""
+
+    class Meta:
+        model = Commodity
+        fields = ('commodity_name', 'image')
+
+
+class OrderDetailSuccessSerializer(serializers.ModelSerializer):
+    """订单细节序列化器（成功支付）"""
+
+    commodity = CommoditySuccessSerializer(read_only=True)
+
+    class Meta:
+        model = Order_details
+        fields = ('commodity', 'price', 'image')
+
+
+
+class OrderBasicSuccessSerializer(serializers.ModelSerializer):
+    """订单基本序列化器（成功支付）"""
+
+    user = UserSuccessSerializer(read_only=True, many=True)
+    address = AddressSuccessSerializer(read_only=True, many=True)
+    order_details = OrderDetailSuccessSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Order_basic
+        fields = ('orderId', 'user', 'address', 'order_details')
+
+
 class PaymentSerializer(serializers.ModelSerializer):
     """支付序列化器"""
+
+    order = OrderBasicSuccessSerializer
 
     @staticmethod
     def compute_total_price(total_price, exist_bonus=None, bonus_id=None):
         if not exist_bonus:
             return total_price
         else:
-            pass  # 处理总价钱减去红包
+            return total_price-exist_bonus
 
     @staticmethod
     def compute_generate_order_details(request, order_basic, **kwargs):
@@ -111,5 +161,5 @@ class PaymentSerializer(serializers.ModelSerializer):
             return False
 
     class Meta:
-        model = Order_basic
-        fields = ('region', 'payment', 'commodity_total_counts', 'total_price')
+        model = PayInformation
+        fields = ('trade_id', 'generate_time', 'order')

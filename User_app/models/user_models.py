@@ -251,6 +251,55 @@ class Collection(models.Model):
             'user':self.user
         }
 
+class BonusCategory(models.Model):
+    pass
+
+class Bonus(models.Model):
+    """红包类型映射类"""
+
+    # 用户
+    user = models.ForeignKey(User, related_name='bonus', verbose_name=_('用户'), on_delete=True)
+
+    # 红包类型
+    category_choice = (
+        (1, '代金卷'),
+        (2, '优惠卷'),
+        (3, '积分红包'),
+        (4, '商铺通用活动红包')
+    )
+
+    category = models.IntegerField(choices=category_choice, verbose_name=_('红包类型'))
+
+    # 红包标题
+    bonus_title = models.CharField(max_length=20,verbose_name=_('红包标题'), help_text=_('需指明红包所属活动'))
+
+    # 发放到某个店铺上
+    store = models.ForeignKey(Store, related_name='bonus', on_delete=True, help_text=_('将红包发放到指定的商铺下'), null=True)
+
+    # 发放到某个商品下
+    commodity = models.ForeignKey(Commodity, related_name='bonus', on_delete=True, help_text=_('将红包发放到指定的商品下'), null=True)
+
+    # 是否审核
+    is_check = models.BooleanField(default=False)
+
+    # 提交日期
+    commit_time = models.DateTimeField(auto_now=True)
+
+    # 审核完毕日期
+    audit_time = models.DateTimeField(auto_now_add=True)
+
+    # 是否发放红包
+    is_grant = models.BooleanField(default=False)
+
+    # 是否限制红包数量
+    is_limit_counts = models.BooleanField(default=False)
+
+    # 红包数量
+    counts = models.PositiveIntegerField(default=0)
+
+
+
+
 
 
 
