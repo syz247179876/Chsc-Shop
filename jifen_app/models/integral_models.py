@@ -61,6 +61,8 @@ class Integral_commodity(models.Model):
     # 商品剩余量
     surplus = models.PositiveIntegerField(verbose_name=_('商品剩余量'), help_text=_('Quantity of merchandise exchanged'))
 
+    integral_commodity_ = Manager()
+
 
     class Meta:
         db_table = 'Integral_commodity'

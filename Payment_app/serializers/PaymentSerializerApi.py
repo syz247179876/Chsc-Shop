@@ -10,8 +10,7 @@ from Shop_app.models.commodity_models import Commodity
 from User_app.models.user_models import Address
 from e_mall.loggings import Logging
 from rest_framework import serializers
-from rest_framework import generics
-from rest_framework.views import APIView
+
 from django.db import transaction, DatabaseError
 
 common_logger = Logging.logger('django')
@@ -20,7 +19,7 @@ order_logger = Logging.logger('order_')
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    """the serializer of Ali payment"""
+    """支付序列化器"""
 
     @staticmethod
     def compute_total_price(total_price, exist_bonus=None, bonus_id=None):
