@@ -54,8 +54,8 @@ INSTALLED_APPS = [
     'mainsite',
     'Search_app',
     'Analysis_app',
-    'jifen_app.apps.JifenAppConfig',
     'Payment_app',
+    'Voucher_app',
     # 'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app信号可能注册失败
     'haystack',
     'CommonModule_app',  # 用于存放各模块公用文件

@@ -63,6 +63,7 @@ def query_send_detail(biz_id, phone_number, page_size, current_page, send_date):
 
 
 def send_phone(phone_numbers, template_code, template_param):
+    """返回响应信息"""
     _business_id = uuid.uuid1()
     response = send_sms(_business_id, phone_numbers=phone_numbers, sign_name=SIGN_NAME, template_code=template_code,
                         template_param=template_param)

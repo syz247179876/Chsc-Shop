@@ -4,8 +4,8 @@
 # @File : utils.py
 # @Software: Pycharm
 from Payment_app.models.Alipay_models import PayInformation
-from jifen_app.models.integral_models import Integrals
-from jifen_app.signals import increase_integral, decrease_integral
+from Voucher_app.models.voucher_models import Integrals
+from Voucher_app.signals import increase_integral, decrease_integral
 
 
 class IntegralUtilOperation:
