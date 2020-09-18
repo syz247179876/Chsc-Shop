@@ -849,10 +849,9 @@
   
   
   ---
-  #### 31. 群删订单（PUT）
+  #### 31. 群删订单（DELETE）
   
   **Url：http://127.0.0.1:8000/order/order-chsc-api/destroy_multiple/**
-  
   
   **请求Json数据格式：**
   ```json
@@ -868,12 +867,211 @@
   代填
   ```
   
+
+  
+  ---
+  #### 32. 单删订单（DELETE）
+  
+  **Url：http://127.0.0.1:8000/order/order-chsc-api/22/**
+  
+  
+  **响应Json数据格式:**
+  ```json
+  {
+    "list_pk":[
+        "55","5"
+    ]
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+  
+  ---
+  #### 33. 获取某用户某个订单详细信息（GET）
+  
+  **Url：http://127.0.0.1:8000/order/order-chsc-api/32**
+  
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+  ---
+  #### 34. 获取某用户某状态的全部订单（GET）
+  
+  **Url：http://127.0.0.1:8000/order/order-get-chsc-api/1?page=102&status=5**
+  
+  
+  **请求Params数据格式:**
+  ```
+  page="102"
+  status="5"
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  {
+  "links": {
+    "next": null,
+    "previous": "http://127.0.0.1:8000/order/order-get-chsc-api/1?age=5&page=101"
+  },
+  "count": 1020,
+  "data": [
+    {
+      "orderId": "208112031923239690",
+      "trade_number": null,
+      "total_price": "0.00",
+      "commodity_total_counts": 1,
+      "generate_time": "2020-08-11T20:19:23.241858",
+      "status": "代付款",
+      "order_details": []
+    },
+    {
+      "orderId": "208112031923291509",
+      "trade_number": null,
+      "total_price": "0.00",
+      "commodity_total_counts": 1,
+      "generate_time": "2020-08-11T20:19:23.293626",
+      "status": "代付款",
+      "order_details": []
+    },
+    {
+      "orderId": "208112031923425540",
+      "trade_number": null,
+      "total_price": "0.00",
+      "commodity_total_counts": 1,
+      "generate_time": "2020-08-11T20:19:23.436737",
+      "status": "代付款",
+      "order_details": []
+    }
+   ]
+  }
+    
+  ```
+  
+  ### **十一  评论模块API**
+  
+  ---
+  #### 35. 删除用户的评论（DELETE）
+  
+  **Url：http://127.0.0.1:8000/remark/remark-chsc-api/1/**
+  
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+   ---
+  #### 36. 用户评论购买的商品（PUT）
+  
+  **Url：http://127.0.0.1:8000/remark/remark-chsc-api/2222/add_remark/**
+  
+  **请求Json数据格式:**
+  ```json
+  {
+  "grade": "1",
+  "reward_content": "厉害了我的哥！",
+  "is_add":true,
+  "is_update":false
+}
+  ```
+  
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
   **请求数据类型**
-  |list_pk|
-  -:|
-  |list|
+   |grade|reward_content|is_add|is_update|
+  -:|:-:|
+  |str|str|bool|bool
   
   
+   ---
+  #### 37. 评论点赞/差评（PATCH）
+  
+  **Url：http://127.0.0.1:8000/remark/remark-action-chsc-api/remark_click/**
+  
+  **请求Json数据格式**
+  ```json
+  {
+    "pk":22222,
+    "p_or_n":true,
+    "status":true
+}
+```
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+  
+   ---
+  #### 38. 记录每日用户登录次数API(限流)（GET）
+  
+  **Url：http://127.0.0.1:8000/consumer/record-browser-login/**
+  
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+   ---
+  #### 39. 记录所有用户浏览次数API（GET）
+  
+  **Url：http://127.0.0.1:8000/consumer/record-browser/**
+  
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+  ---
+  ### **十二  优惠卷模块API**
+  
+  #### 40.显示用户优惠卷
+  
+  
+  **Url：http://127.0.0.1:8000/voucher/voucher-chsc-api/**
+  
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+   ---
+  #### 41. 领优惠卷（POST）
+  
+  **Url：http://127.0.0.1:8000/voucher/voucher-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+    "pk":2
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+
+
+---
+
+未完待续....
   
 
 
