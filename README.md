@@ -1,9 +1,32 @@
 # E_mall
 
-## 基于DJango+vue的前后端分离（项目最初尚未使用vue框架，欲意用vue框架重写前端，后端代码百分之90%已用DRF替换）
+### Version 1.0：
+
+基于后端框架Django和前端框架amazeui的前后段不分离开发。
+
+2020年4月2日---5月25日（已完成）
+
+开发使用到的技术栈：Django+amzeui+layui+jquery+redis+celery+websocket+whoosh+mysql
+
+部署服务器用到的技术栈：nginx+uwsgi+channels
+
+一些第三方的服务：阿里云云服务器（学生机） + OSS + OCR身份识别 + 阿里云短信服务
 
 ---
-### version 1.0  
+
+### Version 2.0：
+
+重构Version1.0，基于后端框架Django+接口框架Django-Restful-Framework框架（正在开发，目前已开发80%的功能），前端欲打算使用Vue框架（才刚动工）,实现前后段分离式开发。
+
+2020年6月5日-----目前（正在开发中）
+
+开发使用到的技术栈：Django+amzeui+layui+jquery+redis+celery+websocket+whoosh+mysql
+
+部署服务器用到的技术栈：nginx+uwsgi+channels
+
+一些第三方的服务：阿里云云服务器（学生机） + OSS + OCR身份识别 + 阿里云短信服务
+
+
 
 #### 目前已完成的功能：
 
