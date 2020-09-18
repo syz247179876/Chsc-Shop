@@ -42,28 +42,31 @@
 ---
 #### **🥳主要修改🥳：**
 
-1.传统前后端不分离===>基于restful风格接口开发  👀
+1. 传统前后端不分离===>基于restful风格接口开发  👀
 
-2.whoosh搜索后端====>elasticsearch搜索后端👀
+2. whoosh搜索后端====>elasticsearch搜索后端👀
 
-3.django自带的模板语言====>前端使用vue前端框架👀
+3. django自带的模板语言====>前端使用vue前端框架👀
 
-4.由原来的redis作为消息队列====>增加消息队列rabbitmq👀
+4. 由原来的redis作为消息队列====>增加消息队列rabbitmq👀
 
-5.django默认的Storage本地存储=====>分布式fastdfs存储
+5. django默认的Storage本地存储=====>分布式fastdfs存储
 
-6.django默认的传统session认证=====>JWT算法认证
+6. django默认的传统session认证=====>JWT算法认证
 
 ---
 #### **🥶目前已完成的功能🥶：**
 
 目前已开发43个API
 
-包括：
 
-1.用户个人信息相关API
+
+
+**🤤接口文档🤤：**
+
+一. 用户个人信息相关API
   
-  (1) 绑定手机号
+  1. 绑定手机号
   
   (2) 修改个人用户名
   
@@ -111,6 +114,6 @@
 ---
 ## **🥰个人技术博客🥰**
 
-  👉👉👉  https://syzzjw.cn
+  👉👉👉  [博客地址](https://syzzjw.cn)
   
   qq:247179876(技术交流使用）
