@@ -59,63 +59,522 @@
 
 目前已开发43个API
 
-
+---
 ## **🤤接口文档🤤：**
 
 ### 一. 用户个人信息相关API
   
   ---
-  #### 1. 绑定手机号
+  #### 1. 绑定手机号（PUT）
   
-  **url：http://127.0.0.1:8000/consumer/email-or-phone-binding-chsc-api/**
+  **Url：http://127.0.0.1:8000/consumer/email-or-phone-binding-chsc-api/**
   
-  |213|2131|23323|213123|
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "phone": "13787833295",
+  "code": "200",
+  "is_existed": false,
+  "way": "phone"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |phone|code|is_existed|way|
   -:|:-:|:-:|:-
+  |str|str|bool|str|
+  
+  ---
+  #### 2. 修改个人用户名（PATCH）
+  
+  **Url http://127.0.0.1:8000/consumer/information-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "username": "司yz"
+  }
+  ```
+  
+  **请求数据类型**
+  |username|
+  -:|:-
+  |str|
+  
+  **响应Json数据格式:**
+  ```json
+  {
+  "code": 4,
+  "msg": "修改信息成功",
+  "status": "success",
+  "data": ""
+}
+```
+
+ ---
+  #### 3. 获取用户个人基本信息（GET）
+  
+  **Url http://127.0.0.1:8000/consumer/information-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  {
+  "username": "syz247179876",
+  "phone": "13787833295",
+  "first_name": "张三",
+  "head_image": "group1/M00/00/00/wKgAaV86kJ-ARxCAAA543lGjCZc7153661",
+  "birthday": "1999-05-20",
+  "sex": "男",
+  "rank": "先锋会员",
+  "safety": 60,
+  "last_login": null
+}
+  ```
+  
+  **响应数据类型**
+  |username|phone|first_name|head_image|birthday|sex|rank|safety|last_login|
+  -:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-
+  |str|str|str|str|str|str|str|int|str|
+  
+  ---
+  #### 4. 修改用户密码（PATCH）
+  
+  **Url：http://127.0.0.1:8000/consumer/password-changes-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "new_password": "123456",
+  "old_password": "654321",
+  "code": "52351"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+|new_password|old_password|code|
+  -:|:-:|:-
+  |str|str|str|
   
   
   ---
-  #### 2. 修改个人用户名
+  #### 5. 实名认证（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/verification-name-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "face": file,
+  "back": file
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  {
+  "code": 15,
+  "msg": "身份认证成功",
+  "status": "success",
+  "data": ""
+}
+  ```
+  
+  **请求数据类型**
+  |face|back|
+  -:|:-
+  |file|file|
+  
+  
+   ---
+  #### 6. 修改头像（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/shop-head-image-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "head_image": file
+  }
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |head_image|
+  -:|:-
+  |file|
   
   ---
-  #### 3. 获取用户个人信息
+  ### 二  用户收货地址相关API
+  
+  ---
+  #### 7. 添加收获地址（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/address-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "recipients": "曾靖文",
+  "region": "湖南工业大学泰山录三食堂2",
+  "address_tags": "2",
+  "phone": "13787833290"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |recipients|region|address_tags|phone|
+  -:|:-:|:-:|:-
+  |str|str|str|str|
+  
+  
+  
+  ---
+  #### 8. 查询收获地址（GET）
+  
+  **Url：
+  http://127.0.0.1:8000/consumer/address-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  
+  待填
+  
+  
+  
+  ---
+  #### 9. 修改地址信息（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/address-chsc-api/2/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+ {
+  "recipients": "司司",
+  "region": "度假村",
+  "address_tags": "1",
+  "phone": "13787833295",
+  "default_address": true
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |recipients|region|address_tags|phone|default_address|
+  -:|:-:|:-:|:-:|:-
+  |str|str|str|str|bool|
+  
+  **响应数据类型**
+  待填
+  
+  
+  
+  ---
+  #### 10. 删除收获地址信息（PUT）
+  
+  **Url：  http://127.0.0.1:8000/consumer/address-chsc-api/6/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
+  待填
+  
+  ---
+  ### 三  用户注册登陆API
+  
+  ---
+  #### 11. 用户注册（POST）
+  
+  **Url：http://127.0.0.1:8000/consumer/register-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+ {
+  "password": "1234567",
+  "phone": "13787833295",
+  "code": "PJHAV5",
+  "way": "phone"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+ 待填
+  ```
+  
+  **请求数据类型**
+  |password|phone|code|way|
+  -:|:-:|:-:|:-
+  |str|str|str|str|
+  
+  
+  
+  
+  ---
+  #### 12. 用户登录（PUT）
+  
+  **Url：  http://127.0.0.1:8000/consumer/login-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "username": "13787833290",
+  "password": "1234567",
+  "previous_page": "?next=/chsc-syz-247179876-docs/",
+  "is_remember": true,
+  "way": "2"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+   {
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozLCJ1c2VybmFtZSI6ImNoY2gyNDcxNzk4NzZAcXEuY29tIiwiZXhwIjoxNTk3NzUxNTE0LCJlbWFpbCI6IjI0NzE3OTg3NkBxcS5jb20iLCJvcmlnX2lhdCI6MTU5NzY2NTExNH0.x2YToUZ1VssJ9PGVLhlcNJVnFxSCsBi-E9N4NATf31g",
+  "previous_page": "/chsc-syz-247179876-docs/"
+}
+  ```
+  
+  **请求数据类型**
+  |username|password|previous_page|is_remember|way|
+  -:|:-:|:-:|:-:|:-
+  |str|str|str|bool|str|
+  
+  **响应数据类型**
+  
+  |token|previous_page|
+  -:|:-
+  |str|str|
+  
+  ---
+  ### **足迹相关API** 
+  
+  ---
+  #### 13. 删除单个足迹（DELETE）
+  
+  **Url：http://127.0.0.1:8000/consumer/foot-chsc-api/1/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
+  
+  
+  
+  
+  
+  ---
+  #### 14. 删除全部足迹（DELTE）
+  
+  **Url：http://127.0.0.1:8000/consumer/foot-chsc-api/destroy_all/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  
+  
+  
+  ---
+  #### 15. 添加足迹（POST）
+  
+  **Url：http://127.0.0.1:8000/consumer/foot-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "pk":231231
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |pk|
+  -:|:-
+  |int|
+  
+  
+  ---
+  #### 16. 查看用户足迹（GET）
+  
+  **Url：http://127.0.0.1:8000/consumer/foot-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+
+  ---
+  ### **收藏模块API**
+  
+
+  #### 17. 添加收藏（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/favorites-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+    "commodity_pk":26537
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+   |pk|
+   -:|:-
+   |int|
+  
+  
+  
+  
+  ---
+  #### 18. 删除全部收藏商品（DEL）
+  
+  **Url：http://127.0.0.1:8000/consumer/favorites-chsc-api/destroy_all/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
   
   
 
-
-
-1.基于JWT的会员用户民或邮箱登录。
-
-2.基于JWT的商家登录。
-
-3.基于OCR身份证识别的商家注册。
-
-3.首页商品流加载显示
-
-4.基于whoosh搜索引擎的搜索实现
-
-5.基于alipay的支付功能
-
-6.基于redis实现的收藏夹和购物车的显示
-
-7.添加收藏夹
-
-8.添加购物车
-
-9.个人信息浏览修改
-
-10.改绑手机
-
-11.改绑邮箱
-
-12.会员实名验证
-
-13.订单状态浏览
-
-14.下订单
-
-15.添加删除收货地址，修改默认地址
-
-16.基于celery的异步短信验证
+  
+  ---
+  #### 19. 删除单个收藏商品（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/favorites-chsc-api/132/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
+  
+  
+  
+  ---
+  #### 20. 查看收藏的商品（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/favorites-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
 
 
 ---
