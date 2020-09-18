@@ -199,7 +199,7 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'USER': 'root',
-        'PASSWORD': 'syzxss247179876'
+        'PASSWORD': '123456'
     }
 }
 
@@ -265,14 +265,14 @@ STATIC_ROOT = '/home/syz/E_mall/static/'
 
 # celery 设置,用于实例化
 # celery 中间人 redis://redis服务所在的ip地址:端口号/数据库号
-BROKER_URL = 'redis://:syzxss247179876@127.0.0.1:6379/0'
+BROKER_URL = 'redis://:123456@127.0.0.1:6379/0'
 # BROKER_URL = [
 #     'redis://192.168.0.105:6381/0',
 #     'redis://192.168.0.105:6380/0',
 #     'redis://192.168.0.105:6379/0'
 # ]
 # celery结果返回，可用于跟踪结果
-CELERY_RESULT_BACKEND = 'redis://:syzxss247179876@127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND = 'redis://:123456@127.0.0.1:6379/1'
 # CELERY_RESULT_BACKEND = ['redis://192.168.0.105:6381/1',
 #                          'redis://192.168.0.105:6380/1',
 #                          'redis://192.168.0.105:6379/1'
@@ -309,7 +309,7 @@ CACHES = {
     'redis':
         {
             'BACKEND': 'django_redis.cache.RedisCache',
-            # 'LOCATION': 'redis://:syzxss247179876@127.0.0.1:6379/2',
+            # 'LOCATION': 'redis://:123456@127.0.0.1:6379/2',
             'LOCATION': [
                 'redis://192.168.0.105:6381/2',
                 'redis://192.168.0.105:6380/2',
@@ -322,7 +322,7 @@ CACHES = {
     'analysis':    # 用于用户和商家行为分析
         {
             'BACKEND': 'django_redis.cache.RedisCache',
-            # 'LOCATION': 'redis://:syzxss247179876@127.0.0.1:6379/2',
+            # 'LOCATION': 'redis://:123456@127.0.0.1:6379/2',
             'LOCATION': [
                 'redis://192.168.0.105:6381/3',
                 'redis://192.168.0.105:6380/3',
@@ -335,7 +335,7 @@ CACHES = {
     'remark':    # 用于评论模块的缓存操作
         {
             'BACKEND': 'django_redis.cache.RedisCache',
-            # 'LOCATION': 'redis://:syzxss247179876@127.0.0.1:6379/2',
+            # 'LOCATION': 'redis://:123456@127.0.0.1:6379/2',
             'LOCATION': [
                 'redis://192.168.0.105:6381/4',
                 'redis://192.168.0.105:6380/4',
@@ -444,7 +444,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": ['redis://:syzxss247179876@127.0.0.1:6379/5'],
+            "hosts": ['redis://:123456@127.0.0.1:6379/5'],
         },
     },
 }
