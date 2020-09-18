@@ -4,11 +4,11 @@
 # @File : celery_learn.py
 # @Software: Pycharm
 import single_mode
-print(5555)
+
 # from celery import Celery
 #
-# BROKER_URL = 'redis://:syzxss247179876@127.0.0.1:6379/0'
-# CELERY_RESULT_BACKEND = 'redis://:syzxss247179876@127.0.0.1:6379/1'
+# BROKER_URL = 'redis://:123456@127.0.0.1:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://:123456@127.0.0.1:6379/1'
 # app = Celery('tasks', broker=BROKER_URL, backend=CELERY_RESULT_BACKEND)
 # app.conf.beat_schedule = {
 #     # Executes every Monday morning at 7:30 a.m.
