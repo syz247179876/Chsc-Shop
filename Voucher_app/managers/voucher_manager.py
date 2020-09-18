@@ -7,8 +7,6 @@ import datetime
 
 from django.db.models import Manager
 
-from Voucher_app.models.voucher_models import Voucher
-
 
 class VoucherConsumerManager(Manager):
     """

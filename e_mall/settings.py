@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'Manager_app',
     # 'Remark_app',
     'Remark_app.apps.RemarkConfig',
     'Voucher_app.apps.VoucherAppConfig',
@@ -58,6 +57,7 @@ INSTALLED_APPS = [
     'Payment_app',
     # 'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app信号可能注册失败
     'haystack',
+    'CommonModule_app'
 ]
 
 MIDDLEWARE = [
