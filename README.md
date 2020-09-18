@@ -240,10 +240,10 @@
   **请求Json数据格式：**
   ```json
   {
-  "recipients": "曾靖文",
-  "region": "湖南工业大学泰山录三食堂2",
+  "recipients": "SYZ",
+  "region": "XXXXXX地区XXXXX",
   "address_tags": "2",
-  "phone": "13787833290"
+  "phone": "13787833295"
 }
   ```
   
@@ -402,7 +402,7 @@
   |str|str|
   
   ---
-  ### **足迹相关API** 
+  ### **四  足迹相关API** 
   
   ---
   #### 13. 删除单个足迹（DELETE）
@@ -489,7 +489,7 @@
   **请求数据类型**
 
   ---
-  ### **收藏模块API**
+  ### **五  收藏模块API**
   
 
   #### 17. 添加收藏（PUT）
@@ -575,6 +575,306 @@
   ```
   
   **响应数据类型**
+
+
+  ### **六  购物车模块API**
+  
+  ---
+  #### 21. 添加商品到购物车 （POST）
+  
+  **Url：http://127.0.0.1:8000/consumer/trolley-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+    "provision":{
+        "pk":26454,
+        "count":222,
+        "label":{
+            "pk":2,
+            "content":"湛蓝色-大号"
+        }
+    }
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |pk|count|content|
+  -:|:-:|:-:
+  |int|int|str|
+  
+  
+  
+  
+  ---
+  #### 22. 单删购物车商品（PUT）
+  
+  **Url：http://127.0.0.1:8000/consumer/trolley-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
+  
+  
+  
+  ---
+  #### 23. 浏览购物车（GET）
+  
+  **Url：http://127.0.0.1:8000/consumer/trolley-chsc-api**
+  
+  
+  **请求Json数据格式：**
+  ```json
+无
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
+  
+  ---
+  #### 24. ES搜索商品（GET）
+  
+  **Url：http://127.0.0.1:8000/shop/shop-chsc-search?page=1&text=牛肉干**
+  
+  
+  **请求Params：**
+  ```
+  page=1
+  text="牛肉干"
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **响应数据类型**
+  待填
+
+  
+  ---
+  ### **八  商家模块API**
+  
+
+  #### 25. 商家注册（POST）
+  
+  **Url：http://127.0.0.1:8000/shopper/shopper-operation-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "username":"SYZ",
+  "phone": "13787833295",
+  "sex": "m",
+  "is_vip": true,
+  "birthday": "2020-08-20",
+  "sell_category":"衣服",
+  "email":"123456789@126.com",
+  "code":"3AS412"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |username|phone|sex|is_vip|birthday|sell_category|email|code|
+  -:|:-:|:-:|:-:|:-:|:-:|:-:|:-
+  |str|str|str|bool|str|str|str|str|
+  
+  
+  ---
+  ### **九  验证码发送模块API**
+
+
+  #### 26. 发送验证码（邮箱或手机）（POST）
+  
+  **Url：http://127.0.0.1:8000/consumer/email-or-phone-binding-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "phone": "13787833295",
+  "way": "phone"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  {
+  "code": 7,
+  "msg": "用户已经存在",
+  "status": "error",
+  "data": ""
+ }
+  ```
+  
+  **请求数据类型**
+  |phone|way|
+  -:|:-:|
+  |str|str|
+  
+  
+  
+  ---
+  #### 27. 发送验证码（绑定邮箱或手机）（POST）
+  
+  **Url：http://127.0.0.1:8000/consumer/verification-code-chsc-bind-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "email": "247179876@qq.com",
+  "way": "email"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |email|way|
+  -:|:-:
+  |str|str|
+  
+
+  
+  ---
+  #### 28. 发送验证码（修改密码）（POST）
+  
+  **Url：http://127.0.0.1:8000/consumer/verification-code-chsc-modify-pwd-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "phone": "1378783322131231"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |phone|
+  -:|
+  |str|
+  
+  
+  
+  
+  ---
+  #### 29. 发送验证码（商家注册）（POST）
+  
+  **Url：http://127.0.0.1:8000/shopper/verification-code-shopper-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+  "phone":"13235123112"
+   "way":"phone" 
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |phone|way|
+  -:|:-:
+  |str|str|
+  
+  ---
+  ### **十 订单模块API**
+
+  #### 30. 生成初始订单（POST）
+  
+  **Url：  http://127.0.0.1:8000/order/order-create-chsc-api/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+ {
+    "commodity_dict":{
+        "15":3,
+        "51":31,
+        "155":255
+    },
+    "payment":"4"
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  待填
+  ```
+  
+  **请求数据类型**
+  |commodity_dict|payment|
+  -:|:-:|
+  |json|str|
+  
+  
+  
+  
+  ---
+  #### 31. 群删订单（PUT）
+  
+  **Url：http://127.0.0.1:8000/order/order-chsc-api/destroy_multiple/**
+  
+  
+  **请求Json数据格式：**
+  ```json
+  {
+    "list_pk":[
+        "55","5"
+    ]
+}
+  ```
+  
+  **响应Json数据格式:**
+  ```json
+  代填
+  ```
+  
+  **请求数据类型**
+  |list_pk|
+  -:|
+  |list|
+  
+  
+  
 
 
 ---
