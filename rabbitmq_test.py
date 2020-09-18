@@ -7,7 +7,7 @@
 from celery import Celery
 from celery.result import AsyncResult
 
-app = Celery('rabbitmq_test', broker='amqp://syz:syzxss247179876@0.0.0.0:5672//')
+app = Celery('rabbitmq_test', broker='amqp://syz:123456@0.0.0.0:5672//')
 
 
 @app.task
