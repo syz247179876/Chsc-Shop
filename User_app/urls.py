@@ -9,6 +9,7 @@ from User_app.views.views import register_page, login_page
 from User_app.views.personal import *
 from django.urls import path
 
+
 app_name = 'User_app'
 
 urlpatterns = [

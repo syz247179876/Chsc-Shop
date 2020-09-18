@@ -245,6 +245,14 @@ MODIFY_HEAD_IMAGE_SUCCESS = 721
 
 ADD_ACTION_REMARK_SUCCESS = 877
 
+# 获取优惠卷成功
+
+ACQUIRE_COUPON_SUCCESS = 822
+
+# 获取优惠卷失败
+
+ACQUIRE_COUPON_ERROR = 821
+
 
 class ResponseCode:
     result = {
@@ -661,5 +669,15 @@ class ResponseCode:
         """点赞/差评成功"""
         self.result.update(dict(code=ADD_ACTION_REMARK_SUCCESS, msg='modify_success', status='success', data=data))
         return self.result
+
+    @property
+    def acquire_coupon_success(self):
+        """获取优惠卷"""
+        self.result.update(dict(code=ACQUIRE_COUPON_SUCCESS, msg='acquire_success', status='success'))
+
+    @property
+    def acquire_coupon_error(self):
+        """获取优惠卷"""
+        self.result.update(dict(code=ACQUIRE_COUPON_ERROR, msg='acquire_error', status='error'))
 
 response_code = ResponseCode()

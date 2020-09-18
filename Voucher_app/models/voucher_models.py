@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from Shop_app.models.commodity_models import Commodity
 from Shopper_app.models.shopper_models import Store
+from Voucher_app.managers.voucher_manager import  VoucherConsumerManager
 
 
 class Integrals(models.Model):
@@ -71,24 +72,26 @@ class Integral_commodity(models.Model):
     def __str__(self):
         return self.commodity_name
 
-class BonusCategory(models.Model):
+class VoucherCategory(models.Model):
 
-    category = models.CharField(verbose_name=_('红包种类'), max_length=15, help_text=_('创建新的红包类型'))
+    category = models.CharField(verbose_name=_('礼卷种类'), max_length=15, help_text=_('创建新的礼卷类型'))
 
     # 是否审核
-    is_check = models.BooleanField(default=True, verbose_name=_('是否审核'), help_text=_('红包类型是否审核？'))
+    is_check = models.BooleanField(default=True, verbose_name=_('是否审核'), help_text=_('礼卷类型是否审核？'))
 
     class Meta:
         db_table = 'BonusCategory'
-        verbose_name = _('红包类别')
-        verbose_name_plural = _('红包类别')
+        verbose_name = _('礼卷类别')
+        verbose_name_plural = _('礼卷类别')
         ordering = ('category',)
 
-class Bonus(models.Model):
-    """红包类型映射类"""
+
+
+class Voucher(models.Model):
+    """商家创建红包类型映射类"""
 
     # 用户
-    user = models.ForeignKey(User, related_name='bonus', verbose_name=_('当前用户'), on_delete=True)
+    user = models.ForeignKey(User, related_name='voucher', verbose_name=_('当前商家'), on_delete=True)
 
     # # 红包类型
     # category_choice = (
@@ -98,42 +101,90 @@ class Bonus(models.Model):
     #     (4, '商铺通用活动红包')
     # )
 
-    category = models.OneToOneField(BonusCategory, verbose_name=_('红包类型'), help_text=_('选择红包的类型'), on_delete=True)
+    category = models.OneToOneField(VoucherCategory, verbose_name=_('礼卷类型'), help_text=_('选择礼卷的类型'), on_delete=True)
 
-    # 红包标题
-    bonus_title = models.CharField(max_length=20,verbose_name=_('红包标题'), help_text=_('需指明红包所属活动'))
+    # 优惠卷标题
+    bonus_title = models.CharField(max_length=20,verbose_name=_('礼卷标题'), help_text=_('需指明礼卷所属活动'))
 
     # 发放到某个店铺上
-    store = models.ForeignKey(Store, related_name='bonus', on_delete=True, help_text=_('将红包发放到指定的商铺下'), null=True)
+    store = models.ForeignKey(Store, related_name='voucher', on_delete=True, help_text=_('将礼卷发放到指定的商铺下'), null=True)
 
     # 发放到某个商品下
-    commodity = models.ForeignKey(Commodity, related_name='bonus', on_delete=True, help_text=_('将红包发放到指定的商品下'), null=True)
+    commodity = models.ForeignKey(Commodity, related_name='voucher', on_delete=True, help_text=_('将优惠卷发放到指定的商品下'), null=True)
 
     # 是否审核
-    is_check = models.BooleanField(default=False, help_text=_('该红包是否被管理员审核？'), verbose_name=_('是否审核'))
+    is_check = models.BooleanField(default=False, help_text=_('该优惠卷是否被管理员审核？'), verbose_name=_('是否审核'))
 
     # 提交日期
-    commit_time = models.DateTimeField(auto_now=True, help_text=_('红包申请提交的日期'), verbose_name=_('提交日期'))
+    commit_time = models.DateTimeField(auto_now=True, help_text=_('优惠卷申请提交的日期'), verbose_name=_('提交日期'))
 
     # 审核完毕日期
     audit_time = models.DateTimeField(auto_now_add=True, help_text=_('管理员审核完毕日期'), verbose_name=_('审核日期'))
 
-    # 是否发放红包
-    is_grant = models.BooleanField(default=False, help_text=_('是否发放空包？'), verbose_name=_('是否发放红包'))
+    # 是否发放优惠卷
+    is_grant = models.BooleanField(default=False, help_text=_('是否发放优惠卷？'), verbose_name=_('是否发放优惠卷'))
 
-    # 是否限制红包数量
-    is_limit_counts = models.BooleanField(default=False, help_text=_('是否对红包数量有限制？'), verbose_name=_('是否限制红包数量'))
+    # 是否限制优惠卷数量
+    is_limit_counts = models.BooleanField(default=False, help_text=_('是否对优惠卷数量有限制？'), verbose_name=_('是否限制优惠卷数量'))
 
-    # 红包数量
-    counts = models.PositiveIntegerField(default=0, help_text=_('红包数量'), verbose_name=_('红包数量'))
+    # 优惠卷数量
+    counts = models.PositiveIntegerField(default=0, help_text=_('优惠卷数量'), verbose_name=_('优惠卷数量'))
+
+    # 优惠卷的有效状态
+
+    is_efficient = models.BooleanField(default=False)
+
+    # 优惠卷金额
+
+    price = models.PositiveIntegerField(default=1)
+
+    # 优惠活动起始日期
+
+    start_date = models.DateTimeField(auto_now=True)
+
+    # 优惠活动结束日期
+
+    end_date = models.DateTimeField(auto_now=True)
+
+
+
+    voucher_ = Manager()
 
 
     class Meta:
-        db_table = 'Bonus'
-        verbose_name = _('红包')
-        verbose_name_plural = _('红包类型')
+
+        db_table = 'Voucher'
+        verbose_name = _('礼卷')
+        verbose_name_plural = _('礼卷')
         ordering = ('-commit_time',)
 
 
     def __str__(self):
         return self.bonus_title
+
+
+class VoucherConsumer(models.Model):
+    """消费者领礼卷类"""
+
+    # 用户,多个消费者优惠卷记录对应一个用户
+    user = models.ForeignKey(User, related_name='voucher_consumer', verbose_name=_('当前消费者'), on_delete=True)
+
+    # 优惠卷对象，一个消费者优惠卷记录对应一款优惠卷
+    voucher = models.OneToOneField(Voucher, related_name='voucher_consumer', verbose_name=_('礼卷'), on_delete=True)
+
+    # 获得优惠卷时间
+    acquire_time = models.DateTimeField(auto_now_add=True)
+
+
+    voucher_ = VoucherConsumerManager()
+
+
+    class Meta:
+
+        default_manager_name = 'voucher_' # 设置为_default_manager,多个manager的时候比较游泳
+        db_table = 'VoucherConsumer'
+        verbose_name = _('用户优惠卷')
+        verbose_name_plural = _('用户优惠卷')
+        ordering = ('-acquire_time',)
+
+

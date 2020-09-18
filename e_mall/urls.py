@@ -42,6 +42,7 @@ urlpatterns = [
     path('order/', include('Order_app.urls', namespace='order')),
     path('remark/', include('Remark_app.urls', namespace='remark')),
     path('shop/', include('Shop_app.urls', namespace='shop')),
+    path('voucher/', include('Voucher_app.urls', namespace='voucher')),
     path('chsc-syz-247179876-docs/', schema_view, name='api_doc'),
     path(r'mdeditor/', include('mdeditor.urls')),
 ]
