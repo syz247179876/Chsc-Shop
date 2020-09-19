@@ -419,10 +419,10 @@ EMAIL_FROM = '拼夕夕商城<247179876@qq.com>'
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # 阿里云短信发送
-ACCESS_KEY_ID = 'LTAI4GFNoVjYuDop2313wNYC'
-ACCESS_KEY_SECRET = 'pKoWg1KrHvaHzMFQeIe3QtKNGovBdu'
+ACCESS_KEY_ID = ''
+ACCESS_KEY_SECRET = ''
 REGION = 'cn-hangzhou'
-SIGN_NAME = 'ACC商城'  # 短信签名
+SIGN_NAME = 'Eat-syz商城'  # 短信签名
 
 # 不同的短信模板
 TEMPLATES_CODE_LOGIN = 'SMS_199795817'
@@ -432,7 +432,7 @@ TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
 
 # 阿里OCR的AppCode
 
-ALI_APPCODE = '990dad198d304f8da8c0c599593f686c'
+ALI_APPCODE = ''
 
 # 阿里OCR请求路径
 ALI_OCR_URL = 'https://dm-51.data.aliyun.com/rest/160601/ocr/ocr_idcard.json'
