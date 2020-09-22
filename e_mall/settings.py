@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'CommonModule_app'
 ]
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

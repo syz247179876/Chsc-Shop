@@ -32,7 +32,7 @@ schema_view = get_schema_view(title='云逸电子商城开发接口文档', rend
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('search/', SearchView(), name='search'),
+    # path('search/', SearchView(), name='search'),
     path('404/', error_404, name='404'),
     path('', include('mainsite.urls', namespace='mainsite')),
     # path('', TemplateView.as_view(template_name='index.html')),
