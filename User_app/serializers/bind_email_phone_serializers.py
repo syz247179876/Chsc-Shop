@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time : 2020/7/27 11:26
 # @Author : 司云中
-# @File : FavoritesSerializersApi.py
+# @File : bind_email_phone_serializers.py
 # @Software: PyCharm
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator

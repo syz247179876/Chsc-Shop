@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/4 下午9:00
 # @Author : 司云中
-# @File : IndividualInfoSerializerApi.py
+# @File : individual_info_serializers.py
 # @Software: Pycharm
 from django.contrib.auth.models import User
 from rest_framework import serializers
@@ -59,7 +59,7 @@ class HeadImageSerializer(serializers.Serializer):
         return is_update
 
     def update_head_image(self, instance, validated_data, storage):
-        """同步服务器和数据库的头像"""
+        """同步更新FastDfs服务器和数据库的头像"""
         try:
             old_head_image = instance.head_image
             is_upload, file_information = self._upload(validated_data, storage)
@@ -94,9 +94,9 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
         identify_instance_back = ocr.apply_async(args=(attrs.get('back'), 'face'))
         # identify_instance_face = Interface_identify(attrs.get('face'), 'face')
         # identify_instance_back = Interface_identify(attrs.get('back'), 'back')
-        is_success = identify_instance_face.get() and identify_instance_back.get()  # 检查身份验证是否全部正确
+        is_success = identify_instance_face.get() and identify_instance_back.get()  #    检查身份验证是否全部正确
         if is_success:
-            OCR_attrs = {
+            ocr_attrs = {
                 'first_name': identify_instance_face.get_detail('actual_name'),
                 'sex': identify_instance_face.get_detail('sex'),
                 'birthday': identify_instance_face.get_detail('birth'),
@@ -105,7 +105,7 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
             if User.objects.filter(first_name=identify_instance_face.get_detail('actual_name')).count() == 1:
                 raise serializers.ValidationError('身份证已被认证过！')
             else:
-                attrs.update(OCR_attrs)
+                attrs.update(ocr_attrs)
                 return attrs
         raise serializers.ValidationError('身份校验异常')
 

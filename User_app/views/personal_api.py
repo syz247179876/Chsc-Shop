@@ -27,15 +27,14 @@ from User_app.redis.favorites_redis import favorites_redis
 from User_app.redis.foot_redis import FootRedisOperation
 from User_app.redis.shopcart_redis import ShopCartRedisOperation
 from User_app.redis.user_redis import RedisUserOperation
-from User_app.serializers.AddressSerializerApi import AddressSerializers
-from User_app.serializers.BindEmailOrPhoneSerializersApi import BindPhoneOrEmailSerializer
-from User_app.serializers.FavoritesSerializersApi import FavoritesSerializer
-from User_app.serializers.FootSerializerApi import FootSerializer
-from User_app.serializers.IndividualInfoSerializerApi import IndividualInfoSerializer, HeadImageSerializer, \
+from User_app.serializers.address_serializers import AddressSerializers
+from User_app.serializers.bind_email_phone_serializers import BindPhoneOrEmailSerializer
+from User_app.serializers.favorites_serializers import FavoritesSerializer
+from User_app.serializers.foot_serializers import FootSerializer
+from User_app.serializers.individual_info_serializers import IndividualInfoSerializer, HeadImageSerializer, \
     VerifyIdCardSerializer
-from User_app.serializers.PageSerializerApi import Page, PageSerializer
-from User_app.serializers.PasswordSerializerApi import PasswordSerializer
-from User_app.serializers.ShopCartSerializerApi import ShopCartSerializer
+from User_app.serializers.password_serializers import PasswordSerializer
+from User_app.serializers.shopcart_serializers import ShopCartSerializer
 from User_app.signals import add_favorites, delete_favorites
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
@@ -58,11 +57,21 @@ class HeadImageOperation(GenericAPIView):
         return self.storage_class
 
     def get_storage(self, *args, **kwargs):
+        """
+        动态导入模块，生成storage实例对象
+        :param args:
+        :param kwargs:
+        :return: instance
+        """
         module_path, class_name = self.get_storage_class().rsplit('.', 1)
         storage = getattr(importlib.import_module(module_path), class_name)
         return storage(**kwargs)
 
     def get_object(self):
+        """
+        获取消费者对象
+        :return: instance
+        """
         try:
             return Consumer.consumer_.get(user=self.request.user)
         except Consumer.DoesNotExist:
@@ -463,7 +472,7 @@ class FootOperation(GenericViewSet):
         """获取足迹固定数量查询集"""
         page_size = FootResultsSetPagination.page_size
         page = self.request.query_params.get(self.pagination_class.page_query_param, 1)  # 默认使用第一页
-        # 查询固定范围内的商品pk列表
+        # 按照固定顺序查询固定范围内的商品pk列表
         commodity_dict = self.redis.get_foot_commodity_id_and_page(self.request.user.pk, page=page, page_size=page_size)
         setattr(self, 'commodity_dict', commodity_dict)
         ordering = 'FIELD(`id`,{})'.format(','.join((str(pk) for pk in commodity_dict.keys())))
@@ -483,6 +492,27 @@ class FootOperation(GenericViewSet):
     def list(self, request, *args, **kwargs):
         """
         处理某用户固定数量的足迹
+        TODO:序列化格式为
+        {
+          [
+            {
+             date:'2020-5-20',
+             [
+               {
+                商品信息
+               },
+               {},
+               {},
+             ]
+            },
+            {date:'2020-5-21',
+             [
+               {}
+             ]
+             },
+            {}
+          ]
+        }
         """
         try:
             queryset = self.get_queryset()

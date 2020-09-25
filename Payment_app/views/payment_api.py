@@ -10,7 +10,7 @@ from django.core.files.storage import FileSystemStorage
 from rest_framework.generics import GenericAPIView
 
 from Order_app.models.order_models import Order_basic
-from Payment_app.serializers.PaymentSerializerApi import PaymentSerializer
+from Payment_app.serializers.payment_serializers import PaymentSerializer
 from alipay import AliPay
 
 from django.contrib.auth.decorators import login_required

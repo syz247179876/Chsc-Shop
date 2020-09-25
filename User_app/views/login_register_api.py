@@ -11,7 +11,7 @@ from User_app.models.user_models import Consumer
 from User_app.redis.user_redis import RedisUserOperation
 from django.contrib.auth.models import User
 
-from User_app.serializers.RegisterSerializerApi import RegisterSerializer
+from User_app.serializers.register_serializers import RegisterSerializer
 
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code

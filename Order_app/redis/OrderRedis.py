@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : OrderRedis.py
 # @Software: Pycharm
-from Order_app.serializers.OrderSerializerApi import OrderCreateSerializer
+from Order_app.serializers.order_serializers import OrderCreateSerializer
 from e_mall.base_redis import BaseRedis
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/5/29 19:53 
 # @Author : 司云中 
-# @File : PageSerializerApi.py 
+# @File : page_serializers.py
 # @Software: PyCharm
 
 from e_mall.loggings import Logging

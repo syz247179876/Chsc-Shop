@@ -11,7 +11,7 @@ from Shop_app.redis.shop_favorites_redis import ShopRedisFavoritesOperation
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from Shop_app.serializers.ShopSearchSerializerApi import CommoditySerializer
+from Shop_app.serializers.shop_search_serializers import CommoditySerializer
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code
 from Shop_app.models.commodity_models import Commodity

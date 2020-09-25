@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/5/30 10:38 
 # @Author : 司云中 
-# @File : ShopCartSerializerApi.py 
+# @File : shopcart_serializers.py
 # @Software: PyCharm
 import datetime
 import json
@@ -9,7 +9,6 @@ import json
 from Shop_app.models.commodity_models import Commodity
 from Shopper_app.models.shopper_models import Store
 from User_app.models.trolley_models import Trolley
-from User_app.serializers.PageSerializerApi import PageSerializer
 from django.db import transaction, DatabaseError
 from e_mall.loggings import Logging
 from rest_framework import serializers

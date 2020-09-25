@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/11 下午9:38
 # @Author : 司云中
-# @File : ShopSearchSeralizerApi.py
+# @File : shop_search_serializers.py
 # @Software: Pycharm
 from rest_framework import serializers
 

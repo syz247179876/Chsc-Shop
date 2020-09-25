@@ -13,7 +13,9 @@
       <w>logined</w>
       <w>mult</w>
       <w>orderid</w>
+      <w>seckill</w>
       <w>shopcart</w>
+      <w>successed</w>
       <w>zset</w>
     </words>
   </dictionary>

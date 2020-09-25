@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from Voucher_app.models.voucher_models import VoucherConsumer
 
-from Voucher_app.serializers.voucher_serializer import  VoucherConsumerSerializer
+from Voucher_app.serializers.voucher_serializers import  VoucherConsumerSerializer
 from e_mall.response_code import response_code
 
 

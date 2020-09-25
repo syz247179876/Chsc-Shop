@@ -9,7 +9,7 @@ from rest_framework.generics import GenericAPIView
 
 from User_app.models.user_models import Consumer
 from User_app.redis.user_redis import RedisUserOperation
-from User_app.serializers.VerificationSerializerApi import VerificationSerializer, VerificationModifyPwdSerializer
+from User_app.serializers.verification_serializers import VerificationSerializer, VerificationModifyPwdSerializer
 from django.contrib.auth.models import User
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code

@@ -22,10 +22,12 @@ class FootRedisOperation(BaseRedis):
     def __init__(self, redis_instance):
         super().__init__(redis_instance)
 
+    '''
     def get_time_scope(self, limit, page):
         """
         get limit scope of time in order to obtain the list of commodity_id regard with timestamp
         datetime --> str --> <class 'time.struct_time'>(tuple) -->timestamp
+        
         """
         today = datetime.datetime.now()  # 以今天datetime为基础
         max_timedelta = datetime.timedelta(limit * (page - 1))
@@ -37,31 +39,14 @@ class FootRedisOperation(BaseRedis):
         min_score_timestamp = int(time.mktime(time.strptime(min_score_str, "%Y-%m-%d %H:%M:%S")))  # 必须为time的strptime
         max_score_timestamp = int(time.mktime(time.strptime(max_score_str, "%Y-%m-%d %H:%M:%S")))
         return min_score_timestamp, max_score_timestamp
+    '''
 
-    # def get_foot_commodity_id_and_page(self, user_id, **kwargs):
-    #     """
-    #     obtain limit list of commodity that stored in redis(use zset有序集合) to hit database
-    #     :param user_id:用户id
-    #     :param kwargs:request.data的Querydict实例
-    #     :return:list
-    #     """
-    #     try:
-    #         key = self.key('foot', user_id)
-    #         page = kwargs.pop('page')
-    #         pipe = self.redis.pipeline()
-    #         min_score_timestamp, max_score_timestamp = self.get_time_scope(CommodityResultsSetPagination.page_size, page)
-    #         foot_limit_list = self.redis.zrangebyscore(key, min_score_timestamp,
-    #                                                    max_score_timestamp)
-    #         foot_score_counts = self.redis.zcount(key, min_score_timestamp, max_score_timestamp)  # 获取scope范围内的总个数
-    #         foot_total_counts = self.redis.zcard(key)  # 获取foot的总个数
-    #         page = math.ceil(foot_total_counts / foot_score_counts)
-    #         foot_limit_list_decode = [int(pk.decode()) for pk in foot_limit_list]  # decode
-    #         return foot_limit_list_decode, page
-    #     except Exception as e:
-    #         consumer_logger.error(e)
-    #         return None, 0
-    #     finally:
-    #         self.redis.close()
+    @property
+    def score(self):
+        """设置足迹有序集合中对应键的分数值"""
+        return int('%s%d' % (''.join(datetime.datetime.now().strftime('%Y-%m-%d').split('-')),int(time.time())))
+
+
 
     def get_foot_commodity_id_and_page(self, user_id, **kwargs):
         """
@@ -94,10 +79,10 @@ class FootRedisOperation(BaseRedis):
         # add_foot.apply_async(args=(pickle.dumps(self), user_id, validated_data))  # can't pickle _thread.lock objects
         try:
             key = self.key('foot', user_id)
-            timestamp = int(time.time())  # 毫秒级别的时间戳
+            timestamp = self.score  # 毫秒级别的时间戳
             commodity_id = validated_data['pk']
             # pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
-            self.redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），时间戳（分数值），商品id
+            self.redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），当前日期+时间戳（分数值），商品id
             # 每个用户最多缓存100条历史记录
             if self.redis.zcard(key) >= 100:  # 集合中key为键的数量
                 self.redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/30 下午4:32
 # @Author : 司云中
-# @File : AttitudeActionSerializer.py
+# @File : attitude_action_serializers.py
 # @Software: Pycharm
 
 from rest_framework import serializers

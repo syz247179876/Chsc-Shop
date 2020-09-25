@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/5/28 11:26 
 # @Author : 司云中 
-# @File : FavoritesSerializersApi.py 
+# @File : favorites_serializers.py
 # @Software: PyCharm
 from Shop_app.models.commodity_models import Commodity
 from Shopper_app.models.shopper_models import Store

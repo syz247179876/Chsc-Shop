@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/4 下午5:32
 # @Author : 司云中
-# @File : SecKillSerializerApi.py
+# @File : seckill_serializers.py
 # @Software: Pycharm
 
 

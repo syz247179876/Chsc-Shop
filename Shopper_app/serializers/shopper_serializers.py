@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/6/1 23:26 
 # @Author : 司云中 
-# @File : ShopperSerializerApi.py 
+# @File : shopper_serializers.py
 # @Software: PyCharm
 
 from django.contrib.auth.models import User

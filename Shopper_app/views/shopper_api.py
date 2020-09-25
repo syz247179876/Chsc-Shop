@@ -6,7 +6,7 @@
 from rest_framework import status
 
 from Shopper_app.redis.shopper_redis import RedisShopperOperation
-from Shopper_app.serializers.ShopperSerializerApi import ShopperSerializer
+from Shopper_app.serializers.shopper_serializers import ShopperSerializer
 from User_app.views.ali_card_ocr import Interface_identify
 from django.contrib.auth.models import User, Permission
 from e_mall.loggings import Logging

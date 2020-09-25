@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/5/9 22:53 
 # @Author : 司云中 
-# @File : AddressSerializerApi.py
+# @File : address_serializers.py
 # @Software: PyCharm
 from Shop_app.models.commodity_models import Commodity
 from User_app.models.user_models import Address

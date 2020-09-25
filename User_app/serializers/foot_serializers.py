@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/5/28 14:03 
 # @Author : 司云中 
-# @File : FootSerializerApi.py 
+# @File : foot_serializers.py
 # @Software: PyCharm
 from Shop_app.models.commodity_models import Commodity
 from e_mall.loggings import Logging

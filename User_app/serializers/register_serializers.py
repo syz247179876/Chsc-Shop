@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time : 2020/7/30 11:26
 # @Author : 司云中
-# @File : RegisterSerializerApi.py
+# @File : register_serializers.py
 # @Software: PyCharm
 from django.contrib.auth.models import User
 from rest_framework import serializers

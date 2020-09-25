@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time : 2020/8/1 14:03
 # @Author : 司云中
-# @File : FootSerializerApi.py
+# @File : verification_serializers.py
 # @Software: PyCharm
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator

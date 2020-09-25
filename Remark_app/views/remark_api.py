@@ -11,8 +11,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from Remark_app.models.remark_models import Remark
 from Remark_app.pagination import RemarkResultsSetPagination
-from Remark_app.serializers.AttitudeActionSerializerApi import AttitudeRemarkSerializer
-from Remark_app.serializers.UserMarkerSerializerApi import UserMarkerSerializer
+from Remark_app.serializers.attitude_action_serializers import AttitudeRemarkSerializer
+from Remark_app.serializers.user_marker_serializers import UserMarkerSerializer
 from Remark_app.signals import remark_post, remark_cancel
 from e_mall.loggings import Logging
 from e_mall.response_code import response_code

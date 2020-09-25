@@ -6,8 +6,8 @@
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from e_mall.loggings import Logging
-from mainsite.serializers.HomeSerializerApi import GoodsSerializerApi
-from mainsite.serializers.PageSerializerApi import PageSerializer, Page
+from mainsite.serializers.home_serializers import GoodsSerializerApi
+from mainsite.serializers.page_serializers import PageSerializer, Page
 from rest_framework.response import Response
 from rest_framework.views import APIView
 

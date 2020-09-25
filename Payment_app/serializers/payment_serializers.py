@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/6/1 10:03 
 # @Author : 司云中 
-# @File : PaymentSerializerApi.py 
+# @File : payment_serializers.py
 # @Software: PyCharm
 import time
 
