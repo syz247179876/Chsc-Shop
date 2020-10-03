@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'CommonModule_app'
 ]
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -368,7 +367,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # 用户上传的文件目录
 # 会话session设置
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 引擎（默认）
 
-# SESSION_ENGINE = 'django.contrib.sessions.backends.cache' # 使用redis存储session 
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache' # 使用redis存储session
 
 SESSION_COOKIE_NAME = "e_mall_sessionid"
 
@@ -399,7 +398,7 @@ EMAIL_HOST_USER = '247179876@qq.com'  # 发送邮件的地址
 # 本来填的自己的账号密码，但是不行的.
 # EMAIL_HOST_PASSWORD =os.environ['PASSWORDD']
 
-EMAIL_HOST_PASSWORD = 'mazstyfnbdbfbjhf'  # 发送邮件的授权码
+EMAIL_HOST_PASSWORD = ''  # 发送邮件的授权码
 
 # 这里的是前缀，也就是头
 EMAIL_SUBJECT_PREFIX = u'[Sercheif]'
@@ -622,7 +621,7 @@ LOGGING = {
 }
 
 # 支付宝支付的配置
-ALIPAY_APPID = '2021001165602567'
+ALIPAY_APPID = ''
 
 # windows,linux
 APP_KEY_PUBLIC_PATH = os.path.join(BASE_DIR, 'Payment_app/keys/application_key_public.pem')
