@@ -1108,7 +1108,7 @@ feature:成员共同开发分支（目前尚无该分支）
 ---
 ## **POSTMAN文档接口地址**
 
-[PostMan](https://documenter.getpostman.com/view/10963682/T1LFnpyV)
+[PostMan](https://documenter.getpostman.com/view/10963682/T1LFnpyV3)
 
 ---
 ## **SwaggerUI接口地址**
