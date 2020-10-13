@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models.query import QuerySet
 from django.http import Http404
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -20,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from Shop_app.models.commodity_models import Commodity
-from User_app.Pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
+from User_app.pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
 from User_app.models.trolley_models import Trolley
 from User_app.models.user_models import Address, Consumer, Collection
 from User_app.redis.favorites_redis import favorites_redis
@@ -280,7 +281,6 @@ class AddressOperation(viewsets.ModelViewSet):
 
     # 默认与post绑定，反射到post=>post映射到create
     # @method_decorator(login_required(login_url='consumer/login/'))
-
     def create(self, request, *args, **kwargs):
         """单添加地址"""
         serializer = self.get_serializer(data=request.data)
@@ -335,14 +335,13 @@ class FavoriteOperation(GenericViewSet):
         """
         return Collection.collection_.filter(user=self.request.user)
 
-    # @method_decorator(cache_page(10 * 1, cache='redis'))
+    @method_decorator(cache_page(10 * 1, cache='redis'))
     def list(self, request):
         """显示收藏夹的商品"""
 
         queryset = self.get_queryset()
 
         if isinstance(queryset, QuerySet):  # 命中数据库
-            common_logger.info(33)
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)

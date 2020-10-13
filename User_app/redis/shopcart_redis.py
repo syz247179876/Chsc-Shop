@@ -48,6 +48,8 @@ class ShopCartRedisOperation(BaseRedis):
                 third_key = self.key('Cart', user_id, store, 'price')  # 用于存放用户购物车内每个商铺有关商品总价格对应的商品id，键
                 # 取出购物车中每个商铺中对应全部的商品id,进行解码
                 # 时间复杂度O(log(n)+m),分数为float型，需转, m为成员数量
+
+                # TODO:重构添加    withscore=True,用pipe减小网络延迟
                 counts_list = [int(value.decode()) for value in self.redis.zrevrange(second_key, 0, -1)]
                 price_list = [int(value.decode()) for value in self.redis.zrevrange(third_key, 0, -1)]
                 for value in counts_list:

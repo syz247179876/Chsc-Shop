@@ -3,10 +3,10 @@
 # @Author : 司云中
 # @File : statistic.py
 # @Software: Pycharm
+
+
 import datetime
-
 from django.contrib.auth.models import User
-
 from Analysis_app.signals import login_user_browser_times, user_browser_times, buy_category, user_recommend
 from e_mall.base_redis import BaseRedis
 from e_mall.loggings import Logging
@@ -27,7 +27,6 @@ class StatisticRedis(BaseRedis):
         user_browser_times.connect(self.record_user_browsing_times, sender=None)
         buy_category.connect(self.record_buy_category, sender=None)
         user_recommend.connect(self.record_user_recommendation, sender=None)
-        common_logger.info('success')
 
     @staticmethod
     def trans_date(date):
@@ -71,7 +70,7 @@ class StatisticRedis(BaseRedis):
         """
         date = datetime.date.today()  # today
         pipe = self.redis.pipeline()
-        date_str = self.trans_date(date)                 # offset:user_pk
+        date_str = self.trans_date(date)  # offset:user_pk
         key = self.key('login-day', date_str)
         pipe.setbit(key, instance.pk, 1)
 
@@ -107,10 +106,9 @@ class StatisticRedis(BaseRedis):
 
         pipe = self.redis.pipeline()
         hash_key = self.key('love-category', instance.pk)
-        pipe.zincrby(hash_key, amount=1, value=category) # 默认从1开始
-        pipe.expire(hash_key, 259200)    # 活三天
+        pipe.zincrby(hash_key, amount=1, value=category)  # 默认从1开始
+        pipe.expire(hash_key, 259200)  # 活三天
         pipe.execute()
-
 
     def record_buy_category(self, sender, category, date, **kwargs):
         """
@@ -126,8 +124,6 @@ class StatisticRedis(BaseRedis):
         date_str = self.trans_date(date)
         zset_key = self.key('buy-category', date_str)
         self.redis.zincrby(zset_key, amount=1, value=category)  # 默认为1,方便排行
-
-
 
 
 statistic_redis = StatisticRedis.choice_redis_db('analysis')

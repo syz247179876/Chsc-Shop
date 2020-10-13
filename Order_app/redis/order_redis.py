@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/9 下午7:55
 # @Author : 司云中
-# @File : OrderRedis.py
+# @File : order_redis.py
 # @Software: Pycharm
 from Order_app.serializers.order_serializers import OrderCreateSerializer
 from e_mall.base_redis import BaseRedis

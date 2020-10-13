@@ -14,19 +14,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-# from django.views.generic import TemplateView
-from e_mall import settings
-from django.conf.urls.static import static
-# from rest_framework.documentation import include_docs_urls
-
-
-# 重要的是如下三行
-from haystack.views import SearchView
-from e_mall.base_view import error_404
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
+
+from e_mall import settings
+# 重要的是如下三行
+from e_mall.base_view import error_404
 
 schema_view = get_schema_view(title='云逸电子商城开发接口文档', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
 

@@ -116,10 +116,12 @@ class Interface_identify:
         else:
             return False
 
-    """def test(self, card_type):
+    """
+    def test(self, card_type):
         path = 'C:\\Users\\ASUS\\Desktop\\index.jpg'
         with open(path, 'rb') as f:
             data = f.read()
             image = str(base64.b64encode(data), encoding='utf-8')
             configure = {"side": card_type}
-            self.body.update({'image': image, 'configure': configure})"""
+            self.body.update({'image': image, 'configure': configure})
+    """

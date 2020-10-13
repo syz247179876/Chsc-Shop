@@ -16,8 +16,8 @@ common_logger = Logging.logger('django')
 class RemarkRedisOperation(BaseRedis):
     """评论Redis操作类"""
 
-    def __init__(self, redis_instance):
-        super().__init__(redis_instance)
+    def __init__(self, db):
+        super().__init__(db)
         self.connect()
 
     def connect(self):

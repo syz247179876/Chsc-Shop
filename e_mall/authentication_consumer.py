@@ -5,11 +5,12 @@
 # @Software: PyCharm
 
 
-from User_app.models.user_models import Consumer
+import logging
+
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import User
 from django.db.models import Q
-import logging
+
 from User_app import validators
 
 common_log = logging.getLogger('django')

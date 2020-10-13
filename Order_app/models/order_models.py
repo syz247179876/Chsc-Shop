@@ -119,10 +119,10 @@ class Order_details(models.Model):
                                        )
     # 商品，商品下架，订单详情销毁
     commodity = models.OneToOneField(Commodity,
-                                  verbose_name=_('商品'),
-                                  related_name='order_details',
-                                  on_delete=models.CASCADE,
-                                  )
+                                     verbose_name=_('商品'),
+                                     related_name='order_details',
+                                     on_delete=models.CASCADE,
+                                     )
 
     # 属于哪一个订单，订单号
     order_basic = models.ForeignKey(Order_basic, verbose_name=_('订单号'),
@@ -144,7 +144,7 @@ class Order_details(models.Model):
     )
 
     # 该商品标签（尺寸，颜色，规格等）
-    label = models.CharField(max_length=25,default='无')
+    label = models.CharField(max_length=25, default='无')
 
     order_details_ = Manager()
 
@@ -174,7 +174,7 @@ class Logistic(models.Model):
 
     def shipping_status_color(self):
         """重绘发货状态颜色"""
-        global color_code
+        color_code = ''
         if self.shipping_status == 1:
             color_code = '#5DECA5',
         elif self.shipping_status == 2:

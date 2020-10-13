@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/8/9 下午8:28
 # @Author : 司云中
-# @File : Pagination.py
+# @File : pagination.py
 # @Software: Pycharm
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response

@@ -4,23 +4,8 @@
 # @File : tasks.py
 # @Software: PyCharm
 
-import datetime
-import time
-
 from User_app.views.ali_card_ocr import Interface_identify
 from e_mall import celery_apps as app
-import json
-from collections import OrderedDict
-
-# @app.task
-# def delete_outdated(self):
-#     """timed task:delete obsolete key-value"""
-#     now = datetime.datetime.now()
-#     delta = datetime.timedelta(-1)
-#     previous = now - delta
-#     key = previous.strftime('%Y-%m-%d')
-#     self.redis.delete(key)
-from e_mall.loggings import Logging
 
 
 @app.task
@@ -60,13 +45,5 @@ def ocr(image_instance, type_):
 #     finally:
 #         obj.redis.close()
 
-common_logger = Logging.logger('django')
-
-# @app.task
-# def format_commodity_data(data):
-#     """格式化数据"""
-#     if isinstance(data, list):
-#         data = [{key.decode():value.decode() for key, value in orderdict.items() if not isinstance(value,str)} for orderdict in data]
-#     return data
 
 

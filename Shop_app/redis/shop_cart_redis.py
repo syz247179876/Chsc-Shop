@@ -15,8 +15,8 @@ trolley_ = Logging.logger('trolley_')
 class ShopRedisCartOperation(BaseRedis):
     """the operation of shop cart about redis,it means add goods into shop cart"""
 
-    def __init__(self, redis_instance):
-        super().__init__(redis_instance)
+    def __init__(self, db):
+        super().__init__(db)
 
     @staticmethod
     def get_commodity(goods_id):
