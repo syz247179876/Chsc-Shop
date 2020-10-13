@@ -41,7 +41,7 @@ def statistic_buy_category_day():
     # 选择pop or range都可以
     # 格式：[(b'first', 20.0), (b'second', 19.0), (b'third', 18.0)]
     winner = pipe.zpopmax(yesterday_zset_key)                                # 弹出排名第一的商品种类
-    # pipe.zrevrange(yesterday_zset_key, 0, 8, withscors=True)              # (value,score) double tuple
+    # pipe.zrevrange(yesterday_zset_key, 0, 8, withscore=True)              # (value,score) double tuple
 
     pipe.zadd(month_zset_key, {result_tuple[0].decode(): result_tuple[1] for result_tuple in winner})                                              # 添加到新的以月为key的有序集合中
     pipe.delete(yesterday_zset_key)

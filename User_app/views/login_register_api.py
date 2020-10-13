@@ -3,14 +3,17 @@
 # @Author : 司云中
 # @File : login_register_api.py
 # @Software: PyCharm
+from datetime import datetime
 
 from rest_framework import status
+from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import ObtainJSONWebToken
 
 from User_app.models.user_models import Consumer
 from User_app.redis.user_redis import RedisUserOperation
 from django.contrib.auth.models import User
 
+from User_app.serializers.login_serializers import UserJwtLoginSerializer
 from User_app.serializers.register_serializers import RegisterSerializer
 
 from e_mall.loggings import Logging
@@ -23,10 +26,52 @@ common_logger = Logging.logger('django')
 
 consumer_logger = Logging.logger('consumer_')
 
+jwt_response_payload_handler = api_settings.JWT_RESPONSE_PAYLOAD_HANDLER
 
-class LoginAPIView(ObtainJSONWebToken):
+class LoginAPIView(GenericAPIView):
     """ 使用JWT登录"""
-    pass
+
+    serializer_class = UserJwtLoginSerializer
+
+    redis = RedisUserOperation.choice_redis_db('redis')
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'redis': self.redis})
+        return context
+
+    def remember_username(self, response, is_remember, login_id):
+        """设置cookie，本地暂存用户名1周"""
+        if is_remember:
+            response.set_cookie('login_id', login_id, max_age=7 * 24 * 3600)
+        else:
+            response.delete_cookie('login_id', login_id)
+
+    def post(self, request, *args, **kwargs):
+        """用户登录"""
+        serializer = self.get_serializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        user = serializer.object.get('user') or request.user
+        token = serializer.object.get('token')
+        is_remember = serializer.object.get('is_remember')
+        previous_page = serializer.object.get('previous_page')
+        # 加密，如果配置中支持刷新，则更新token,将user调用中间件赋给request.user
+        response_data = jwt_response_payload_handler(token, user, request)
+        response_data.update({'previous_page':previous_page})
+        response = Response(response_data)
+        self.remember_username(response, is_remember, user.get_username())  # 记住用户名
+        # 将token存到response的cookie中，设置有效的日期
+        if api_settings.JWT_AUTH_COOKIE:
+            expiration = (datetime.utcnow() +
+                          api_settings.JWT_EXPIRATION_DELTA)
+            # 对应配置中的Token名称
+            response.set_cookie(api_settings.JWT_AUTH_COOKIE,
+                                token,
+                                expires=expiration,
+                                httponly=True)
+        return response
+
 
 
 class RegisterAPIView(GenericAPIView):

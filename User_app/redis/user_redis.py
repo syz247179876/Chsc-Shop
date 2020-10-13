@@ -146,6 +146,6 @@ class UserStatistic(APIView):
 class RedisUserOperation(BaseRedis):
     """the operation of save verification code about redis"""
 
-    def __init__(self, redis_instance):
-        super().__init__(redis_instance)
+    def __init__(self, db):
+        super().__init__(db)
 

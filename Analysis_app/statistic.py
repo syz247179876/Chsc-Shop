@@ -8,7 +8,7 @@
 import datetime
 from django.contrib.auth.models import User
 from Analysis_app.signals import login_user_browser_times, user_browser_times, buy_category, user_recommend
-from e_mall.base_redis import BaseRedis
+from e_mall.base_redis import BaseRedis, manager_redis
 from e_mall.loggings import Logging
 
 common_logger = Logging.logger('django')
@@ -17,9 +17,9 @@ common_logger = Logging.logger('django')
 class StatisticRedis(BaseRedis):
     """redis统计类"""
 
-    def __init__(self, redis_instance):
+    def __init__(self, db):
+        super().__init__(db)
         self.connect()
-        super().__init__(redis_instance)
 
     def connect(self):
         """注册信号"""
@@ -69,15 +69,16 @@ class StatisticRedis(BaseRedis):
         :return:
         """
         date = datetime.date.today()  # today
-        pipe = self.redis.pipeline()
-        date_str = self.trans_date(date)  # offset:user_pk
-        key = self.key('login-day', date_str)
-        pipe.setbit(key, instance.pk, 1)
+        with manager_redis(self.db) as redis:
+            pipe = redis.pipeline()
+            date_str = self.trans_date(date)  # offset:user_pk
+            key = self.key('login-day', date_str)
+            pipe.setbit(key, instance.pk, 1)
 
-        year, month, day = self.trans_date_offset(date)  # offset:day
-        key = self.key('login', year, month, instance.pk)
-        pipe.setbit(key, day, 1)  # 尽可能节约内存
-        pipe.execute()
+            year, month, day = self.trans_date_offset(date)  # offset:day
+            key = self.key('login', year, month, instance.pk)
+            pipe.setbit(key, day, 1)  # 尽可能节约内存
+            pipe.execute()
 
     def record_user_browsing_times(self, sender, ip, **kwargs):
         """
@@ -91,7 +92,8 @@ class StatisticRedis(BaseRedis):
         date = datetime.date.today()  # today
         date_str = self.trans_date(date)
         key = self.key('browser-day', date_str)
-        self.redis.incrby(key, amount=1)
+        with manager_redis(self.db) as redis:
+            redis.incrby(key, amount=1)
 
     def record_user_recommendation(self, sender, category, instance, **kwargs):
         """
@@ -103,12 +105,12 @@ class StatisticRedis(BaseRedis):
         :param kwargs: 额外参数
         :return:
         """
-
-        pipe = self.redis.pipeline()
-        hash_key = self.key('love-category', instance.pk)
-        pipe.zincrby(hash_key, amount=1, value=category)  # 默认从1开始
-        pipe.expire(hash_key, 259200)  # 活三天
-        pipe.execute()
+        with manager_redis(self.db) as redis:
+            pipe = redis.pipeline()
+            hash_key = self.key('love-category', instance.pk)
+            pipe.zincrby(hash_key, amount=1, value=category)  # 默认从1开始
+            pipe.expire(hash_key, 259200)  # 活三天
+            pipe.execute()
 
     def record_buy_category(self, sender, category, date, **kwargs):
         """
@@ -120,10 +122,11 @@ class StatisticRedis(BaseRedis):
         :param kwargs:额外参数
         :return:
         """
-        date = datetime.date.today()  # today
-        date_str = self.trans_date(date)
-        zset_key = self.key('buy-category', date_str)
-        self.redis.zincrby(zset_key, amount=1, value=category)  # 默认为1,方便排行
+        with manager_redis(self.db) as redis:
+            date = datetime.date.today()  # today
+            date_str = self.trans_date(date)
+            zset_key = self.key('buy-category', date_str)
+            redis.zincrby(zset_key, amount=1, value=category)  # 默认为1,方便排行
 
 
 statistic_redis = StatisticRedis.choice_redis_db('analysis')

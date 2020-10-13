@@ -31,7 +31,6 @@ urlpatterns = [
     # path('search/', SearchView(), name='search'),
     path('404/', error_404, name='404'),
     path('', include('mainsite.urls', namespace='mainsite')),
-    # path('', TemplateView.as_view(template_name='index.html')),
     path('payment/', include('Payment_app.urls', namespace='payment')),
     path('shopper/', include('Shopper_app.urls', namespace='shopper')),
     path('consumer/', include('User_app.urls', namespace='consumer')),

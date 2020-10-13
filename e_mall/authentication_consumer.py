@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 
 from User_app import validators
+from User_app.redis.user_redis import RedisUserOperation
 
 common_log = logging.getLogger('django')
 
@@ -23,48 +24,57 @@ class EmailOrUsername(ModelBackend):
     邮箱规则：正常邮箱规则
     """
 
-    def authenticate(self, request=None, username=None, password=None, way=None):
-        global user
+    def authenticate(self, request=None, user=None, **kwargs):
+        """
+        根据传过来的不同key-value反射调用验证函数，以及根据不同key-value动态查询满足要求的user对象
+        :param request: 请求对象
+        :param user: 避免全局引用的user
+        :param kwargs: 包含'email/username' 和 'password'
+        :return: user对象 or None
+        """
         try:
-            if validators.username_validate(username) or validators.email_validate(username):
-                user = User.objects.get(Q(username=username) | Q(email=username))
+            password = kwargs.pop('password')
+            query_fields = {}  # 存放查询字段
+            validators_result = []
+            for key, value in kwargs.items(): # 验证数据
+                func_name = '{key}_validate'.format(key=key)
+                if hasattr(validators, func_name):
+                    func = getattr(validators,func_name)
+                    validators_result.append(func(value))
+                    query_fields.update({key:value})
+
+            if len(validators_result):
+                user = User.objects.get(**query_fields)
             else:
-                return None  # 用户名不正确
+                return None
         except User.DoesNotExist:
             return None
         else:
-            if user.check_password(password):
-                return user
-            return None  # 密码不正确
+            return user if user.check_password(password) else None
 
 
 class Phone(ModelBackend):
     """
-    针对手机用户认证
-    手机号：正常手机号格式
+    针对手机用户认证(手机+验证码）
     """
 
-    def authenticate(self, request=None, username=None, password=None, way=None):
-        """authenticate consumer, only phones are allowed to login"""
-        global user
+    def authenticate(self, request=None, user=None, **kwargs):
+        """
+        :param request: request对象
+        :return: user对象
+        """
         try:
-            if validators.phone_validate(username):
-                user = User.objects.select_related('consumer').get(consumer__phone=username)
-            else:
-                return None
+            code = kwargs.get('code')
+            phone = kwargs.get('phone')
+            if validators.phone_validate(phone):
+                user = User.objects.select_related('consumer').get(consumer__phone=phone)
         except user.DoesNotExist:
             return None
         else:
-            if user.check_password(password):
-                return user
-            return None
-
-
-class PhoneCode(ModelBackend):
-    """手机+验证码登录"""
-    pass
+            redis = RedisUserOperation.choice_redis_db('redis')
+            key = redis.key('authentication', phone)
+            return user if redis.check_code(key, code) else None
 
 
 email_or_username = EmailOrUsername()
 phone = Phone()
-phone_code = PhoneCode()

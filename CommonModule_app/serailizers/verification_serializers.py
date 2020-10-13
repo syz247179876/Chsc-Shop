@@ -16,9 +16,14 @@ from django.utils.translation import ugettext as _
 class VerificationSerializer(serializers.Serializer):
     """验证码序列化器"""
 
+    CHOICE_WAY = (
+        ('email','email'),
+        ('phone','phone')
+    )
+
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False, validators=[DRFPhoneValidator()], max_length=11)
-    way = serializers.CharField()
+    way = serializers.ChoiceField(choice=CHOICE_WAY)
 
     def validate(self, attrs):
         """前端传过来的数据中必须包含email和phone二者之一"""
@@ -36,12 +41,36 @@ class VerificationSerializer(serializers.Serializer):
                 raise serializers.ValidationError(msg)
         return attrs
 
-    def validate_way(self, value):
-        """登录/注册方式校验"""
-        if value.lower() not in ['email', 'phone']:
-            raise serializers.ValidationError("方式必须在email和phone中选择")
 
-        return value
+class RetrieveCodeSerializer(VerificationSerializer):
+    """找回密码序列化器"""
+
+
+    def validate(self, attrs):
+        """在基类验证函数基础在进一步验证"""
+        credentials = super().validate(attrs)
+        func = getattr(self, credentials.get('way'))
+        func(**credentials)
+        return attrs
+
+    def email(self, **kwargs):
+        """验证邮箱"""
+        try:
+            User.objects.get(email=kwargs.pop('email'))
+        except User.DoesNotExist:
+            raise serializers.ValidationError('邮箱不存在')
+
+
+    def phone(self, **kwargs):
+        """验证手机"""
+        try:
+            Consumer.consumer_.get(phone=kwargs.pop('phone'))
+        except Consumer.DoesNotExist:
+            raise serializers.ValidationError('手机号不存在')
+
+
+
+
 
 
 class VerificationModifyPwdSerializer(serializers.Serializer):

@@ -1,12 +1,8 @@
-import re
-
-from django.contrib.auth import login
 from django.core import validators
-from django.utils.deconstruct import deconstructible
-from django.utils.translation import gettext_lazy as _
-
 # 该类装饰器用于在自定义存储系统时候迁移进行序列化
 from django.core.exceptions import ValidationError
+from django.utils.deconstruct import deconstructible
+from django.utils.translation import gettext_lazy as _
 
 from e_mall.drf_validators import DRFBaseValidator
 
@@ -41,3 +37,10 @@ class DRFStoreNameValidator(DRFBaseValidator):
     """店铺名验证"""
     regex = r'^\w{5,20}$'
     message = _('店铺名格式不正确')
+
+
+class DRFPasswordValidator(DRFBaseValidator):
+    """密码验证"""
+    regex = r'^[a-zA-Z0-9]{8,20}$'
+    message = _('密码格式不正确')
+    re_method = 'fullmatch'

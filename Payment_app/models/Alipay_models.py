@@ -20,6 +20,7 @@ class PayInformation(models.Model):
     # 交易创建时间，一旦创建不能修改
     generate_time = models.DateTimeField(verbose_name=_('完成交易'), auto_now_add=True)
 
+
     payment_ = Manager()
 
     class Meta:

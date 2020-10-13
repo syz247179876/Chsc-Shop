@@ -162,4 +162,5 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PayInformation
-        fields = ('trade_id', 'generate_time', 'order')
+        # fields = ('trade_id', 'generate_time', 'order')
+        fields = '__all__'

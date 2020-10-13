@@ -4,9 +4,11 @@
 # @File : shopper_api.py
 # @Software: PyCharm
 from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.viewsets import GenericViewSet
 
 from Shopper_app.redis.shopper_redis import RedisShopperOperation
-from Shopper_app.serializers.shopper_serializers import ShopperSerializer
+from Shopper_app.serializers.shopper_serializers import ShopperRegisterSerializer, ShopperJwtLoginSerializer
 from User_app.views.ali_card_ocr import Interface_identify
 from django.contrib.auth.models import User, Permission
 from e_mall.loggings import Logging
@@ -58,16 +60,17 @@ class Shopper_user_prem:
             user.user_permissions.add(permission)
 
 
-class ShopperOperation(GenericAPIView):
-    """店家操作"""
+class ShopperRegisterOperation(GenericAPIView):
+    """店家注册"""
 
     redis = RedisShopperOperation.choice_redis_db('redis')  # 选择redis具体db
 
-    serializer_class = ShopperSerializer
+    serializer_class = ShopperRegisterSerializer
 
-    def check_code(self, validated_data):
-        """验证码验证"""
-        return self.redis.check_code(validated_data.get('phone'), validated_data.get('code'))
+    def get_serializer_context(self):
+        """添加redis实例"""
+        context = super().get_serializer_context()
+        return context.update({'redis' : self.redis})
 
     def post(self, request):
         """商家注册"""
@@ -79,5 +82,28 @@ class ShopperOperation(GenericAPIView):
         if user:
             Shopper_user_prem.add_shopper_perm(user)  # 分配权限
             return Response(response_code.create_shopper_success, status=status.HTTP_200_OK)
+        else:
+            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ShopperLoginRegister(GenericAPIView):
+    """商家登录"""
+    redis = RedisShopperOperation.choice_redis_db('redis')
+
+    serializer_class = ShopperJwtLoginSerializer
+
+    def get_serializer_context(self):
+        """添加redis实例"""
+        context = super().get_serializer_context()
+        return context.update({'redis' : self.redis})
+
+    def post(self, request):
+        """商家登录"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.login(serializer.validated_data)  # 创建用户
+        if user:
+            return Response(response_code.login_success, status=status.HTTP_200_OK)
         else:
             return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -13,14 +13,14 @@ common_logger = Logging.logger('django')
 
 
 @contextlib.contextmanager
-def manager_redis(db):
+def manager_redis(db, redis=None):
     try:
         redis = get_redis_connection(db)  # redis实例链接
         yield redis
     except Exception as e:
         common_logger.info(e)
         return None
-    else:
+    finally:
         redis.close()
 
 
