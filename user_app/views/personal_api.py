@@ -24,7 +24,7 @@ from Emall.response_code import response_code
 from shop_app.models.commodity_models import Commodity
 from user_app.model.trolley_models import Trolley
 from user_app.models import Address, Consumer, Collection
-from user_app.pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
+from user_app.utils.pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
 from user_app.redis.favorites_redis import favorites_redis
 from user_app.redis.foot_redis import FootRedisOperation
 from user_app.redis.shopcart_redis import ShopCartRedisOperation

@@ -5,4 +5,4 @@ class VoucherAppConfig(AppConfig):
     name = 'voucher_app'
 
     def ready(self):
-        from voucher_app import utils
+        pass

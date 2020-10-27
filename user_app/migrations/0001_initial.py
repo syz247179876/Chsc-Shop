@@ -3,11 +3,9 @@
 from django.conf import settings
 import django.contrib.auth.validators
 from django.db import migrations, models
-import django.db.models.deletion
-import django.db.models.manager
 import django.utils.timezone
 import user_app.models
-import user_app.validators
+import user_app.utils.validators
 
 
 class Migration(migrations.Migration):
@@ -30,7 +28,8 @@ class Migration(migrations.Migration):
                 ('username', models.CharField(error_messages={'unique': 'A user with that username already exists.'}, help_text='Required. 30 characters or fewer. Letters, digits and @/./+/-/_ only.', max_length=30, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()], verbose_name='昵称')),
                 ('full_name', models.CharField(blank=True, max_length=10, verbose_name='姓名')),
                 ('email', models.EmailField(blank=True, error_messages={'unique': 'A user with that email already exists'}, max_length=254, unique=True, verbose_name='邮箱')),
-                ('phone', models.CharField(blank=True, error_messages={'unique': 'A user with that email already exists'}, max_length=11, validators=[user_app.validators.PhoneValidator], verbose_name='手机号')),
+                ('phone', models.CharField(blank=True, error_messages={'unique': 'A user with that email already exists'}, max_length=11, validators=[
+                    user_app.utils.validators.PhoneValidator], verbose_name='手机号')),
                 ('is_seller', models.BooleanField(default=False, help_text='Consumer upgrade to sellers by registering to open storewho have access to the background', verbose_name='卖家身份')),
                 ('is_staff', models.BooleanField(default=False, help_text='Consumer upgrade to sellers by registering to open storewho have access to the background', verbose_name='销售员工')),
                 ('is_active', models.BooleanField(default=True, help_text='Stranger who has registered to become usersDesignates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='激活状态')),
@@ -99,7 +98,8 @@ class Migration(migrations.Migration):
             name='Shoppers',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('phone', models.CharField(max_length=11, unique=True, validators=[user_app.validators.PhoneValidator()], verbose_name='手机号')),
+                ('phone', models.CharField(max_length=11, unique=True, validators=[
+                    user_app.utils.validators.PhoneValidator()], verbose_name='手机号')),
                 ('credit', models.CharField(choices=[('1', '1星'), ('2', '2星'), ('3', '3星'), ('4', '4星'), ('5', '5星'), ('6', '1钻'), ('7', '2钻'), ('8', '3钻'), ('9', '4钻'), ('10', '5钻')], default=1, help_text='您的信誉等级', max_length=1, verbose_name='信誉')),
                 ('sex', models.CharField(blank=True, choices=[('m', '男'), ('f', '女')], help_text='性别', max_length=1, verbose_name='性别')),
                 ('sell_category', models.CharField(choices=[('衣服', '衣服'), ('裤子', '裤子'), ('生活用品', '生活用品'), ('家具', '家具'), ('鞋子', '鞋子'), ('化妆品', '化妆品'), ('零食', '零食')], default='衣服', max_length=10)),
@@ -173,11 +173,14 @@ class Migration(migrations.Migration):
             name='Address',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('recipients', models.CharField(max_length=20, validators=[user_app.validators.RecipientsValidator()], verbose_name='收件人')),
-                ('region', models.CharField(max_length=50, validators=[user_app.validators.RegionValidator()], verbose_name='所在地区')),
-                ('address_tags', models.CharField(choices=[('1', '家'), ('2', '公司'), ('3', '学校')], max_length=1, validators=[user_app.validators.AddressTagValidator()], verbose_name='地址标签')),
+                ('recipients', models.CharField(max_length=20, validators=[
+                    user_app.utils.validators.RecipientsValidator()], verbose_name='收件人')),
+                ('region', models.CharField(max_length=50, validators=[user_app.utils.validators.RegionValidator()], verbose_name='所在地区')),
+                ('address_tags', models.CharField(choices=[('1', '家'), ('2', '公司'), ('3', '学校')], max_length=1, validators=[
+                    user_app.utils.validators.AddressTagValidator()], verbose_name='地址标签')),
                 ('default_address', models.BooleanField(default=False, verbose_name='默认地址')),
-                ('phone', models.CharField(error_messages={'unique': 'A telephone number with this already exists.'}, help_text='Please write your cell-phone number', max_length=11, validators=[user_app.validators.PhoneValidator()], verbose_name='手机号')),
+                ('phone', models.CharField(error_messages={'unique': 'A telephone number with this already exists.'}, help_text='Please write your cell-phone number', max_length=11, validators=[
+                    user_app.utils.validators.PhoneValidator()], verbose_name='手机号')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='address', to=settings.AUTH_USER_MODEL, verbose_name='消费者')),
             ],
             options={

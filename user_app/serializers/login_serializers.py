@@ -3,12 +3,11 @@
 # @Author : 司云中
 # @File : login_serializers.py
 # @Software: Pycharm
-from django.conf import settings
 from rest_framework import serializers
 from rest_framework_jwt.compat import PasswordField, get_username_field, Serializer
 from rest_framework_jwt.settings import api_settings
 from django.utils.translation import ugettext as _
-from user_app import validators
+from user_app.utils import validators
 from Emall.authentication_consumer import email_or_username, phone
 
 

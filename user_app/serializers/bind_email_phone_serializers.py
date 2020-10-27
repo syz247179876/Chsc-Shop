@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from Emall.loggings import Logging
-from user_app.validators import DRFPhoneValidator
+from user_app.utils.validators import DRFPhoneValidator
 
 common_logger = Logging.logger('django')
 

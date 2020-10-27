@@ -1,11 +1,7 @@
-import logging
-
-from django.db.models.query import QuerySet
-from drf_haystack.viewsets import HaystackViewSet
 from rest_framework.generics import GenericAPIView
 
-from shop_app.ElasticSearch import ElasticSearchOperation
-from shop_app.Pagination import CommodityResultsSetPagination
+from shop_app.utils.elasticsearch import ElasticSearchOperation
+from shop_app.utils.pagination import CommodityResultsSetPagination
 from shop_app.redis.shop_cart_redis import ShopRedisCartOperation
 from shop_app.redis.shop_favorites_redis import ShopRedisFavoritesOperation
 from django.contrib.auth.decorators import login_required

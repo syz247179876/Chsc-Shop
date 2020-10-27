@@ -8,7 +8,7 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from user_app import validators
+from user_app.utils import validators
 from user_app.redis.user_redis import RedisUserOperation
 
 common_log = logging.getLogger('django')
@@ -36,7 +36,7 @@ class EmailOrUsername(ModelBackend):
             for key, value in kwargs.items(): # 验证数据
                 func_name = '{key}_validate'.format(key=key)
                 if hasattr(validators, func_name):
-                    func = getattr(validators,func_name)
+                    func = getattr(validators, func_name)
                     validators_result.append(func(value))
                     query_fields.update({key:value})
 

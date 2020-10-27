@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from remark_app.models.remark_models import Remark
-from remark_app.pagination import RemarkResultsSetPagination
+from remark_app.utils.pagination import RemarkResultsSetPagination
 from remark_app.serializers.attitude_action_serializers import AttitudeRemarkSerializer
 from remark_app.serializers.user_marker_serializers import UserMarkerSerializer
 from remark_app.signals import remark_post, remark_cancel

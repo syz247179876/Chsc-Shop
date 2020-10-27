@@ -4,11 +4,9 @@
 # @File : verification_serializers.py
 # @Software: PyCharm
 from django.contrib.auth.models import User
-from rest_framework.validators import UniqueValidator
 
 from user_app.models import Consumer
-from user_app.validators import DRFPhoneValidator
-from Emall.loggings import Logging
+from user_app.utils.validators import DRFPhoneValidator
 from rest_framework import serializers
 from django.utils.translation import ugettext as _
 

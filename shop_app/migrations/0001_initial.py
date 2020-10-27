@@ -4,7 +4,7 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.manager
 import mdeditor.fields
-import shop_app.validators
+import shop_app.utils.validators
 
 
 class Migration(migrations.Migration):
@@ -19,7 +19,8 @@ class Migration(migrations.Migration):
             name='Commodity',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('commodity_name', models.CharField(help_text='Please enter the name of the product', max_length=50, validators=[shop_app.validators.CommodityValidator()], verbose_name='商品名称')),
+                ('commodity_name', models.CharField(help_text='Please enter the name of the product', max_length=50, validators=[
+                    shop_app.utils.validators.CommodityValidator()], verbose_name='商品名称')),
                 ('price', models.PositiveIntegerField(help_text='Please enter the price of the goods', validators=[django.core.validators.MaxValueValidator(999999, message='商品最高价格不能高于999999')], verbose_name='价格')),
                 ('details', mdeditor.fields.MDTextField(help_text='Please describe your product in detail', verbose_name='商品的详细描述')),
                 ('intro', models.TextField(help_text='A briefly describe', max_length=100, verbose_name='商品的简要描述')),

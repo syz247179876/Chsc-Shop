@@ -7,8 +7,7 @@ from user_app.models import User
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from user_app.models import Consumer
-from user_app.validators import DRFUsernameValidator, DRFPasswordValidator
+from user_app.utils.validators import DRFUsernameValidator, DRFPasswordValidator
 
 
 class RegisterSerializer(serializers.Serializer):

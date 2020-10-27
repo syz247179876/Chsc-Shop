@@ -14,7 +14,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from shop_app.models.commodity_models import Commodity
 from user_app.model.seller_models import Store
-from user_app.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
+from user_app.utils.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
 
 
 class UserManager(BaseUserManager):

@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from mdeditor.fields import MDTextField
 from Emall.settings import AUTH_USER_MODEL
 from user_app.model.seller_models import Store
-from ..validators import *
+from shop_app.utils.validators import *
 
 
 class Commodity(models.Model):

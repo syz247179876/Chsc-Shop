@@ -5,7 +5,7 @@
 # @Software: Pycharm
 import datetime
 
-from analysis_app.statistic import statistic_redis
+from analysis_app.utils.statistic import statistic_redis
 from Emall import celery_apps as app
 from Emall.loggings import Logging
 

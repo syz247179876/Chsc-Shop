@@ -6,7 +6,6 @@
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError, transaction
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -15,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from order_app.pagination import OrderResultsSetPagination
+from order_app.utils.pagination import OrderResultsSetPagination
 from order_app.models.order_models import Order_basic
 from order_app.redis.order_redis import RedisOrderOperation
 from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCommoditySerializer, \

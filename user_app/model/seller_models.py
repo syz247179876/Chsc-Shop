@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 from Emall.settings import AUTH_USER_MODEL
-from user_app.validators import PhoneValidator
+from user_app.utils.validators import PhoneValidator
 
 
 class Shoppers(models.Model):

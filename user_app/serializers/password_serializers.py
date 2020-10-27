@@ -7,7 +7,7 @@
 
 from rest_framework import serializers
 
-from user_app.validators import DRFPasswordValidator
+from user_app.utils.validators import DRFPasswordValidator
 
 
 class PasswordSerializer(serializers.Serializer):
