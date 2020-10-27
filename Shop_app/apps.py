@@ -1,5 +1,0 @@
-from django.apps import AppConfig
-
-
-class ShopConfig(AppConfig):
-    name = 'Shop_app'
