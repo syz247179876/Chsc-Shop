@@ -4,7 +4,8 @@
 # @File : individual_info_serializers.py
 # @Software: Pycharm
 from django.conf import settings
-from user_app.models import User
+from django.contrib.auth import get_user_model
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -14,6 +15,7 @@ from Emall.loggings import Logging
 
 common_logger = Logging.logger('django')
 
+User = get_user_model()
 
 class IndividualInfoSerializer(serializers.ModelSerializer):
     """个人信息序列化器"""
@@ -89,7 +91,7 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
         OCR识别身份正反
         验证阶段验证身份信息是否正确或是否已被验证
         """
-        if self.context.get('request').user.first_name != '':
+        if self.context.get('request').user.full_name != '':
             raise serializers.ValidationError('身份已被认证过！')
         identify_instance_face = ocr.apply_async(args=(attrs.get('face'), 'face'))  # 扔到任务队列中调度
         identify_instance_back = ocr.apply_async(args=(attrs.get('back'), 'face'))
@@ -98,26 +100,22 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
         is_success = identify_instance_face.get() and identify_instance_back.get()  #    检查身份验证是否全部正确
         if is_success:
             ocr_attrs = {
-                'first_name': identify_instance_face.get_detail('actual_name'),
+                'full_name': identify_instance_face.get_detail('actual_name'),
                 'sex': identify_instance_face.get_detail('sex'),
                 'birthday': identify_instance_face.get_detail('birth'),
-                'nationality': identify_instance_face.get_detail('nationality')
+                # 'nationality': identify_instance_face.get_detail('nationality')
             }
-            if User.objects.filter(first_name=identify_instance_face.get_detail('actual_name')).count() == 1:
+            if User.objects.filter(full_name=identify_instance_face.get_detail('actual_name')).count() == 1:
                 raise serializers.ValidationError('身份证已被认证过！')
             else:
-                attrs.update(ocr_attrs)
-                return attrs
+                return ocr_attrs
         raise serializers.ValidationError('身份校验异常')
 
     def update(self, instance, validated_data):
         """更新身份信息"""
-        first_name = validated_data.pop('first_name')  # 弹出first_name
         try:
-            instance.user.first_name = first_name  # 更新user
             for key, value in validated_data.items():  # 更新Consumer
                 setattr(instance, key, value)
-            instance.user.save()
             instance.save()
         except Exception as e:
             common_logger.info(e)
@@ -127,5 +125,5 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('first_name', 'face', 'back')
-        read_only_fields = ('first_name',)
+        fields = ('full_name', 'face', 'back')
+        read_only_fields = ('full_name',)

@@ -23,8 +23,7 @@ from Emall.loggings import Logging
 from Emall.response_code import response_code
 from shop_app.models.commodity_models import Commodity
 from user_app.model.trolley_models import Trolley
-from user_app.models import Address, Consumer, Collection
-from user_app.utils.pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
+from user_app.models import Address, Collection
 from user_app.redis.favorites_redis import favorites_redis
 from user_app.redis.foot_redis import FootRedisOperation
 from user_app.redis.shopcart_redis import ShopCartRedisOperation
@@ -38,11 +37,13 @@ from user_app.serializers.individual_info_serializers import IndividualInfoSeria
 from user_app.serializers.password_serializers import PasswordSerializer
 from user_app.serializers.shopcart_serializers import ShopCartSerializer
 from user_app.signals import add_favorites, delete_favorites
+from user_app.utils.pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
 
 common_logger = Logging.logger('django')
 consumer_logger = Logging.logger('consumer_')
 
 User = get_user_model()
+
 
 class HeadImageOperation(GenericAPIView):
     """
@@ -74,8 +75,8 @@ class HeadImageOperation(GenericAPIView):
         :return: instance
         """
         try:
-            return Consumer.consumer_.get(user=self.request.user)
-        except Consumer.DoesNotExist:
+            return User.objects.get(user=self.request.user)
+        except User.DoesNotExist:
             raise Http404
 
     def put(self, request):
@@ -141,7 +142,7 @@ class ChangePassword(GenericAPIView):
     @property
     def get_object_username(self):
         """获取用户名"""
-        return self.request.user.get_username()
+        return f'find-password-{self.request.user.get_username()}'
 
     def modify_password(self, user, validated_data):
         """改变用户的密码"""
@@ -186,7 +187,8 @@ class BindEmailOrPhone(GenericAPIView):
 
     serializer_class = BindPhoneOrEmailSerializer
 
-    def bind_phone(self, cache, instance, validated_data):
+    @staticmethod
+    def bind_phone(cache, instance, validated_data):
         """改绑手机号"""
         is_existed = validated_data['is_existed']
         code = validated_data['code']
@@ -209,7 +211,8 @@ class BindEmailOrPhone(GenericAPIView):
                 return True
         return False
 
-    def bind_email(self, cache, instance, validated_data):
+    @staticmethod
+    def bind_email(cache, instance, validated_data):
         """改绑邮箱"""
         is_existed = validated_data['is_existed']
         code = validated_data['code']
@@ -248,20 +251,12 @@ class BindEmailOrPhone(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         # 校验成功
         way = serializer.validated_data.get('way')
-        if way == 'phone':
-            instance = request.user
-            bind_success = self.factory(way, serializer.validated_data, instance)
-            # 改绑成功bind_email
-            if bind_success:
-                return Response(response_code.bind_phone_success, status=status.HTTP_200_OK)
-            # 改绑失败
-            return Response(response_code.bind_email_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            instance = request.user
-            bind_success = self.factory(way, serializer, instance)
-            if bind_success:
-                return Response(response_code.bind_email_success, status=status.HTTP_200_OK)
-            return Response(response_code.bind_email_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        bind_success = self.factory(way, serializer.validated_data, request.user)
+        # 改绑成功
+        if bind_success:
+            return Response(response_code.bind_success, status=status.HTTP_200_OK)
+        # 改绑失败
+        return Response(response_code.bind_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class VerifyIdCard(GenericAPIView):
@@ -273,7 +268,7 @@ class VerifyIdCard(GenericAPIView):
 
     def get_object(self):
         """获取inner join的用户对象"""
-        return Consumer.consumer_.select_related('user').get(user=self.request.user)  # 如果没有对象在权限会那抛出404
+        return self.request.user  # 如果没有对象在权限会那抛出404
 
     def put(self, request):
         """处理POST请求"""
@@ -455,7 +450,6 @@ class FavoriteOperation(GenericViewSet):
             is_created = self.create_collection('store', {'store': store})
         elif commodity:
             is_created = self.create_collection('commodity', {'commodity': commodity})
-            common_logger.info(is_created)
         if is_created:
             return Response(response_code.add_favorites_success)
         else:

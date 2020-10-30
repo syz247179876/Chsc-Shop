@@ -77,6 +77,7 @@
           <option value="Shopper_app.models.shopper_models.Store.DoesNotExist" />
           <option value="User_app.models.user_models.Collection.DoesNotExist" />
           <option value="Remark_app.models.remark_models.Remark.DoesNotExist" />
+          <option value="user_app.models.Collection.*" />
         </list>
       </option>
     </inspection_tool>

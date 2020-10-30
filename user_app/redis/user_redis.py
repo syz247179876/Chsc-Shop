@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : user_redis.py
 # @Software: PyCharm
-from Emall.base_redis import BaseRedis
+from Emall.base_redis import BaseRedis, manager_redis
 from Emall.loggings import Logging
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -26,11 +26,9 @@ class BrowHistorySerializer(serializers.ModelSerializer):
 class Add_Get_Browsing_History(APIView):
     """User's browsing history"""
 
-    _redis = get_redis_connection('redis')
-
     @property
-    def redis(self):
-        return self._redis
+    def db(self):
+        return 'redis'
 
     @property
     def response_get(self):
@@ -49,23 +47,21 @@ class Add_Get_Browsing_History(APIView):
 
     def get_history(self, id, page):
         """Gets 10 browsing histories of the target user """
-        try:
-            history_list = self.redis.lrange(id, page * 10, (page + 1) * 10)
-            history_counts = self.redis.llen(id)
-            return history_list, history_counts
-        except Exception as e:
-            consumer_logger.error(e)
-        finally:
-            self.redis.close()
+        with manager_redis(self.db) as redis:
+            try:
+                history_list = redis.lrange(id, page * 10, (page + 1) * 10)
+                history_counts = redis.llen(id)
+                return history_list, history_counts
+            except Exception as e:
+                consumer_logger.error(e)
 
     def add_history(self, id, commodity):
         """append one browsing history for target user"""
-        try:
-            self.redis.lpush(id, commodity)
-        except Exception as e:
-            consumer_logger.error(e)
-        finally:
-            self.redis.close()
+        with manager_redis(self.db) as redis:
+            try:
+                redis.lpush(id, commodity)
+            except Exception as e:
+                consumer_logger.error(e)
 
     def cur_page(self, page):
         """current page"""
@@ -98,7 +94,6 @@ class Add_Get_Browsing_History(APIView):
 
 class UserStatistic(APIView):
     """count the number of login of all user used"""
-    _redis = get_redis_connection('redis')
 
     def response(self, today_visitor_counts, online_counts):
         return {
@@ -107,8 +102,8 @@ class UserStatistic(APIView):
         }
 
     @property
-    def redis(self):
-        return self._redis
+    def db(self):
+        return 'redis'
 
     @property
     def get_key(self):
@@ -119,20 +114,23 @@ class UserStatistic(APIView):
 
     def add_count(self, key):
         """add one count when user login"""
-        key = self.get_key
-        self.redis.incr(key, 1)
+        with manager_redis(self.db) as redis:
+            key = self.get_key
+            redis.incr(key, 1)
 
     def get_visit_counts(self, key):
         """statistic the number of users intraday"""
-        counts = self.redis.get(key)
-        return counts
+        with manager_redis(self.db) as redis:
+            counts = redis.get(key)
+            return counts
 
     def get_online_counts(self, key=None):
         """statistic the number of users who online"""
-        if not key:
-            key = 'online'
-        counts = self.redis.get(key)
-        return counts
+        with manager_redis(self.db) as redis:
+            if not key:
+                key = 'online'
+            counts = redis.get(key)
+            return counts
 
     def get(self):
         today_key = self.get_key
@@ -144,7 +142,7 @@ class UserStatistic(APIView):
 
 
 class RedisUserOperation(BaseRedis):
-    """the operation of save verification code about redis"""
+    """the operation of save verification code regarding to redis"""
 
     def __init__(self, db):
         super().__init__(db)

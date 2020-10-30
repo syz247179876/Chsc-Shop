@@ -6,7 +6,7 @@
 import datetime
 import time
 
-from Emall.base_redis import BaseRedis
+from Emall.base_redis import BaseRedis, manager_redis
 from Emall.loggings import Logging
 
 common_logger = Logging.logger('django')
@@ -53,19 +53,18 @@ class FootRedisOperation(BaseRedis):
         :param kwargs:request.data的Querydict实例
         :return:Dict
         """
-        try:
-            key = self.key('foot', user_id)
-            page = kwargs.get('page', 1)
-            count = kwargs.get('page_size')
-            # zrevrange 返回 [(name,score),...]
-            commodity_dict = {int(name): score for name, score in
-                              self.redis.zrevrange(key, (page - 1) * count, page * count, withscores=True)}
-            return commodity_dict
-        except Exception as e:
-            consumer_logger.error(e)
-            return None
-        finally:
-            self.redis.close()
+        with manager_redis(self.db) as redis:
+            try:
+                key = self.key('foot', user_id)
+                page = kwargs.get('page', 1)
+                count = kwargs.get('page_size')
+                # zrevrange 返回 [(name,score),...]
+                commodity_dict = {int(name): score for name, score in
+                                  redis.zrevrange(key, (page - 1) * count, page * count, withscores=True)}
+                return commodity_dict
+            except Exception as e:
+                consumer_logger.error(e)
+                return None
 
     def add_foot_commodity_id(self, user_id, validated_data):
         """
@@ -75,22 +74,22 @@ class FootRedisOperation(BaseRedis):
         :return:boolean
         """
         # add_foot.apply_async(args=(pickle.dumps(self), user_id, validated_data))  # can't pickle _thread.lock objects
-        try:
-            key = self.key('foot', user_id)
-            timestamp = self.score  # 毫秒级别的时间戳
-            commodity_id = validated_data['pk']
-            # pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
-            self.redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），当前日期+时间戳（分数值），商品id
-            # 每个用户最多缓存100条历史记录
-            if self.redis.zcard(key) >= 100:  # 集合中key为键的数量
-                self.redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
-            # pipe.execute()
-            return True
-        except Exception as e:
-            consumer_logger.error(e)
-            return False
-        finally:
-            self.redis.close()
+        with manager_redis(self.db) as redis:
+            try:
+                key = self.key('foot', user_id)
+                timestamp = self.score  # 毫秒级别的时间戳
+                commodity_id = validated_data['pk']
+                # pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
+                redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），当前日期+时间戳（分数值），商品id
+                # 每个用户最多缓存100条历史记录
+                if redis.zcard(key) >= 100:  # 集合中key为键的数量
+                    redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
+                # pipe.execute()
+                return True
+            except Exception as e:
+                consumer_logger.error(e)
+                return False
+
 
     def delete_foot_commodity_id(self, user_id, **kwargs):
         """
@@ -99,16 +98,15 @@ class FootRedisOperation(BaseRedis):
         :param kwargs:request.data的Querydict实例
         :return:boolean
         """
-        try:
-            key = self.key('foot', user_id)
-            if kwargs.get('is_all', None):  # 是否删除所有足迹
-                commodity_id = kwargs.get('commodity_id')
-                delete_counts = self.redis.zrem(key, commodity_id)  # 移除zset中某商品号元素
-            else:
-                delete_counts = self.redis.delete(key)  # 删除全部的记录
-            return True if delete_counts else False
-        except Exception as e:
-            consumer_logger.error(e)
-            return False
-        finally:
-            self.redis.close()
+        with manager_redis(self.db) as redis:
+            try:
+                key = self.key('foot', user_id)
+                if kwargs.get('is_all', None):  # 是否删除所有足迹
+                    commodity_id = kwargs.get('commodity_id')
+                    delete_counts = redis.zrem(key, commodity_id)  # 移除zset中某商品号元素
+                else:
+                    delete_counts = redis.delete(key)  # 删除全部的记录
+                return True if delete_counts else False
+            except Exception as e:
+                consumer_logger.error(e)
+                return False

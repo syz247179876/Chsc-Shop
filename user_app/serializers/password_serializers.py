@@ -18,5 +18,5 @@ class PasswordSerializer(serializers.Serializer):
     def validate_code(self, value):
         """验证码校验"""
         if len(value) != 6:
-            raise serializers.ValidationError("验证码长度为6位")
+            raise serializers.ValidationError("验证码格式不正确")
         return value

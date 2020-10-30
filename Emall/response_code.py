@@ -73,21 +73,14 @@ USER_INFOR_CHANGE_ERROR = -4
 
 USER_ORIGINAL_PASSWORD_ERROR = -6
 
-# 绑定邮箱成功
-
-BIND_EMAIL_SUCCESS = 12
-
-# 绑定邮箱失败
-
-BIND_EMAIL_ERROR = -12
 
 # 绑定手机成功
 
-BIND_PHONE_SUCCESS = 13
+BIND_SUCCESS = 13
 
 # 绑定手机失败
 
-BIND_PHONE_ERROR = -13
+BIND_ERROR = -13
 
 # 认证真实用户成功
 VERIFY_ID_CARD_SUCCESS = 15
@@ -412,28 +405,17 @@ class ResponseCode:
         self.result.update(dict(code=USER_ORIGINAL_PASSWORD_ERROR, msg='原密码不正确', status='error'))
         return self.result
 
-    @property
-    def bind_email_success(self):
-        """绑定邮箱成功"""
-        self.result.update(dict(code=BIND_EMAIL_SUCCESS, msg='绑定邮箱成功', status='success'))
-        return self.result
 
     @property
-    def bind_email_error(self):
-        """绑定邮箱失败"""
-        self.result.update(dict(code=BIND_EMAIL_ERROR, msg='绑定邮箱失败', status='error'))
-        return self.result
-
-    @property
-    def bind_phone_success(self):
+    def bind_success(self):
         """绑定手机成功"""
-        self.result.update(dict(code=BIND_PHONE_SUCCESS, msg='绑定手机成功', status='success'))
+        self.result.update(dict(code=BIND_SUCCESS, msg='绑定成功', status='success'))
         return self.result
 
     @property
-    def bind_phone_error(self):
+    def bind_error(self):
         """绑定手机失败"""
-        self.result.update(dict(code=BIND_PHONE_ERROR, msg='绑定手机失败', status='error'))
+        self.result.update(dict(code=BIND_ERROR, msg='绑定失败', status='error'))
         return self.result
 
     @property
