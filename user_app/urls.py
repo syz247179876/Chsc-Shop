@@ -1,8 +1,10 @@
 from rest_framework.routers import DefaultRouter
 
+
 from user_app.views.edge_api import record_browsing_login, record_browsing_every
 from user_app.views.login_register_api import RegisterAPIView, LoginAPIView
 from user_app.views.personal_api import *
+from user_app.views.retrieve_pwd_api import RetrievePasswordOperation, NewPassword
 from user_app.views.verification_code import VerificationCodeBind, \
     VerificationCodeRegister, VerificationCodeModifyPassword, VerificationCodeShopperOpenStore
 from user_app.views.views import register_page, login_page
@@ -49,6 +51,10 @@ urlpatterns = [
     path('email-or-phone-binding-chsc-api/', BindEmailOrPhone.as_view(), name='email-or-phone-binding-chsc-api'),
     path('verification-name-chsc-api/', VerifyIdCard.as_view(), name='verification-name-chsc-api'),
     path('shop-head-image-chsc-api/', HeadImageOperation.as_view(), name='shop-head-image-chsc-api'),
+
+    # 找回密码
+    path('retrieve-password-first-api/',RetrievePasswordOperation.as_view(), name='retrieve-password-first-api'),
+    path('retrieve-password-second-api/',NewPassword.as_view(), name='retrieve-password-second-api')
 ]
 
 

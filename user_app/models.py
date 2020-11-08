@@ -131,6 +131,17 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         ),
     )
 
+    # 是否是系统管理员
+    is_manager = models.BooleanField(
+        _('系统管理员'),
+        default=False,
+        help_text=_(
+            'Manager of this system who possess the highest priority of the whole operation'
+            ', whose duty is to keep system running well and take some extra essential operation '
+            'to publish message to all sellers!'
+        )
+    )
+
     birthday = models.DateField(
         _('出生日期'),
         null=True,

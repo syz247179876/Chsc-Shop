@@ -78,6 +78,7 @@
           <option value="User_app.models.user_models.Collection.DoesNotExist" />
           <option value="Remark_app.models.remark_models.Remark.DoesNotExist" />
           <option value="user_app.models.Collection.*" />
+          <option value="user_app.models.Address.*" />
         </list>
       </option>
     </inspection_tool>

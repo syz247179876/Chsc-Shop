@@ -531,27 +531,6 @@ class FootOperation(GenericViewSet):
     def list(self, request, *args, **kwargs):
         """
         处理某用户固定数量的足迹
-        TODO:序列化格式为
-        {
-          [
-            {
-             date:'2020-5-20',
-             [
-               {
-                商品信息
-               },
-               {},
-               {},
-             ]
-            },
-            {date:'2020-5-21',
-             [
-               {}
-             ]
-             },
-            {}
-          ]
-        }
         """
         try:
             queryset = self.get_queryset()

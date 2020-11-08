@@ -45,7 +45,6 @@ class AddressSerializers(serializers.ModelSerializer):
     def update_default_address(queryset, pk):
         """修改默认地址"""
         try:
-            common_logger.info(pk)
             if int(pk) <= 0:
                 raise serializers.ValidationError({'pk': ['必须为正整数']})
             # 开启事务

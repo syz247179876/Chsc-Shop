@@ -5,15 +5,14 @@
 # @Software: Pycharm
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.generics import GenericAPIView
 
 from universal_app.redis.retrieve_password_redis import RetrievePasswordRedis
-from universal_app.serailizers.retrieve_password_serializers import RetrievePasswordSerializer, NewPasswordSerializer
+from user_app.serializers.retrieve_password_serializers import RetrievePasswordSerializer, NewPasswordSerializer
 from Emall.base_redis import BaseRedis
-import uuid
 
 
-class RetrievePasswordOperation(GenericViewSet):
+class RetrievePasswordOperation(GenericAPIView):
 
     serializer_class = RetrievePasswordSerializer
     redis = BaseRedis.choice_redis_db('redis')
@@ -22,6 +21,7 @@ class RetrievePasswordOperation(GenericViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'redis':self.redis})
+        return context
 
     def post(self, request):
         """
@@ -38,7 +38,7 @@ class RetrievePasswordOperation(GenericViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class NewPassword(GenericViewSet):
+class NewPassword(GenericAPIView):
     """更换新密码"""
 
     serializer_class = NewPasswordSerializer
@@ -47,6 +47,7 @@ class NewPassword(GenericViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'redis': self.redis})
+        return context
 
 
     def post(self, request):
@@ -57,7 +58,7 @@ class NewPassword(GenericViewSet):
         3.返回修改结果,删除唯一凭证
         """
 
-        serializer = self.get_serializer(request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         is_updated = serializer.update_password(serializer.validated_data)
         if is_updated:

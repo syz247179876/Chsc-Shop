@@ -10,10 +10,6 @@ class RetrievePasswordRedis(BaseRedis):
     """忘记密码/找回密码Redis操作"""
 
 
-    @property
-    def db(self):
-        return 'redis'
-
     def check_code_retrieve(self, key):
         """校验唯一凭证并返回凭证值后删除凭证"""
         try:

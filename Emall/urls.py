@@ -24,7 +24,8 @@ from Emall import settings
 # 重要的是如下三行
 from Emall.base_view import error_404
 
-schema_view = get_schema_view(title='云逸电子商城开发接口文档', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
+schema_view = get_schema_view(title='云逸电子商城开发接口文档', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer],
+                              description="司云中出品!")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

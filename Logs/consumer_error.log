@@ -4,3 +4,4 @@ ERROR - 2020-10-20 22:11:36,369 - login_register_api - register_email - 34341 - 
 ERROR - 2020-10-20 22:14:15,488 - login_register_api - register_email - 34913 - 140099891685120 - register_email_create_error:(1048, "Column 'full_name' cannot be null")
 ERROR - 2020-10-20 22:14:55,525 - login_register_api - register_email - 35008 - 140396504684288 - register_email_create_error:(1048, "Column 'full_name' cannot be null")
 ERROR - 2020-10-21 00:04:40,401 - login_register_api - register_phone - 53251 - 139658798790400 - register_phone_error:type object 'User' has no attribute 'user'
+ERROR - 2020-11-08 22:49:32,915 - foot_redis - delete_foot_commodity_id - 2287 - 139658561873664 - Error 111 connecting to 0.0.0.0:6381. Connection refused.
