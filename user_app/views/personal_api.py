@@ -337,6 +337,10 @@ class AddressOperation(viewsets.ModelViewSet):
             return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def list(self, request, *args, **kwargs):
+        """查看收货地址"""
+        # TODO
+
 
 class FavoriteOperation(GenericViewSet):
     """收藏夹处理"""
@@ -508,7 +512,7 @@ class FootOperation(GenericViewSet):
         return self.commodity_dict if hasattr(self, 'commodity_dict') else {}
 
     def get_queryset(self):
-        """获取足迹固定数量查询集"""
+        """获取足迹固定数量的商品查询集"""
         page_size = FootResultsSetPagination.page_size
         page = self.request.query_params.get(self.pagination_class.page_query_param, 1)  # 默认使用第一页
         # 按照固定顺序查询固定范围内的商品pk列表

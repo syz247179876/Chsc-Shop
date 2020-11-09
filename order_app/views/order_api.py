@@ -65,7 +65,6 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         """多删"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        common_logger.info(serializer.validated_data.get('list_pk'))
         if not serializer.validated_data.get('list_pk', None):  # 校验订单必须存在
             return Response({'list_pk': ['该字段必须存在']})
         try:

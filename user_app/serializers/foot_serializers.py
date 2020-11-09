@@ -15,7 +15,7 @@ consumer_logger = Logging.logger('consumer_')
 class FootSerializer(serializers.ModelSerializer):
     """the serializer of Foot(足迹)"""
 
-    pk = serializers.IntegerField(write_only=True)
+    pk = serializers.IntegerField(write_only=True) #  商品 id
     timestamp = serializers.SerializerMethodField()
 
     def get_timestamp(self, obj):

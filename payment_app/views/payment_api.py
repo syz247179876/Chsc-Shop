@@ -68,7 +68,7 @@ class PaymentOperation(GenericAPIView):
         user = request.user
 
         # 不在这里创建
-        order = self.get_serializer_class.create_order(request, user)
+        order = self.get_serializer_class().create_order(request, user)
         if order is None:
             return Response(response_code.create_order_error)
         # 创建alipay对象

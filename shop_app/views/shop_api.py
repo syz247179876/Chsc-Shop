@@ -94,7 +94,7 @@ class CommoditySearchOperation(GenericAPIView):
             return getattr(self, 'elastic')
         elastic_ = self.get_elastic_class()
         setattr(self, 'elastic', elastic_(*args, **kwargs))
-        return self.elastic
+        return getattr(self, 'elastic')
 
     def get_queryset(self):
         elastic = self.get_elastic(request=self.request)

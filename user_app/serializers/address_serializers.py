@@ -59,7 +59,7 @@ class AddressSerializers(serializers.ModelSerializer):
     def update_address(self, queryset, validated_data, pk):
         """修改地址"""
         if int(pk) < 0:
-            raise serializers.ValidationError('必须为正整数')
+            raise serializers.ValidationError({'pk': ['必须为正整数']})
         instance = queryset.get(pk=pk)
         for key, value in validated_data.items():
             setattr(instance, key, value)
@@ -75,7 +75,7 @@ class AddressSerializers(serializers.ModelSerializer):
     def delete_address(queryset, pk):
         """删除某个选定的地址"""
         if int(pk) < 0:
-            raise serializers.ValidationError('必须为正整数')
+            raise serializers.ValidationError({'pk': ['必须为正整数']})
         try:
             queryset.get(pk=pk).delete()
         except Address.DoesNotExist as e:

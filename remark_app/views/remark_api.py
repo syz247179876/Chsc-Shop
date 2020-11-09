@@ -16,6 +16,7 @@ from remark_app.serializers.user_marker_serializers import UserMarkerSerializer
 from remark_app.signals import remark_post, remark_cancel
 from Emall.loggings import Logging
 from Emall.response_code import response_code
+from remark_app.utils.throttle import PraiseRateThrottle
 
 common_logger = Logging.logger('django')
 
@@ -93,6 +94,10 @@ class AttitudeRemarkOperation(GenericViewSet):
 
     permission_classes = [IsAuthenticated]
 
+    # 限流
+    throttle_classes = [PraiseRateThrottle]
+
+    @property
     def get_model(self):
         return self.model
 
@@ -100,7 +105,7 @@ class AttitudeRemarkOperation(GenericViewSet):
         try:
             pk = validated_data.get('pk')
             return self.get_model().remark_.get(consumer=self.request.user, pk=pk)
-        except self.get_model().DoesNotExist:
+        except self.get_model.DoesNotExist:
             return None
 
     @action(methods=['patch'],detail=False)
@@ -115,10 +120,3 @@ class AttitudeRemarkOperation(GenericViewSet):
             return Response(response_code.add_action_remark_success(serializer.data))
         else:
             return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
-
-
-
