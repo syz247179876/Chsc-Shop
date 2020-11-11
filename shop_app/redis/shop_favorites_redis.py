@@ -14,8 +14,8 @@ consumer_logger = Logging.logger('consumer_')
 class ShopRedisFavoritesOperation(BaseRedis):
     """the operation of shop cart about redis , it means add goods into favorites"""
 
-    def __init__(self, db):
-        super().__init__(db)
+    def __init__(self, db, redis):
+        super().__init__(db, redis)
 
     def add_goods_into_favorites(self, user_id, **kwargs):
         """

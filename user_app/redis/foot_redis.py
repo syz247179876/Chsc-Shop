@@ -17,8 +17,8 @@ consumer_logger = Logging.logger('consumer_')
 class FootRedisOperation(BaseRedis):
     """the operation of historical footprints about redis"""
 
-    def __init__(self, redis_instance):
-        super().__init__(redis_instance)
+    def __init__(self, db, redis):
+        super().__init__(db, redis)
 
     '''
     def get_time_scope(self, limit, page):

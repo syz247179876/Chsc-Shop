@@ -12,23 +12,13 @@ from Emall.loggings import Logging
 common_logger = Logging.logger('django')
 
 
-@contextlib.contextmanager
-def manager_redis(db, redis=None):
-    try:
-        redis = get_redis_connection(db)  # redis实例链接
-        yield redis
-    except Exception as e:
-        common_logger.info(e)
-        return None
-    finally:
-        redis.close()
-
-
 class BaseRedis:
     _instance = {}
+    _redis_instances = {}
 
-    def __init__(self, db):
+    def __init__(self, db, redis):
         self.db = db  # 选择配置中哪一种的数据库
+        self.redis = redis
 
     @classmethod
     def choice_redis_db(cls, db):
@@ -38,8 +28,17 @@ class BaseRedis:
         """
 
         if not cls._instance.setdefault(cls.__name__, None):
-            cls._instance[cls.__name__] = cls(db)  # 自定义操作类实例
+            cls._redis_instances[db] = get_redis_connection(db)  # redis实例
+            cls._instance[cls.__name__] = cls(db, cls._redis_instances[db])  # 自定义操作类实例
         return cls._instance[cls.__name__]
+
+    @property
+    def redis(self):
+        return self._redis
+
+    @redis.setter
+    def redis(self, value):
+        self._redis = value
 
     @property
     def salt(self):
@@ -98,3 +97,16 @@ class BaseRedis:
             if redis is None:
                 return False
             redis.ttl(key)
+
+
+@contextlib.contextmanager
+def manager_redis(db, redis=None, redis_class=BaseRedis):
+    try:
+        # redis = get_redis_connection(db)  # redis实例链接
+        redis = redis_class.choice_redis_db(db).redis
+        yield redis
+    except Exception as e:
+        common_logger.info(e)
+        return None
+    finally:
+        redis.close()

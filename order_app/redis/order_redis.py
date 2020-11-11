@@ -10,8 +10,8 @@ from Emall.base_redis import BaseRedis, manager_redis
 class RedisOrderOperation(BaseRedis):
     """the operation of Shopper about redis"""
 
-    def __init__(self, redis_instance):
-        super().__init__(redis_instance)
+    def __init__(self, db, redis):
+        super().__init__(db, redis)
 
     def set_order_expiration(self, pk):
         """设置订单过期30min时间"""
