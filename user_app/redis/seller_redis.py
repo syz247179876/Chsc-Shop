@@ -15,6 +15,6 @@ shopper_logger = Logging.logger('shopper_')
 class RedisShopperOperation(BaseRedis):
     """the operation of Shopper about redis"""
 
-    def __init__(self, db):
-        super().__init__(db)
+    def __init__(self, db, redis):
+        super().__init__(db, redis)
 

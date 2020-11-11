@@ -22,9 +22,9 @@ consumer_logger = Logging.logger('consumer_')
 class RedisFavoritesOperation(BaseRedis):
     """the operation of Favorites about redis"""
 
-    def __init__(self, redis_instance):
+    def __init__(self, db, redis):
         self.connect()
-        super().__init__(redis_instance)
+        super().__init__(db, redis)
 
     def zset_key_store(self, user_pk):
         """收藏夹zset的键"""

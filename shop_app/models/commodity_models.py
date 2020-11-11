@@ -220,3 +220,25 @@ class Promotion(models.Model):
         verbose_name_plural = _('促销商品')
 
 
+class SeckKill(models.Model):
+    """存放用于秒杀的商品表"""
+
+    # 秒杀的商品映射
+    seck_commodity = models.OneToOneField(Commodity, on_delete=True)
+
+    # 秒杀开始时间
+    start_time = models.DateTimeField(auto_now=True)
+
+    # 秒杀结束时间
+    end_time = models.DateTimeField(auto_now=True)
+
+    # 是否过期
+    is_expired = models.BooleanField(default=True)
+
+    seck_kill_ = Manager()
+
+    class Meta:
+        db_table = "SeckKill"
+        verbose_name = _('秒杀商品')
+        verbose_name_plural = _('秒杀商品')
+

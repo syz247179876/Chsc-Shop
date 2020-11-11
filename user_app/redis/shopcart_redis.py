@@ -16,8 +16,8 @@ consumer_logger = Logging.logger('consumer_')
 
 class ShopCartRedisOperation(BaseRedis):
 
-    def __init__(self, redis_instance):
-        super().__init__(redis_instance)
+    def __init__(self, db, redis):
+        super().__init__(db, redis)
 
     def get_shop_cart_id_and_page(self, user_id, **data):
         """
