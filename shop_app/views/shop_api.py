@@ -1,13 +1,12 @@
 from rest_framework.generics import GenericAPIView
 
-from shop_app.utils.elasticsearch import ElasticSearchOperation
-from shop_app.utils.pagination import CommodityResultsSetPagination
+
 from shop_app.redis.shop_cart_redis import ShopRedisCartOperation
 from shop_app.redis.shop_favorites_redis import ShopRedisFavoritesOperation
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from shop_app.serializers.shop_search_serializers import CommoditySerializer
+from search_app.serailaizers.shop_search_serializers import CommoditySerializer
 from Emall.loggings import Logging
 from Emall.response_code import response_code
 from shop_app.models.commodity_models import Commodity
@@ -74,49 +73,3 @@ class AddFavoritesOperation(APIView):
         return Response(response_code.add_goods_into_favorites_success) if is_add_success \
             else Response(response_code.add_goods_into_favorites_error)
 
-
-class CommoditySearchOperation(GenericAPIView):
-    """ES搜索操作"""
-
-    index_models = [Commodity]
-
-    serializer_class = CommoditySerializer
-
-    pagination_class = CommodityResultsSetPagination
-
-    elastic_class = ElasticSearchOperation
-
-    def get_elastic_class(self):
-        return self.elastic_class
-
-    def get_elastic(self, *args, **kwargs):
-        if getattr(self, 'elastic', None):
-            return getattr(self, 'elastic')
-        elastic_ = self.get_elastic_class()
-        setattr(self, 'elastic', elastic_(*args, **kwargs))
-        return getattr(self, 'elastic')
-
-    def get_queryset(self):
-        elastic = self.get_elastic(request=self.request)
-        return elastic.get_queryset()
-
-    def get(self, request):
-        queryset = self.get_queryset()
-        common_logger.info(queryset)
-        page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    # pagination_class = CommodityResultsSetPagination
-
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.get_queryset()
-    #     page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)

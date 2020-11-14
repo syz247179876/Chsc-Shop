@@ -98,6 +98,17 @@ class BaseRedis:
                 return False
             redis.ttl(key)
 
+    @staticmethod
+    def get_client_ip(request):
+
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR') # 真实IP
+        if x_forwarded_for:
+           ip = x_forwarded_for.split(',')[-1].strip()
+        else:
+           ip = request.META.get('REMOTE_ADDR')   # 代理IP,如果没有代理,也是真实IP
+        return ip
+
+
 
 @contextlib.contextmanager
 def manager_redis(db, redis=None, redis_class=BaseRedis):

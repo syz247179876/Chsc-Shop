@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : seckill.py
 # @Software: Pycharm
+import uuid
 
 from rest_framework.generics import GenericAPIView
 
@@ -11,4 +12,4 @@ class SecKillOperation(GenericAPIView):
     """秒杀活动"""
 
     # serializer_class = SecKillSerializer
-    pass
+
