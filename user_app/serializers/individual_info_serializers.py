@@ -10,7 +10,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from user_app.utils.validators import DRFUsernameValidator
-from user_app.views.tasks import ocr
+from user_app.tasks import ocr
 from Emall.loggings import Logging
 
 common_logger = Logging.logger('django')

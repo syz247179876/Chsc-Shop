@@ -37,9 +37,7 @@ class HistoryRedisOperation(BaseRedis):
     def user_key(self, key):
         return f'user-{key}'
 
-    @property
-    def heat_key(self):
-        date = datetime.datetime.today()
+    def heat_key(self, date):
         return f'heat-{date.strftime("%Y-%m-%d")}'
 
     @client_key
@@ -86,18 +84,13 @@ class HistoryRedisOperation(BaseRedis):
 
     def heat_search(self, sender, request, key, **kwargs):
         """
-        每周热搜
+        每日热搜
         动态更新每日的前十位
         """
         with manager_redis('search', type(self)) as redis:
-            result = redis.zrevrange(self.heat_key, 0, 10)  # 前十大热搜
+            date = datetime.datetime.today()
+            result = redis.zrevrange(self.heat_key(date), 0, 10)  # 前十大热搜
             return result
-
-    def timer_eliminate_heat(self, sender, request, key, **kwargs):
-        """
-        定时清空每周的热搜榜
-        """
-        pass
 
 
 history_redis = HistoryRedisOperation.choice_redis_db('search')

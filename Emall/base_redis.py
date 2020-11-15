@@ -120,4 +120,4 @@ def manager_redis(db, redis=None, redis_class=BaseRedis):
         common_logger.info(e)
         return None
     finally:
-        redis.close()
+        redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()

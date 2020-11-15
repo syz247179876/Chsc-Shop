@@ -17,7 +17,7 @@ from Emall.authentication_consumer import email_or_username, phone
 from Emall.loggings import Logging
 from django.utils.translation import gettext_lazy as _
 
-from user_app.views.tasks import ocr
+from user_app.tasks import ocr
 
 common_logger = Logging.logger('django')
 
