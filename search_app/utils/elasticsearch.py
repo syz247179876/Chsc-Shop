@@ -32,18 +32,20 @@ class ElasticSearchOperation:
             setattr(self, key, value)
 
     def combine_url(self):
+        """组合url"""
         assert hasattr(self, 'request'), 'Should include request '
         if hasattr(self, 'url'):
             return self.url
         query = self.request.query_params.copy()
-        query.pop('page')
+        # generate url
+        credential = {'text':query.get('text')}
         url = self.BASE_URL + self.INDEX_DB + '/' + self.FUNC + '?' + '&'.join(
-            ['q=' + key + ':' + value for key, value in query.items()])
+            ['q=' + key + ':' + value for key, value in credential.items()])
         setattr(self, 'url', url)
-        common_logger.info(url)
         return url
 
     def get_search_results(self):
+        """获取索引库的商品id"""
         if hasattr(self, 'pk_list'):
             return self.pk_list
         url = self.combine_url()
@@ -51,7 +53,6 @@ class ElasticSearchOperation:
         hits = response.get('hits').get('hits')
         pk_list = [int(document.get('_source').get('django_id')) for document in hits]
         setattr(self, 'pk_list', pk_list)
-        common_logger.info(pk_list)
         return pk_list
 
     def get_queryset(self):

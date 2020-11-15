@@ -39,6 +39,7 @@ urlpatterns = [
     path('voucher/', include('voucher_app.urls', namespace='voucher')),
     path('chsc-syz-247179876-docs/', schema_view, name='api_doc'),
     path(r'mdeditor/', include('mdeditor.urls')),
+    path('search/', include('search_app.urls', namespace='search')),
 ]
 
 if settings.DEBUG:

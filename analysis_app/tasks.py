@@ -5,9 +5,9 @@
 # @Software: Pycharm
 import datetime
 
-from analysis_app.utils.statistic import statistic_redis
 from Emall import celery_apps as app
 from Emall.loggings import Logging
+from analysis_app.utils.statistic_redis import statistic_redis
 
 common_logger = Logging.logger('django')
 
@@ -56,6 +56,3 @@ def clear_user_browsing_times():
     yesterday_str = statistic_redis.trans_date(yesterday)
     key = statistic_redis.key('browser-day', yesterday_str)
     statistic_redis.redis.delete(key)
-
-
-

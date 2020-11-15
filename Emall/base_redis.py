@@ -18,7 +18,7 @@ class BaseRedis:
 
     def __init__(self, db, redis):
         self.db = db  # 选择配置中哪一种的数据库
-        self.redis = redis
+        self._redis = redis
 
     @classmethod
     def choice_redis_db(cls, db):
@@ -98,15 +98,25 @@ class BaseRedis:
                 return False
             redis.ttl(key)
 
+    @staticmethod
+    def get_client_ip(request):
+
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR') # 真实IP
+        if x_forwarded_for:
+           ip = x_forwarded_for.split(',')[-1].strip()
+        else:
+           ip = request.META.get('REMOTE_ADDR')   # 代理IP,如果没有代理,也是真实IP
+        return ip
+
+
 
 @contextlib.contextmanager
-def manager_redis(db, redis=None, redis_class=BaseRedis):
+def manager_redis(db, redis_class=BaseRedis, redis=None):
     try:
         # redis = get_redis_connection(db)  # redis实例链接
         redis = redis_class.choice_redis_db(db).redis
         yield redis
     except Exception as e:
         common_logger.info(e)
-        return None
     finally:
-        redis.close()
+        redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()

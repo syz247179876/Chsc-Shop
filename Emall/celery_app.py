@@ -25,4 +25,4 @@ app = Celery('tasks', broker=BROKER_URL)
 app.config_from_object("django.conf.settings", namespace='CELERY')
 
 # Celery利用反射机制扫描加载所有注册的应用
-app.autodiscover_tasks(settings.INSTALLED_APPS)
+app.autodiscover_tasks(settings.INSTALLED_APPS_PACKAGES)
