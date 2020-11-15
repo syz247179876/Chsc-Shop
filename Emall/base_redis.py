@@ -18,7 +18,7 @@ class BaseRedis:
 
     def __init__(self, db, redis):
         self.db = db  # 选择配置中哪一种的数据库
-        self.redis = redis
+        self._redis = redis
 
     @classmethod
     def choice_redis_db(cls, db):
@@ -111,13 +111,12 @@ class BaseRedis:
 
 
 @contextlib.contextmanager
-def manager_redis(db, redis=None, redis_class=BaseRedis):
+def manager_redis(db, redis_class=BaseRedis, redis=None):
     try:
         # redis = get_redis_connection(db)  # redis实例链接
         redis = redis_class.choice_redis_db(db).redis
         yield redis
     except Exception as e:
         common_logger.info(e)
-        return None
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()

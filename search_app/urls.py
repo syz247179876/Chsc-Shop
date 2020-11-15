@@ -4,11 +4,15 @@
 # @File : urls.py
 # @Software: Pycharm
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from search_app.views.search_api import CommoditySearchOperation
 
 app_name = 'search_app'
 
 urlpatterns = [
-    path('search-chsc-search/', CommoditySearchOperation.as_view(), name='search-chsc-search'),
+    path('search-chsc-api/', CommoditySearchOperation.as_view(), name='search-chsc-search'),
 ]
+#
+# router = DefaultRouter()
+# router.register(r'search-chsc-api', CommoditySearchOperation, basename='search')

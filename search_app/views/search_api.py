@@ -4,6 +4,7 @@
 # @File : search_api.py
 # @Software: Pycharm
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
@@ -13,9 +14,21 @@ from search_app.serailaizers.shop_search_serializers import CommoditySerializer
 from shop_app.models.commodity_models import Commodity
 from search_app.utils.elasticsearch import ElasticSearchOperation
 from search_app.utils.pagination import CommodityResultsSetPagination
-
+from rest_framework.viewsets import GenericViewSet
 
 common_logger = Logging.logger('django')
+
+def is_login(func):
+    """判断是否登录装饰器"""
+
+    def decorate(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            identity = request.user.pk
+        else:
+            identity = None
+        func(self, request, identity, *args, **kwargs)
+
+    return decorate
 
 class CommoditySearchOperation(GenericAPIView):
     """ES搜索操作"""
@@ -59,14 +72,30 @@ class CommoditySearchOperation(GenericAPIView):
         self.send_record_signal(request)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def send_record_signal(self, request):
-        """发送记录历史记录消息"""
-        if request.user.is_authenticated:
-            pk = request.user.pk
+
+    def delete(self, request):
+        """单删"""
+        if request.GET.get('many') == 'true':
+            print(2222)
+            self.send_delete_signal(request, many=True)
         else:
-            pk = None # 使用IP
+            self.send_delete_signal(request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @is_login
+    def send_delete_signal(self, request, identity=None, many=False):
+        """发送删除历史搜索记录信号"""
+        if many:
+            signals.del_search_all.send(sender=identity, request=request)
+        else:
+            signals.del_search_single.send(sender=identity, request=request, key=request.GET.get('text',''))
+
+
+    @is_login
+    def send_record_signal(self, request, identity=None):
+        """发送记录历史记录信号"""
         query = self.request.query_params.copy()
-        signals.record_search.send(sender=pk, request=request, key=query.get('text'))
+        signals.record_search.send(sender=identity, request=request, key=query.get('text'))
 
     # pagination_class = CommodityResultsSetPagination
 
