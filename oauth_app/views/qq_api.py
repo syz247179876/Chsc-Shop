@@ -6,6 +6,7 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.core.validators import URLValidator
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
@@ -58,18 +59,25 @@ class QQOauthAccessToken(GenericAPIView):
     携带code和state回调该视图
     请求qq服务器获取access token
     """
+    @property
+    def next_validator(self):
+        """校验next的url格式"""
+        error_messages = {
+            'invalid': '请输入一个有效url地址'
+        }
+        return URLValidator(message=error_messages['invalid'])
 
     def get(self, request):
         code = request.query_params.get('code')
         next = request.query_params.get('next')
         if not code or not next:
-            raise ValidationError('缺少code或next')
+            raise ValidationError({'message':'缺少code或next'})
         try:
             oauth = OAuthQQ(state=next)
             access_token = oauth.get_access_token(code)  # 获取access_token
             open_id = oauth.get_openid(access_token)  # 获取唯一身份
         except QQServiceUnavailable as e:
-            return Response({'QQ服务器异常,稍后重试'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response({'message':'QQ服务器异常,稍后重试'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         else:
             qq_user = OauthQQ.qq_manager.existed_user(open_id)
             if qq_user:
@@ -98,7 +106,7 @@ class BindQQAPIView(GenericAPIView):
 
     def post(self, request):
         """手机绑定"""
-        serializer = self.get_serializer(data=request)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         check_code(self.redis, serializer.validated_data)  # 校验验证码
         open_id, next = self.retrieve_openid(serializer.validated_data)  # 获取openid和next的url

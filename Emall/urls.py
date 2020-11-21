@@ -40,6 +40,7 @@ urlpatterns = [
     path('chsc-syz-247179876-docs/', schema_view, name='api_doc'),
     path(r'mdeditor/', include('mdeditor.urls')),
     path('search/', include('search_app.urls', namespace='search')),
+    path('oauth/', include('oauth_app.urls', namespace='oauth')),
 ]
 
 if settings.DEBUG:

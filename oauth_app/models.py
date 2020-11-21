@@ -22,7 +22,7 @@ class QqManager(Manager):
         """
         try:
             return self.select_related('user').get(openid=openid)  # 返回用户对象
-        except type(self).DoesNotExist:
+        except OauthQQ.DoesNotExist:
             return None   # 用户不存在返回None
 
     def create_qq_user(self, user, open_id):
@@ -31,9 +31,9 @@ class QqManager(Manager):
         :return: qq_user
         """
         try:
-            user = self.get(open_id=open_id)
+            user = self.get(openid=open_id)
             return None
-        except User.objects.DoesNotExist:
+        except OauthQQ.DoesNotExist:
             # 如果没有该用户尚未绑定任何QQ帐号,则创建
             return self.create(user=user, openid=open_id)
 
@@ -59,7 +59,7 @@ class OauthWeiXin(models.Model):
     ser = models.ForeignKey(User, on_delete=True, related_name='wx', verbose_name='用户')
     openid = models.CharField(max_length=64, verbose_name='openid', db_index=True)
 
-    qq_manager = Manager()
+    wx_manager = Manager()
 
     class Meta:
         db_table = 'wx_oauth'
