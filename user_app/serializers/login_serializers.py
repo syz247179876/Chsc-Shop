@@ -9,7 +9,7 @@ from rest_framework_jwt.settings import api_settings
 from django.utils.translation import ugettext as _
 from user_app.utils import validators
 from Emall.authentication_consumer import email_or_username, phone
-
+from django.conf import settings
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -42,7 +42,7 @@ class UserJwtLoginSerializer(Serializer):
             max_length=30
         )
         self.fields['password'] = PasswordField(write_only=True, required=False)
-        self.fields['previous_page'] = serializers.CharField()  # 前一页url
+        self.fields['next'] = serializers.CharField()  # 前一页url
         self.fields['code'] = serializers.CharField(max_length=6, required=False)  # 验证码
         self.fields['is_remember'] = serializers.BooleanField()  # 是否记住用户名
         self.fields['way'] = serializers.ChoiceField(choices=self.LOGIN_WAY)
@@ -80,7 +80,6 @@ class UserJwtLoginSerializer(Serializer):
             raise serializers.ValidationError('验证码不存在或错误')
 
         credentials = self.filter_credentials(**attrs)  # 过滤不同操作所需字段
-        print(credentials)
 
         # 登录方式，邮箱或用户名,手机登录
         # 创建user对象
@@ -96,7 +95,7 @@ class UserJwtLoginSerializer(Serializer):
             return {
                 'token': jwt_encode_handler(payload),
                 'user': user,
-                'previous_page': validators.url_validate(attrs.get('previous_page')),
+                'next': validators.url_validate(attrs.get('next')) or settings.DEFAULT_REDIRECT_URI,
                 'is_remember': attrs.get('is_remember'),
             }
         else:

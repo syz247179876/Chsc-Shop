@@ -364,6 +364,12 @@ class ResponseCode:
         return self.result
 
     @property
+    def bind_qq(self):
+        """qq帐号已被绑定"""
+        self.result.update(dict(msg='QQ帐号已被绑定',status='error'))
+        return self.result
+
+    @property
     def user_not_existed(self):
         """用户不存在"""
         self.result.update(dict(code=USER_NOT_EXISTS, msg='用户不存在', status='error'))

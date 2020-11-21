@@ -10,8 +10,10 @@ from django.conf import settings
 import json
 
 from Emall.loggings import Logging
+from oauth_app.utils.exceptions import QQServiceUnavailable
 
 common_logger = Logging.logger('django')
+
 
 class OAuthQQ(object):
     """
@@ -42,7 +44,7 @@ class OAuthQQ(object):
     def get_access_token(self, code):
         """
         获取access_token
-        :param code: qq提供的code
+        :param code: qq提供的code.10分钟过期
         :return: access_token
         """
         params = {
@@ -50,22 +52,22 @@ class OAuthQQ(object):
             'client_id': self.client_id,
             'client_secret': self.client_secret,
             'code': code,
-            'redirect_uri': self.redirect_uri
+            'redirect_uri': self.redirect_uri,
+            'fmt': 'json'
         }
         url = 'https://graph.qq.com/oauth2.0/token?' + urlencode(params)
         response = urlopen(url)
         response_data = response.read().decode()
-        data = parse_qs(response_data)
+        data = parse_qs(response_data)  # 返回字典格式
         access_token = data.get('access_token', None)
         if not access_token:
-            logger.error('code=%s msg=%s' % (data.get('code'), data.get('msg')))
-            raise QQAPIError
-
+            raise QQServiceUnavailable()
         return access_token[0]
 
-    def get_openid(self, access_token):
+    @staticmethod
+    def get_openid(access_token):
         """
-        获取用户的openid
+        携带access_token获取用户的openid
         :param access_token: qq提供的access_token
         :return: open_id
         """
@@ -77,12 +79,6 @@ class OAuthQQ(object):
             data = json.loads(response_data[10:-4])
         except Exception:
             data = parse_qs(response_data)
-            logger.error('code=%s msg=%s' % (data.get('code'), data.get('msg')))
-            raise QQAPIError
+            raise QQServiceUnavailable(data)
         openid = data.get('openid', None)
         return openid
-
-
-
-
-
