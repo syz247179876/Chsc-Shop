@@ -81,6 +81,7 @@
           <option value="user_app.models.Address.*" />
           <option value="remark_app.models.remark_models.Remark.*" />
           <option value="search_app.utils.elasticsearch.ElasticSearchOperation.*" />
+          <option value="oauth_app.models.OauthQQ.*" />
         </list>
       </option>
     </inspection_tool>
