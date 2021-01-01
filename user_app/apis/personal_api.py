@@ -34,7 +34,6 @@ from user_app.serializers.favorites_serializers import FavoritesSerializer
 from user_app.serializers.foot_serializers import FootSerializer
 from user_app.serializers.individual_info_serializers import IndividualInfoSerializer, HeadImageSerializer, \
     VerifyIdCardSerializer
-from user_app.serializers.password_serializers import PasswordSerializer
 from user_app.serializers.shopcart_serializers import ShopCartSerializer
 from user_app.signals import add_favorites, delete_favorites
 from user_app.utils.pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
@@ -123,56 +122,6 @@ class SaveInformation(GenericAPIView):
         serializer = self.get_serializer(instance=instance)
         return Response(serializer.data)
 
-
-class ChangePassword(GenericAPIView):
-    """
-    修改当前用户的密码
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    serializer_class = PasswordSerializer
-
-    redis = RedisUserOperation.choice_redis_db('redis')
-
-    def get_object(self):
-        """返回用户对象"""
-        return self.request.user
-
-    @property
-    def get_object_username(self):
-        """获取用户名"""
-        return f'find-password-{self.request.user.get_username()}'
-
-    def modify_password(self, user, validated_data):
-        """改变用户的密码"""
-        old_password = validated_data.get('old_password')
-        new_password = validated_data.get('new_password')
-        code = validated_data.get('code')
-        is_code_checked = self.redis.check_code(self.get_object_username, code)
-        is_checked = user.check_password(old_password)  # 核查旧密码
-        if not is_code_checked:
-            # 验证码不正确
-            return Response(response_code.verification_code_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        elif not is_checked:
-            # 旧密码不正确
-            return Response(response_code.user_original_password_error,
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            user.set_password(new_password)  # 设置新密码
-            try:
-                user.save(update_fields=["password"])
-            except Exception:
-                return Response(response_code.modify_password_verification_error,
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            else:
-                return Response(response_code.modify_password_verification_success, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        """处理用户密码"""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return self.modify_password(self.get_object(), serializer.validated_data)
 
 
 class BindEmailOrPhone(GenericAPIView):

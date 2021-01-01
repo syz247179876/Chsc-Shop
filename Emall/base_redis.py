@@ -58,7 +58,7 @@ class BaseRedis:
     def check_code(self, key, value):
         """
         检查value是否和redis中key映射的value对应？
-        :param key: key in key
+        :param key: key in redis?
         :param value: value from outside
         :return: bool
         """
@@ -69,6 +69,20 @@ class BaseRedis:
                 _value = redis.get(key).decode()
                 redis.delete(key)
                 return True if _value == value else False
+            else:
+                return False
+
+    def existed_key(self, key):
+        """
+        检查该键是否存在
+        :param key: key maybe in redis?
+        :return: bool
+        """
+        with manager_redis(self.db) as redis:
+            if redis is None:   # 后期改异常抛出
+                return False
+            elif redis.exists(key):
+                return True
             else:
                 return False
 
@@ -121,3 +135,4 @@ def manager_redis(db, redis_class=BaseRedis, redis=None):
         common_logger.info(e)
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
+

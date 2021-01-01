@@ -16,16 +16,16 @@ User = get_user_model()
 
 def generate_proof():
     """生成唯一凭证"""
-    return uuid.uuid1()
+    return str(uuid.uuid1())
 
 
 def retrieve_mac(self):
     """拿去客户端的mac地址"""
-    return self.context.get('request').GET.get('mac')
+    return self.context.get('request').query_params.get('mac')
 
 
 def retrieve_redis(self):
-    return self.context.get('redis')
+    return self.context.get('redis_manager')
 
 
 def retrieve_ip(self):
@@ -48,13 +48,53 @@ class RetrievePasswordSerializer(serializers.Serializer):
         ('email', 'email'),
         ('phone', 'phone'),
     )
+    STEP = (
+        ('1', '1'),
+        ('2', '2')
+    )
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields[self.RETRIEVE_KEY] = serializers.CharField(max_length=30)
-        self.fields['code'] = serializers.CharField(max_length=6)
+        self.fields[self.RETRIEVE_KEY] = serializers.CharField(max_length=20)
+        self.fields['code'] = serializers.CharField(max_length=6, required=False)
         self.fields['way'] = serializers.ChoiceField(choices=self.RETRIEVE_WAY)
+        self.fields['step'] = serializers.ChoiceField(choices=self.STEP)  # 步数
+        self.fields['password'] = serializers.CharField(min_length=8, max_length=20, required=False)
+
+    def key(self, redis_manager, **attrs):
+        return redis_manager.key(attrs.get('way'), attrs.get(self.RETRIEVE_KEY), retrieve_ip(self), retrieve_mac(self))
+
+    def first_step(self, redis_manager, **attrs):
+        """
+        校验手机号,邮箱号
+        生成唯一凭证并保存
+        """
+        if not attrs.get('code', None):
+            raise serializers.ValidationError('验证码缺失')
+        if redis_manager.check_code(attrs.get(self.RETRIEVE_KEY), attrs.get('code')):
+            # 验证码正确,生成修改密码唯一凭证,10分钟
+            # email-247179876@qq.com-127.0.0.1-mac
+            redis_manager.save_code(self.key(redis_manager, **attrs), generate_proof(), 600)
+            return attrs
+        raise serializers.ValidationError('验证码错误')
+
+    def second_step(self, redis_manager, **attrs):
+        """
+        校验唯一凭证
+        修改密码
+        """
+        if not attrs.get('password', None):
+            raise serializers.ValidationError('密码缺失')
+        if redis_manager.existed_key(self.key(redis_manager, **attrs)):
+            fields = {  # 更新密码所需字段
+                attrs.get('way'): attrs.get(self.RETRIEVE_KEY),
+                'password': attrs.get('password')
+            }
+            return fields
+        raise serializers.ValidationError('唯一凭证不正确')
+
 
     def validate(self, attrs):
         retrieve_key = attrs.get(self.RETRIEVE_KEY)
@@ -67,14 +107,17 @@ class RetrievePasswordSerializer(serializers.Serializer):
             if DRFPhoneValidator()(retrieve_key):
                 raise serializers.ValidationError('手机号不正确!')
 
-        redis = retrieve_redis(self)
-        key = redis.key('retrieve-pwd', way, attrs.get(self.RETRIEVE_KEY))
-        if redis.check_code(key, attrs.get('code')):
-            # 验证码正确,生成修改密码唯一凭证,10分钟
-            key = redis.key(way, self.RETRIEVE_KEY, retrieve_ip(self), retrieve_mac(self))
-            redis.save_code(key, generate_proof(), 600)
-            return attrs
-        raise serializers.ValidationError('验证码错误')
+        redis_manager = retrieve_redis(self)
+        step = attrs.get('step')
+        return self.first_step(redis_manager, **attrs) if step == '1' else self.second_step(redis_manager, **attrs)
+
+    def renew_password(self, validated_data):
+        """设置新的密码"""
+        hash_password = make_password(validated_data.pop('password'))
+        result = User.objects.filter(**validated_data).update(password=hash_password)
+        print(result)
+
+
 
 
 class NewPasswordSerializer(serializers.Serializer):

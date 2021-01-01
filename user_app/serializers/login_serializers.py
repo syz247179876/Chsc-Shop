@@ -39,9 +39,9 @@ class UserJwtLoginSerializer(Serializer):
         # 唯一验证
         # 自定义验证
         self.fields[self.LOGIN_KEY] = serializers.CharField(
-            max_length=30
+            max_length=20
         )
-        self.fields['password'] = PasswordField(write_only=True, required=False)
+        self.fields['password'] = PasswordField(write_only=True, required=False, min_length=8, max_length=20)
         self.fields['next'] = serializers.URLField()  # 前一页url
         self.fields['code'] = serializers.CharField(max_length=6, required=False)  # 验证码
         self.fields['is_remember'] = serializers.BooleanField()  # 是否记住用户名
@@ -87,7 +87,7 @@ class UserJwtLoginSerializer(Serializer):
 
         if user:
             if not user.is_active:
-                msg = _('User account is disabled.')
+                msg = _('用户被禁止登录')
                 raise serializers.ValidationError(msg)
             payload = jwt_payload_handler(user)
 
@@ -99,7 +99,7 @@ class UserJwtLoginSerializer(Serializer):
                 'is_remember': attrs.get('is_remember'),
             }
         else:
-            msg = _('Unable to log in with provided credentials.')
+            msg = _('用户不存在或密码不正确')
             raise serializers.ValidationError(msg)
 
     @property

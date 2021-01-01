@@ -30,23 +30,12 @@ class EmailOrUsername(ModelBackend):
         :return: user对象 or None
         """
         try:
+            kwargs.pop('way')
             password = kwargs.pop('password')
-            query_fields = {}  # 存放查询字段
-            validators_result = []
-            for key, value in kwargs.items(): # 验证数据
-                func_name = '{key}_validate'.format(key=key)
-                if hasattr(validators, func_name):
-                    func = getattr(validators, func_name)
-                    validators_result.append(func(value))
-                    query_fields.update({key:value})
-
-            if len(validators_result):
-                user = User.objects.get(**query_fields)
-            else:
-                return None
-        except User.DoesNotExist:
+            user = User.objects.get(**kwargs)
+        except User.DoesNotExist: # 用户不存在
             return None
-        else:
+        else:                     # 密码错误
             return user if user.check_password(password) else None
 
 
