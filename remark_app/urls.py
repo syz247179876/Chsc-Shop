@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
-from remark_app.views.remark_api import RemarkOperation, AttitudeRemarkOperation
+from remark_app.apis.remark_api import RemarkOperation, AttitudeRemarkOperation
 from django.conf import settings
 app_name = 'Remark_app'
 

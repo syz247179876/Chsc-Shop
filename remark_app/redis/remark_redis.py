@@ -7,7 +7,7 @@ from remark_app.models.remark_models import Remark
 from remark_app.serializers.attitude_action_serializers import AttitudeRemarkSerializer
 from remark_app.signals import praise_or_against_post, praise_or_against_cancel, remark_post, \
     remark_cancel, check_remark_action
-from remark_app.views.remark_api import RemarkOperation
+from remark_app.apis.remark_api import RemarkOperation
 from Emall.base_redis import BaseRedis
 from Emall.loggings import Logging
 
