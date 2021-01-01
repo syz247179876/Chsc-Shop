@@ -6,9 +6,10 @@
 from django.urls import path
 
 from voucher_app.views.bonus_api import VoucherOperation
+from django.conf import settings
 
 app_name = 'Voucher_app'
 
 urlpatterns = [
-    path('voucher-chsc-api/', VoucherOperation.as_view(), name='voucher-chsc-api'),
+    path(f'{settings.URL_PREFIX}/voucher', VoucherOperation.as_view(), name='voucher-chsc-api'),
 ]

@@ -4,7 +4,8 @@
     <option name="languageLevel" value="ES6" />
   </component>
   <component name="ProjectPlainTextFileTypeManager">
-    <file url="file://$PROJECT_DIR$/user_app/views.py" />
+    <file url="file://$PROJECT_DIR$/order_app/migrations/0001_initial.py" />
+    <file url="file://$PROJECT_DIR$/order_app/migrations/0002_auto_20201120_2346.py" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.6 (E_mall)" project-jdk-type="Python SDK" />
   <component name="PyCharmProfessionalAdvertiser">

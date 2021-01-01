@@ -68,7 +68,3 @@ def send_phone(phone_numbers, template_code, template_param):
     response = send_sms(_business_id, phone_numbers=phone_numbers, sign_name=SIGN_NAME, template_code=template_code,
                         template_param=template_param)
     return response
-
-
-
-

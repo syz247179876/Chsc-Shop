@@ -88,7 +88,7 @@ class VoucherCategory(models.Model):
 
 
 class Voucher(models.Model):
-    """商家创建红包类型映射类"""
+    """商家创建优惠卷类型映射类"""
 
     # 用户
     user = models.ForeignKey(User, related_name='voucher', verbose_name=_('当前商家'), on_delete=True)
@@ -174,6 +174,15 @@ class VoucherConsumer(models.Model):
 
     # 获得优惠卷时间
     acquire_time = models.DateTimeField(auto_now_add=True)
+
+    # 忧患卷状态
+    states = (
+        ('未使用', 1),
+        ('已使用', 2),
+        ('已过期', 3)
+    )
+
+    voucher_state = models.CharField(choices=states, default=1, max_length=1)
 
 
     voucher_ = VoucherConsumerManager()

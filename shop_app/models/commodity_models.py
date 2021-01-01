@@ -162,7 +162,7 @@ class Commodity(models.Model):
     colored_status.short_description = '上架状态'
 
 
-class Goodsby(models.Model):
+class GoodsBy(models.Model):
     """商品轮播表"""
 
     # 商品名
@@ -176,6 +176,9 @@ class Goodsby(models.Model):
 
     # 商品链接
     url = models.URLField(verbose_name=_('商品链接'), max_length=20)
+
+    # 排序
+    sort = models.IntegerField(verbose_name=_('顺序'), default=0)
 
     class Meta:
         db_table = "Carousel_index"

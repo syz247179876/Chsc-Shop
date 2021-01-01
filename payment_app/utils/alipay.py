@@ -10,6 +10,7 @@ from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 from urllib.parse import quote_plus
 from base64 import decodebytes, encodebytes
+from django.conf import settings
 import json
 
 
@@ -20,14 +21,14 @@ class AliPay(object):
 
     def __init__(self, appid, app_notify_url, app_private_key_path,
                  alipay_public_key_path, return_url, debug=False):
-        self.appid = appid
-        self.app_notify_url = app_notify_url
-        self.app_private_key_path = app_private_key_path
+        self.appid = appid or settings.ALIPAY_APPID
+        self.app_notify_url = app_notify_url or settings.ALIPAY_NOTIFY_URL
+        self.app_private_key_path = app_private_key_path or settings.APP_KEY_PRIVATE_PATH
         self.app_private_key = None
-        self.return_url = return_url
+        self.return_url = return_url or settings.ALIPAY_RETURN_URL
         with open(self.app_private_key_path) as fp:
             self.app_private_key = RSA.importKey(fp.read())
-        self.alipay_public_key_path = alipay_public_key_path
+        self.alipay_public_key_path = alipay_public_key_path or settings.ALIPAY_PUBLIC_KEY_PATH
         with open(self.alipay_public_key_path) as fp:
             self.alipay_public_key = RSA.importKey(fp.read())
         if debug is True:

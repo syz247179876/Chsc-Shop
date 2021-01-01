@@ -26,7 +26,7 @@ class RetrievePasswordOperation(GenericAPIView):
     def post(self, request):
         """
         找回密码(1)：
-        1.收入手机号/邮箱
+        1.输入手机号/邮箱
         2.获取手机号/邮箱验证码
         3.验证手机号/邮箱和验证码是否吻合,如果吻合,需要生成修改唯一密码凭证,确保当前手机号/邮箱与之前的手机号/邮箱一致(可以前端传客户端mac)
 
