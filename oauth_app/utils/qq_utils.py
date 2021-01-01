@@ -56,6 +56,7 @@ class OAuthQQ(object):
             'fmt': 'json'
         }
         url = 'https://graph.qq.com/oauth2.0/token?' + urlencode(params)
+        # response_json = requests.get(url=url)
         response = urlopen(url)
         response_data = response.read().decode()
         data = parse_qs(response_data)  # 返回字典格式
@@ -72,6 +73,7 @@ class OAuthQQ(object):
         :return: open_id
         """
         url = 'https://graph.qq.com/oauth2.0/me?access_token=' + access_token
+        # response_json = requests.get(url=url)
         response = urlopen(url)
         response_data = response.read().decode()
         try:

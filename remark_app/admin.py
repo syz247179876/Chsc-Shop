@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models.remark_models import Remark, Remark_reply
+from .models.remark_models import Remark, RemarkReply
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -89,7 +89,7 @@ class RemarkAdmin(admin.ModelAdmin):
         return result
 
 
-@admin.register(Remark_reply)
+@admin.register(RemarkReply)
 class Remark_replyAdmin(admin.ModelAdmin):
     list_display = ('reply_commodity_name','part_reward_content','reward_time','reply_time')
     ordering = ('reply_time',)

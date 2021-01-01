@@ -7,10 +7,11 @@ from django.urls import path, include
 app_name = 'Shop_app'
 
 urlpatterns = [
-    path('introduce/<int:pk>', enter_introduction_page, name='introduce'),
-    path('add-into-shop-cart/', AddShopCartOperation.as_view(), name='add-into-shop-cart'),
-    path('add-into-favorites-chsc-api/', AddFavoritesOperation.as_view(), name='add-into-favorites-chsc-api'),
+    # path('add-into-shop-cart/', AddShopCartOperation.as_view(), name='add-into-shop-cart'),
+    # path('add-into-favorites-chsc-api/', AddFavoritesOperation.as_view(), name='add-into-favorites-chsc-api'),
 ]
+
+
 
 # DRF视图集注册
 # router = routers.DefaultRouter()

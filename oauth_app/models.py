@@ -41,6 +41,7 @@ class QqManager(Manager):
 class WxManager(Manager):
     """微信登录模型管理类"""
 
+    # TODO 暂做
     pass
 
 

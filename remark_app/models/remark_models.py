@@ -1,8 +1,9 @@
 from django.db import models
 from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
-from user_app.models import Consumer, User
+
 from shop_app.models.commodity_models import Commodity
+from user_app.models import User
 
 
 # Create your models here.
@@ -74,7 +75,7 @@ class Remark(models.Model):
         verbose_name_plural = _('评论表')
 
 
-class Remark_reply(models.Model):
+class RemarkReply(models.Model):
     """评论回复"""
 
     '''商家只能修改回复表'''
@@ -110,6 +111,6 @@ class Remark_reply(models.Model):
     is_action = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'Remark_reply'
+        db_table = 'RemarkReply'
         verbose_name = _('评论回复表')
         verbose_name_plural = _('评论回复表')

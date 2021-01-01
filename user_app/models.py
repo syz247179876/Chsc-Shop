@@ -45,6 +45,9 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def _check_user_existed(self, **extra_fields):
+        return self.filter(extra_fields).count() > 0
+
     def create_consumer(self, password=None, **extra_fields):
         extra_fields.setdefault('is_seller', False)
         extra_fields.setdefault('is_superuser', False)
@@ -69,6 +72,10 @@ class UserManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
 
         return self._create_superuser(username, email, password, **extra_fields)
+
+    def check_user_existed(self, **extra_fields):
+
+        return self._check_user_existed(**extra_fields)
 
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):

@@ -98,6 +98,19 @@ class OrderBasicOperation(viewsets.GenericViewSet):
             serializer.data.update({'order_expire': expire})
         return Response(serializer.data)
 
+    def list(self, request, *args, **kwargs):
+        """
+        获取具体status状态的订单集合
+        前端url中传递参数名为page
+        """
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 class OrderListOperation(GenericAPIView):
     """获取具体status状态的订单操作"""

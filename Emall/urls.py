@@ -35,12 +35,13 @@ urlpatterns = [
     path('consumer/', include('user_app.urls', namespace='consumer')),
     path('order/', include('order_app.urls', namespace='order')),
     path('remark/', include('remark_app.urls', namespace='remark')),
-    path('shop/', include('shop_app.urls', namespace='shop')),
+    path('goods/', include('shop_app.urls', namespace='shop')),
     path('voucher/', include('voucher_app.urls', namespace='voucher')),
-    path('chsc-syz-247179876-docs/', schema_view, name='api_doc'),
-    path(r'mdeditor/', include('mdeditor.urls')),
+    path('docs/', schema_view, name='api_doc'),
     path('search/', include('search_app.urls', namespace='search')),
     path('oauth/', include('oauth_app.urls', namespace='oauth')),
+    path('analysis/', include('analysis_app.urls', namespace='analysis')),
+    path('mdeditor/', include('mdeditor.urls')),
 ]
 
 if settings.DEBUG:

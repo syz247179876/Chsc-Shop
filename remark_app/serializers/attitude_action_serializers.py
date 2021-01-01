@@ -111,7 +111,7 @@ class AttitudeRemarkSerializer(serializers.ModelSerializer):
 #
 #
 #     class Meta:
-#         model = Remark_reply
+#         model = RemarkReply
 #         fields = ('praise', 'against', 'is_remark')
 #         read_only_fields = (
 #             'is_remark', 'praise', 'against'

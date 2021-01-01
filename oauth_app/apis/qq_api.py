@@ -27,7 +27,7 @@ User = get_user_model()
 
 class QQOauthUrl(GenericAPIView):
     """
-    QQ登录操作类之获取提供用于登录的QQ
+    QQ登录操作类之获取提供用于登录的QQ地址
     """
 
     def get(self, request):
@@ -56,9 +56,11 @@ def generate_response(user, next):
 
 class QQOauthAccessToken(GenericAPIView):
     """
+    由qq服务器回调请求过来
     携带code和state回调该视图
     请求qq服务器获取access token
     """
+
     @property
     def next_validator(self):
         """校验next的url格式"""
@@ -71,13 +73,13 @@ class QQOauthAccessToken(GenericAPIView):
         code = request.query_params.get('code')
         next = request.query_params.get('next')
         if not code or not next:
-            raise ValidationError({'message':'缺少code或next'})
+            raise ValidationError({'message': '缺少code或next'})
         try:
             oauth = OAuthQQ(state=next)
             access_token = oauth.get_access_token(code)  # 获取access_token
             open_id = oauth.get_openid(access_token)  # 获取唯一身份
-        except QQServiceUnavailable as e:
-            return Response({'message':'QQ服务器异常,稍后重试'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except QQServiceUnavailable:
+            return Response({'error': '身份校验失败'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         else:
             qq_user = OauthQQ.qq_manager.existed_user(open_id)
             if qq_user:
@@ -102,7 +104,7 @@ class BindQQAPIView(GenericAPIView):
             open_id = oauth.get_openid(validated_data.get('access_token'))
             return open_id, oauth.state
         except QQServiceUnavailable:
-            return Response({'QQ服务器异常,请稍后重试'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response({'error':'身份校验失败'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     def post(self, request):
         """手机绑定"""
@@ -114,14 +116,20 @@ class BindQQAPIView(GenericAPIView):
         # 创建用户
         try:
             with transaction.atomic():  # 开启事务
-                user = User.objects.create_consumer(
+                existed = User.check_user_existed(
                     password=serializer.validated_data.get('password'),
-                    phone=serializer.validated_data.get('phone'),
+                    phone=serializer.validated_data.get('phone')
                 )
-                qq_user = OauthQQ.qq_manager.create_qq_user(user, open_id)
+                if not existed:
+                    # 如果没有注册就使用QQ登录,则需先创建
+                    user = User.objects.create_consumer(
+                        password=serializer.validated_data.get('password'),
+                        phone=serializer.validated_data.get('phone'),
+                    )
+                qq_user = OauthQQ.qq_manager.create_qq_user(user, open_id)  # 创建本网站和qq第三方之间的关联
                 if not qq_user:
                     return Response(response_code.bind_qq, status=status.HTTP_400_BAD_REQUEST)
         except DatabaseError:
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(response_code.user_existed, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return generate_response(user, next)

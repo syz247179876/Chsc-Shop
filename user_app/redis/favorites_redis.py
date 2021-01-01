@@ -52,6 +52,7 @@ class RedisFavoritesOperation(BaseRedis):
         确保有序，使用有序集合，在redis层面提升排序性能
         :return: list（读取redis)， 查询集（读取mysql）
         """
+
         with manager_redis(self.db) as redis:
             user_pk = user.pk
             zset_key = self.zset_key_commodity(user_pk)
@@ -129,8 +130,13 @@ class RedisFavoritesOperation(BaseRedis):
     # @receiver(add_favorites, sender=Collection)
     def sync_favorites_add_callback(self, sender, instance, user, queryset, **kwargs):
         """
+
         同步redis中的favorites数据，信号回调函数
         添加到zset和hash表中
+
+        不可能做到数据完全一致!!!
+        并发性导致总用那么几ms,某个线程会读到redis中的脏数据,在写入mysql,尚未更新缓存前的之间那段真空期!
+
         :param sender: 发送方Collection
         :param instance: 创建的Collection实例
         :param user: 当前登录的用户
@@ -138,6 +144,7 @@ class RedisFavoritesOperation(BaseRedis):
         :param kwargs: 额外参数
         :return:  同步是否成功, bool
         """
+
         with manager_redis(self.db) as redis:
             user_pk = user.pk
             zset_key = self.zset_key_commodity(user_pk)
