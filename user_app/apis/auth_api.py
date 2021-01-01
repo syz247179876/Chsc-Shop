@@ -63,12 +63,15 @@ class LoginAPIView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         response = serializer.object
         # 加密，如果配置中支持刷新，则更新token,将user调用中间件赋给request.user
+        response.pop('user')
+        print(response)
         response_obj = Response(response)
-        self.remember_username(response_obj, response.get('is_remember'),
-                               response.pop('user').get_username())  # 设置cookie，记住用户名
-        # 将token存到response的cookie中，设置有效的日期
-        self.save_cookie(response, response_obj)
-        return response
+        # self.remember_username(response_obj, response.get('is_remember'),
+        #                        response.pop('user').get_username())  # 设置cookie，记住用户名
+        # # 将token存到response的cookie中，设置有效的日期
+        # self.save_cookie(response, response_obj)
+        print(response_obj)
+        return response_obj
 
 
 class RegisterAPIView(GenericAPIView):

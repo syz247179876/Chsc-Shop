@@ -67,6 +67,7 @@ class BaseRedis:
                 return False
             elif redis.exists(key):
                 _value = redis.get(key).decode()
+                redis.delete(key)
                 return True if _value == value else False
             else:
                 return False

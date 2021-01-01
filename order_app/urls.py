@@ -2,7 +2,7 @@ from django.conf import settings
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from order_app.views.order_api import OrderBasicOperation, OrderCreateOperation
+from order_app.apis.order_api import OrderBasicOperation, OrderCreateOperation
 
 app_name = 'order_app'
 

@@ -61,16 +61,12 @@ class Phone(ModelBackend):
         :return: user对象
         """
         try:
-            code = kwargs.get('code')
             phone = kwargs.get('phone')
             if validators.phone_validate(phone):
                 user = User.objects.get(phone=phone)
+            return user
         except User.DoesNotExist:
             return None
-        else:
-            redis = RedisUserOperation.choice_redis_db('redis')
-            key = redis.key(phone)
-            return user if redis.check_code(key, code) else None
 
 
 email_or_username = EmailOrUsername()

@@ -45,7 +45,7 @@ class RedisFavoritesOperation(BaseRedis):
         signals.add_favorites.connect(self.sync_favorites_add_callback, sender=Collection)
         signals.delete_favorites.connect(self.sync_favorites_delete_callback, sender=Collection)
 
-    def get_resultSet(self, user, page, page_size, **kwargs):
+    def get_resultSet(self, user, page, page_size):
         """
         考虑缓存击穿：即使空结果集也放到缓存中去
         redis使用有序集合+hash表+List实现数据存储和获取
@@ -77,7 +77,8 @@ class RedisFavoritesOperation(BaseRedis):
                 return list_result_format
 
             # 未命中缓存
-            queryset = Collection.collection_.select_related('commodity').filter(user=user)[(page - 1) * page_size : page * page_size]
+            queryset = Collection.collection_.select_related('commodity').filter(user=user)[
+                       (page - 1) * page_size: page * page_size]
 
             pipe_two = redis.pipeline()  # 建立管道
 
@@ -93,14 +94,14 @@ class RedisFavoritesOperation(BaseRedis):
                     pipe_two.zadd(zset_key, {collection_pk: time.time()})  # 添加到有序集合中
                     pipe_two.expire(zset_key, 30)  # 设置15sTTL
                     hash_value_commodity = self.hash_key_commodity(user_pk, collection_pk)
-                    pipe_two.hmset(hash_value_commodity, self.serializer_commodity_data(commodity_fields))  # 将商品信息添加到hash表中
+                    pipe_two.hmset(hash_value_commodity,
+                                   self.serializer_commodity_data(commodity_fields))  # 将商品信息添加到hash表中
                     pipe_two.expire(hash_value_commodity, 30)
             else:
-                pipe_two.zadd(zset_key, {0:0})   # 防止缓存击穿
-                pipe_two.expire(zset_key,6)      # TTL为6
+                pipe_two.zadd(zset_key, {0: 0})  # 防止缓存击穿
+                pipe_two.expire(zset_key, 6)  # TTL为6
             pipe_two.execute()
             return queryset  # 返回商品查询集
-
 
     def serializer_commodity_data(self, data):
         """
@@ -121,7 +122,8 @@ class RedisFavoritesOperation(BaseRedis):
     def deserializer_commodity_data(data):
         """反序列化"""
         if isinstance(data, list):
-            data = [{key.decode(): value.decode() for key, value in orderdict.items() if key.decode() not in ['store','shopper','onshelve_time', 'unshelve_time']} for
+            data = [{key.decode(): value.decode() for key, value in orderdict.items() if
+                     key.decode() not in ['store', 'shopper', 'onshelve_time', 'unshelve_time']} for
                     orderdict in data]
         # TODO 将redis中的数据序列化为分页器格式
 
