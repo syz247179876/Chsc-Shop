@@ -34,7 +34,6 @@ from user_app.serializers.favorites_serializers import FavoritesSerializer
 from user_app.serializers.foot_serializers import FootSerializer
 from user_app.serializers.individual_info_serializers import IndividualInfoSerializer, HeadImageSerializer, \
     VerifyIdCardSerializer
-from user_app.serializers.password_serializers import PasswordSerializer
 from user_app.serializers.shopcart_serializers import ShopCartSerializer
 from user_app.signals import add_favorites, delete_favorites
 from user_app.utils.pagination import FootResultsSetPagination, FavoritesPagination, TrolleyResultsSetPagination
@@ -58,7 +57,7 @@ class HeadImageOperation(GenericAPIView):
     def get_storage_class(self):
         return self.storage_class
 
-    def get_storage(self, *args, **kwargs):
+    def get_storage(self, **kwargs):
         """
         动态导入模块，生成storage实例对象
         :param args:
@@ -123,56 +122,6 @@ class SaveInformation(GenericAPIView):
         serializer = self.get_serializer(instance=instance)
         return Response(serializer.data)
 
-
-class ChangePassword(GenericAPIView):
-    """
-    修改当前用户的密码
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    serializer_class = PasswordSerializer
-
-    redis = RedisUserOperation.choice_redis_db('redis')
-
-    def get_object(self):
-        """返回用户对象"""
-        return self.request.user
-
-    @property
-    def get_object_username(self):
-        """获取用户名"""
-        return f'find-password-{self.request.user.get_username()}'
-
-    def modify_password(self, user, validated_data):
-        """改变用户的密码"""
-        old_password = validated_data.get('old_password')
-        new_password = validated_data.get('new_password')
-        code = validated_data.get('code')
-        is_code_checked = self.redis.check_code(self.get_object_username, code)
-        is_checked = user.check_password(old_password)  # 核查旧密码
-        if not is_code_checked:
-            # 验证码不正确
-            return Response(response_code.verification_code_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        elif not is_checked:
-            # 旧密码不正确
-            return Response(response_code.user_original_password_error,
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            user.set_password(new_password)  # 设置新密码
-            try:
-                user.save(update_fields=["password"])
-            except Exception:
-                return Response(response_code.modify_password_verification_error,
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            else:
-                return Response(response_code.modify_password_verification_success, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        """处理用户密码"""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return self.modify_password(self.get_object(), serializer.validated_data)
 
 
 class BindEmailOrPhone(GenericAPIView):
@@ -302,7 +251,7 @@ class AddressOperation(viewsets.ModelViewSet):
     # 将url和视图绑定
     # @method_decorator(login_required(login_url='consumer/login/'))
     @action(methods=['put'], detail=True)
-    def update_default_address(self, request, *args, **kwargs):
+    def update_default_address(self, request, **kwargs):
         """
         单修改默认地址
         以字典形式传过来的
@@ -624,89 +573,3 @@ class ShopCartOperation(GenericViewSet):
             return Response(response_code.add_goods_into_shop_cart_success)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # def context(self, instances, store_commodity_dict, commodity_and_store, commodity_and_price):
-    #     return {'instances': instances, 'serializer': self.get_serializer_class,
-    #             'context': {'store_and_commodity': store_commodity_dict,
-    #                         'commodity_and_store': commodity_and_store,
-    #                         'commodity_and_price': commodity_and_price}}
-
-#     @method_decorator(login_required(login_url='consumer/login/'))
-#     def get(self, request):
-#         """
-#         查询购物车相关商品GET请求
-#         格式如下：
-# {
-#     "page": 2,
-#     "data": [
-#         {
-#             "commodity_name": "旺仔牛奶",
-#             "grade": "四星好评",
-#             "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
-#             "reward_time": "2020-05-29T15:20:53",
-#             "price": 5,
-#             "category": "食品",
-#             "image": null
-#         },
-#         {
-#             "commodity_name": "鹿皮棉袄",
-#             "grade": "四星好评",
-#             "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
-#             "reward_time": "2020-05-28T15:20:53",
-#             "price": 300,
-#             "category": "衣服",
-#             "image": null
-#         },
-#     ]
-# }
-#         """
-#
-#         try:
-#             user = request.user
-#             data = request.GET
-#             # retrieve information based on dict form and page(int)
-#             store_commodity_dict, price_commodity_dict, commodity_counts_dict, page = \
-#                 self.redis.get_shop_cart_id_and_page(user.pk, **data)
-#             # generate instances of store
-#             store_instances = self.get_serializer_class.get_stores(store_commodity_dict.keys())
-#             page = Page(page)
-#             # 这里序列化器嵌套调用
-#             serializer = self.get_ultimate_serializer_class(page,
-#                                                             context=self.context(store_instances, store_commodity_dict,
-#                                                                                  commodity_counts_dict,
-#                                                                                  price_commodity_dict))
-#             return Response(serializer.data)
-#         except Exception as e:
-#             consumer_logger.error(e)
-#             return Response(None)
-#
-#     # @method_decorator(login_required(login_url='consumer/login/'))
-#     # def post(self, request):
-#     #     """add new goods into shop cart under the account of consumer who send request"""
-#     #     pass
-#
-#     @method_decorator(login_required(login_url='consumer/login/'))
-#     def put(self, request):
-#         """修改购物车的商品的数量PUT请求"""
-#         user = request.user
-#         data = request.data
-#         is_success = self.redis.edit_one_good(user.pk, **data)
-#         if is_success:
-#             return Response(response_code.edit_shop_cart_good_success)
-#         else:
-#             return Response(response_code.edit_shop_cart_good_error)
-#
-#     @method_decorator(login_required(login_url='consumer/login/'))
-#     def delete(self, request):
-#         """删除商品DELETE请求"""
-#
-#         user = request.user
-#         data = request.data
-#
-#         # 单删
-#         is_success = self.redis.delete_one_good(user.pk, **data)
-#
-#         # 群删
-#         if is_success:
-#             return Response(response_code.delete_shop_cart_good_success)
-#         else:
-#             return Response(response_code.delete_shop_cart_good_error)

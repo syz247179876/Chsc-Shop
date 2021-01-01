@@ -6,7 +6,7 @@
 from django.urls import path
 from django.conf import settings
 
-from search_app.views.search_api import CommoditySearchOperation
+from search_app.apis.search_api import CommoditySearchOperation
 
 app_name = 'search_app'
 

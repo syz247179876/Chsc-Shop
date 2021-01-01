@@ -1,7 +1,7 @@
 from rest_framework import routers
 
-from shop_app.views.shop import enter_introduction_page
-from shop_app.views.shop_api import AddShopCartOperation, AddFavoritesOperation
+from shop_app.apis.shop import enter_introduction_page
+from shop_app.apis.shop_api import AddShopCartOperation, AddFavoritesOperation
 from django.urls import path, include
 
 app_name = 'Shop_app'

@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 # @Time : 2020/5/7 18:42
 # @Author : 司云中
-# @File : login_register_api.py
+# @File : auth_api.py
 # @Software: PyCharm
 
 
 from datetime import datetime
-
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
-
 from Emall.loggings import Logging
 from Emall.response_code import response_code
 from user_app.redis.user_redis import RedisUserOperation
@@ -24,7 +22,7 @@ common_logger = Logging.logger('django')
 consumer_logger = Logging.logger('consumer_')
 
 jwt_response_payload_handler = api_settings.JWT_RESPONSE_PAYLOAD_HANDLER
-from rest_framework_jwt.utils import jwt_response_payload_handler
+
 
 class LoginAPIView(GenericAPIView):
     """ 使用JWT登录"""
@@ -47,30 +45,31 @@ class LoginAPIView(GenericAPIView):
         else:
             response.delete_cookie('login_id', login_id)
 
-    def post(self, request, *args, **kwargs):
-        """用户登录"""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = serializer.object.get('user') or request.user
-        token = serializer.object.get('token')
-        is_remember = serializer.object.get('is_remember')
-        next = serializer.object.get('next')
-        # 加密，如果配置中支持刷新，则更新token,将user调用中间件赋给request.user
-        response_data = jwt_response_payload_handler(token, user, request)
-        response_data.update({'next': next})
-        response = Response(response_data)
-        self.remember_username(response, is_remember, user.get_username())  # 设置cookie，记住用户名
-        # 将token存到response的cookie中，设置有效的日期
+    @staticmethod
+    def save_cookie(response, response_obj):
+        """校验jwt"""
         if api_settings.JWT_AUTH_COOKIE:
             expiration = (datetime.utcnow() +
                           api_settings.JWT_EXPIRATION_DELTA)
             # 对应配置中的Token名称
-            response.set_cookie(api_settings.JWT_AUTH_COOKIE,
-                                token,
-                                expires=expiration,
-                                httponly=True)
-        return response
+            response_obj.set_cookie(api_settings.JWT_AUTH_COOKIE,
+                                    response.get('token'),
+                                    expires=expiration,
+                                    httponly=True)
+
+    def post(self, request, *args, **kwargs):
+        """用户登录"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response = serializer.object
+        # 加密，如果配置中支持刷新，则更新token,将user调用中间件赋给request.user
+        response.pop('user')
+        response_obj = Response(response)
+        # self.remember_username(response_obj, response.get('is_remember'),
+        #                        response.pop('user').get_username())  # 设置cookie，记住用户名
+        # # 将token存到response的cookie中，设置有效的日期
+        # self.save_cookie(response, response_obj)
+        return response_obj
 
 
 class RegisterAPIView(GenericAPIView):
@@ -85,7 +84,7 @@ class RegisterAPIView(GenericAPIView):
         """手机注册"""
         phone = validated_data.get('phone')
         try:
-            # 判断手机号是否注册，若有，抛出异常
+            # 判断手机号是否注册，若没有，校验手机号
             self.User.objects.get(phone=phone)
             return Response(response_code.user_existed, status=status.HTTP_400_BAD_REQUEST)
         except self.User.DoesNotExist:
@@ -116,7 +115,7 @@ class RegisterAPIView(GenericAPIView):
         email = validated_data.get('email')
         username = validated_data.get('username')
         try:
-            # 判断邮箱是否已注册，若有，抛出异常
+            # 判断邮箱是否已注册，若没有，校验手机号
             self.User.objects.get(email=email)
             return Response(response_code.user_existed, status=status.HTTP_400_BAD_REQUEST)
         except self.User.DoesNotExist:

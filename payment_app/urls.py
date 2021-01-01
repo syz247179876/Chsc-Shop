@@ -1,4 +1,4 @@
-from payment_app.views.payment_api import PaymentOperation, UpdateOperation
+from payment_app.apis.payment_api import PaymentOperation, UpdateOperation
 from django.urls import path, include
 
 app_name = 'payment_app'

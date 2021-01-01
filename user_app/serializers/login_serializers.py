@@ -3,13 +3,13 @@
 # @Author : 司云中
 # @File : login_serializers.py
 # @Software: Pycharm
+from django.conf import settings
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework_jwt.compat import PasswordField, get_username_field, Serializer
 from rest_framework_jwt.settings import api_settings
-from django.utils.translation import ugettext as _
-from user_app.utils import validators
+
 from Emall.authentication_consumer import email_or_username, phone
-from django.conf import settings
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -39,10 +39,10 @@ class UserJwtLoginSerializer(Serializer):
         # 唯一验证
         # 自定义验证
         self.fields[self.LOGIN_KEY] = serializers.CharField(
-            max_length=30
+            max_length=20
         )
-        self.fields['password'] = PasswordField(write_only=True, required=False)
-        self.fields['next'] = serializers.CharField()  # 前一页url
+        self.fields['password'] = PasswordField(write_only=True, required=False, min_length=8, max_length=20)
+        self.fields['next'] = serializers.URLField()  # 前一页url
         self.fields['code'] = serializers.CharField(max_length=6, required=False)  # 验证码
         self.fields['is_remember'] = serializers.BooleanField()  # 是否记住用户名
         self.fields['way'] = serializers.ChoiceField(choices=self.LOGIN_WAY)
@@ -57,7 +57,6 @@ class UserJwtLoginSerializer(Serializer):
         if way == 'phone':
             return {
                 attrs.get('way'): attrs.get(self.LOGIN_KEY),
-                'code': attrs.get('code'),
                 'way': way
             }
         elif way in ['email', 'username']:
@@ -66,7 +65,6 @@ class UserJwtLoginSerializer(Serializer):
                 'password': attrs.get('password'),
                 'way': way
             }
-
 
     # 对前端传入的属性字段进行验证
     def validate(self, attrs):
@@ -89,17 +87,19 @@ class UserJwtLoginSerializer(Serializer):
 
         if user:
             if not user.is_active:
-                msg = _('User account is disabled.')
+                msg = _('用户被禁止登录')
                 raise serializers.ValidationError(msg)
             payload = jwt_payload_handler(user)
+
             return {
                 'token': jwt_encode_handler(payload),
                 'user': user,
-                'next': validators.url_validate(attrs.get('next')) or settings.DEFAULT_REDIRECT_URI,
+                'next': attrs.get('next') or settings.DEFAULT_REDIRECT_URI,
+                # validators.url_validate(attrs.get('next'))
                 'is_remember': attrs.get('is_remember'),
             }
         else:
-            msg = _('Unable to log in with provided credentials.')
+            msg = _('用户不存在或密码不正确')
             raise serializers.ValidationError(msg)
 
     @property
@@ -107,7 +107,8 @@ class UserJwtLoginSerializer(Serializer):
         """获取视图实例"""
         return self.context.get('redis')
 
-    def validate_code(self, value):
+    @staticmethod
+    def validate_code(value):
         """验证码校验"""
         if len(value) != 6:
             raise serializers.ValidationError("验证码为6位数")

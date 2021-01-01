@@ -37,8 +37,8 @@ class OcrIdCard:
         image = str(base64.b64encode(image.read()), encoding='utf-8')  # 对二进制进行base64编码
         configure = {"side": card_type}
         self.params.update({'image': image, 'configure': configure})
-        self.json_result = None   # 存储返回的结果
-        self.card_type = card_type   # 在face和back中选择
+        self.json_result = None  # 存储返回的结果
+        self.card_type = card_type  # 在face和back中选择
 
     def get_posturl_result(self):
         """从接口中获取识别结果"""
@@ -116,13 +116,3 @@ class Interface_identify:
             return is_success
         else:
             return False
-
-    """
-    def test(self, card_type):
-        path = 'C:\\Users\\ASUS\\Desktop\\index.jpg'
-        with open(path, 'rb') as f:
-            data = f.read()
-            image = str(base64.b64encode(data), encoding='utf-8')
-            configure = {"side": card_type}
-            self.body.update({'image': image, 'configure': configure})
-    """

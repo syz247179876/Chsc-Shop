@@ -5,7 +5,7 @@
 # @Software: Pycharm
 from django.urls import path
 
-from voucher_app.views.bonus_api import VoucherOperation
+from voucher_app.apis.bonus_api import VoucherOperation
 from django.conf import settings
 
 app_name = 'Voucher_app'

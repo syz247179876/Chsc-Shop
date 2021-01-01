@@ -1,9 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from user_app.views.login_register_api import RegisterAPIView, LoginAPIView
-from user_app.views.personal_api import *
-from user_app.views.retrieve_pwd_api import RetrievePasswordOperation, NewPassword
+from user_app.apis.auth_api import RegisterAPIView, LoginAPIView
+from user_app.apis.password_api import ChangePassword
+from django.conf import settings
+from user_app.apis.personal_api import SaveInformation, BindEmailOrPhone, VerifyIdCard, HeadImageOperation, \
+    AddressOperation, FootOperation, FavoriteOperation, ShopCartOperation
+from user_app.apis.password_api import RetrievePasswordOperation, NewPassword
 
 app_name = 'user_app'
 
@@ -17,7 +20,7 @@ auth_patterns = [
 password_patterns = [
     path('changable/', ChangePassword.as_view()),
     path('retrievable/', RetrievePasswordOperation.as_view()),
-    path('Renewable/', NewPassword.as_view()),
+    path('renewable/', NewPassword.as_view()),
 ]
 
 # 个人信息子路由
@@ -31,7 +34,7 @@ information_patterns = [
 
 urlpatterns = [
     path(f'{settings.URL_PREFIX}/auth/', include(auth_patterns)),
-    path(f'{settings.URL_PREFIX}/information', include(information_patterns)),
+    path(f'{settings.URL_PREFIX}/information/', include(information_patterns)),
 ]
 
 router = DefaultRouter()
