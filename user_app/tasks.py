@@ -4,7 +4,7 @@
 # @File : tasks.py
 # @Software: PyCharm
 
-from user_app.views.ali_card_ocr import Interface_identify
+from user_app.apis.ali_card_ocr import Interface_identify
 from Emall import celery_apps as app
 
 

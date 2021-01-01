@@ -25,7 +25,7 @@ class RegisterSerializer(serializers.Serializer):
 
         self.fields['password'] = serializers.CharField(required=True, max_length=20, validators=[DRFPasswordValidator()])  # 密码
         self.fields['email'] = serializers.EmailField(required=False)
-        self.fields['username'] = serializers.CharField(required=False, max_length=30, validators=[DRFUsernameValidator(), UniqueValidator(queryset=User.objects.all())])
+        self.fields['username'] = serializers.CharField(required=False, max_length=20, validators=[DRFUsernameValidator(), UniqueValidator(queryset=User.objects.all())])
         self.fields['phone'] = serializers.CharField(required=False, validators=[DRFPhoneValidator()])
         self.fields['code'] = serializers.CharField(max_length=6, required=False)  # 验证码
         self.fields['way'] = serializers.ChoiceField(choices=self.REGISTER_WAY)  # 登录方式

@@ -1,9 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from user_app.views.login_register_api import RegisterAPIView, LoginAPIView
-from user_app.views.personal_api import *
-from user_app.views.retrieve_pwd_api import RetrievePasswordOperation, NewPassword
+from user_app.apis.auth_api import RegisterAPIView, LoginAPIView
+from user_app.apis.personal_api import *
+from user_app.apis.retrieve_pwd_api import RetrievePasswordOperation, NewPassword
 
 app_name = 'user_app'
 
@@ -31,7 +31,7 @@ information_patterns = [
 
 urlpatterns = [
     path(f'{settings.URL_PREFIX}/auth/', include(auth_patterns)),
-    path(f'{settings.URL_PREFIX}/information', include(information_patterns)),
+    path(f'{settings.URL_PREFIX}/information/', include(information_patterns)),
 ]
 
 router = DefaultRouter()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time : 2020/5/8 18:37
 # @Author : 司云中
-# @File : views.py
+# @File : apis.py
 # @Software: PyCharm
 
 from django.shortcuts import render

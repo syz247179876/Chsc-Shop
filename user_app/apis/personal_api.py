@@ -58,7 +58,7 @@ class HeadImageOperation(GenericAPIView):
     def get_storage_class(self):
         return self.storage_class
 
-    def get_storage(self, *args, **kwargs):
+    def get_storage(self, **kwargs):
         """
         动态导入模块，生成storage实例对象
         :param args:
@@ -302,7 +302,7 @@ class AddressOperation(viewsets.ModelViewSet):
     # 将url和视图绑定
     # @method_decorator(login_required(login_url='consumer/login/'))
     @action(methods=['put'], detail=True)
-    def update_default_address(self, request, *args, **kwargs):
+    def update_default_address(self, request, **kwargs):
         """
         单修改默认地址
         以字典形式传过来的
@@ -624,89 +624,3 @@ class ShopCartOperation(GenericViewSet):
             return Response(response_code.add_goods_into_shop_cart_success)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # def context(self, instances, store_commodity_dict, commodity_and_store, commodity_and_price):
-    #     return {'instances': instances, 'serializer': self.get_serializer_class,
-    #             'context': {'store_and_commodity': store_commodity_dict,
-    #                         'commodity_and_store': commodity_and_store,
-    #                         'commodity_and_price': commodity_and_price}}
-
-#     @method_decorator(login_required(login_url='consumer/login/'))
-#     def get(self, request):
-#         """
-#         查询购物车相关商品GET请求
-#         格式如下：
-# {
-#     "page": 2,
-#     "data": [
-#         {
-#             "commodity_name": "旺仔牛奶",
-#             "grade": "四星好评",
-#             "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
-#             "reward_time": "2020-05-29T15:20:53",
-#             "price": 5,
-#             "category": "食品",
-#             "image": null
-#         },
-#         {
-#             "commodity_name": "鹿皮棉袄",
-#             "grade": "四星好评",
-#             "reward_content": "宝贝非常好，质量不错，下次继续买你家的，不过物流太慢了，好几天才到！",
-#             "reward_time": "2020-05-28T15:20:53",
-#             "price": 300,
-#             "category": "衣服",
-#             "image": null
-#         },
-#     ]
-# }
-#         """
-#
-#         try:
-#             user = request.user
-#             data = request.GET
-#             # retrieve information based on dict form and page(int)
-#             store_commodity_dict, price_commodity_dict, commodity_counts_dict, page = \
-#                 self.redis.get_shop_cart_id_and_page(user.pk, **data)
-#             # generate instances of store
-#             store_instances = self.get_serializer_class.get_stores(store_commodity_dict.keys())
-#             page = Page(page)
-#             # 这里序列化器嵌套调用
-#             serializer = self.get_ultimate_serializer_class(page,
-#                                                             context=self.context(store_instances, store_commodity_dict,
-#                                                                                  commodity_counts_dict,
-#                                                                                  price_commodity_dict))
-#             return Response(serializer.data)
-#         except Exception as e:
-#             consumer_logger.error(e)
-#             return Response(None)
-#
-#     # @method_decorator(login_required(login_url='consumer/login/'))
-#     # def post(self, request):
-#     #     """add new goods into shop cart under the account of consumer who send request"""
-#     #     pass
-#
-#     @method_decorator(login_required(login_url='consumer/login/'))
-#     def put(self, request):
-#         """修改购物车的商品的数量PUT请求"""
-#         user = request.user
-#         data = request.data
-#         is_success = self.redis.edit_one_good(user.pk, **data)
-#         if is_success:
-#             return Response(response_code.edit_shop_cart_good_success)
-#         else:
-#             return Response(response_code.edit_shop_cart_good_error)
-#
-#     @method_decorator(login_required(login_url='consumer/login/'))
-#     def delete(self, request):
-#         """删除商品DELETE请求"""
-#
-#         user = request.user
-#         data = request.data
-#
-#         # 单删
-#         is_success = self.redis.delete_one_good(user.pk, **data)
-#
-#         # 群删
-#         if is_success:
-#             return Response(response_code.delete_shop_cart_good_success)
-#         else:
-#             return Response(response_code.delete_shop_cart_good_error)

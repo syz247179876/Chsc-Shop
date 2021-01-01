@@ -11,7 +11,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from propel_app import routing
 
 application = ProtocolTypeRouter({
-    # (http->django views is added by default)
+    # (http->django apis is added by default)
     # 下面跟着不同协议路由,可以支持多个协议
     'websocket': AuthMiddlewareStack(
         URLRouter(
