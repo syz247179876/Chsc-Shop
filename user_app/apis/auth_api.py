@@ -38,12 +38,12 @@ class LoginAPIView(GenericAPIView):
         return context
 
     @staticmethod
-    def remember_username(response, is_remember, login_id):
+    def remember_username(response, is_remember, login_name):
         """设置cookie，本地暂存用户名1周"""
         if is_remember:
-            response.set_cookie('login_id', login_id, max_age=7 * 24 * 3600)
+            response.set_cookie('login_name', '22222', max_age=7 * 24 * 3600)
         else:
-            response.delete_cookie('login_id', login_id)
+            response.delete_cookie('login_name', '222222')
 
     @staticmethod
     def save_cookie(response, response_obj):
@@ -68,7 +68,7 @@ class LoginAPIView(GenericAPIView):
         # self.remember_username(response_obj, response.get('is_remember'),
         #                        response.pop('user').get_username())  # 设置cookie，记住用户名
         # # 将token存到response的cookie中，设置有效的日期
-        # self.save_cookie(response, response_obj)
+        self.save_cookie(response, response_obj)
         return response_obj
 
 

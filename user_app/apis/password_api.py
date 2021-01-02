@@ -9,6 +9,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
+
+from Emall.exceptions import NoBindPhone
 from Emall.response_code import response_code
 from universal_app.redis.retrieve_password_redis import RetrievePasswordRedis
 from user_app.redis.user_redis import RedisUserOperation
@@ -23,10 +25,9 @@ class RetrievePasswordOperation(GenericAPIView):
     serializer_class = RetrievePasswordSerializer
     redis_manager = BaseRedis.choice_redis_db('redis')
 
-
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({'redis_manager':self.redis_manager})
+        context.update({'redis_manager': self.redis_manager})
         return context
 
     def post(self, request):
@@ -58,6 +59,7 @@ class RetrievePasswordOperation(GenericAPIView):
         serializer.renew_password(serializer.validated_data)
         return Response(response_code.modify_password)
 
+
 class NewPassword(GenericAPIView):
     """更换新密码"""
 
@@ -68,7 +70,6 @@ class NewPassword(GenericAPIView):
         context = super().get_serializer_context()
         context.update({'redis': self.redis})
         return context
-
 
     def post(self, request):
         """
@@ -102,16 +103,19 @@ class ChangePassword(GenericAPIView):
         return self.request.user
 
     @property
-    def get_object_username(self):
+    def get_object_phone(self):
         """获取用户名"""
-        return f'find-password-{self.request.user.get_username()}'
+        if self.request.user.get_phone == '':
+            raise NoBindPhone()  # 用户绑定手机号
+        return self.request.user.get_phone
 
     def modify_password(self, user, validated_data):
         """改变用户的密码"""
+
         old_password = validated_data.get('old_password')
         new_password = validated_data.get('new_password')
         code = validated_data.get('code')
-        is_code_checked = self.redis.check_code(self.get_object_username, code)
+        is_code_checked = self.redis.check_code(self.get_object_phone, code)
         is_checked = user.check_password(old_password)  # 核查旧密码
         if not is_code_checked:
             # 验证码不正确
