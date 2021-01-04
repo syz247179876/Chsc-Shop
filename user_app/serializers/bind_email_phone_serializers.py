@@ -8,6 +8,7 @@ from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from Emall.exceptions import PhoneHasBeenBoundError, EmailHasBeenBoundError
 from Emall.loggings import Logging
 from user_app.utils.validators import DRFPhoneValidator
 
@@ -17,11 +18,12 @@ consumer_logger = Logging.logger('consumer_')
 
 User = get_user_model()
 
+
 class BindPhoneOrEmailSerializer(serializers.Serializer):
     old_phone = serializers.CharField(required=False, validators=[DRFPhoneValidator()])
     phone = serializers.CharField(required=False,
                                   max_length=11,
-                                  validators=[DRFPhoneValidator(), UniqueValidator(queryset=User.objects.all())]
+                                  validators=[DRFPhoneValidator()]
                                   )
     old_email = serializers.EmailField(required=False)
     email = serializers.EmailField(required=False,
@@ -29,7 +31,6 @@ class BindPhoneOrEmailSerializer(serializers.Serializer):
     code = serializers.CharField(required=True)
     is_existed = serializers.BooleanField()
     way = serializers.CharField()  # 绑定方式
-
 
     def validate_code(self, value):
         """验证码校验"""
@@ -41,6 +42,18 @@ class BindPhoneOrEmailSerializer(serializers.Serializer):
         """绑定功能方式校验"""
         if value.lower() not in ['email', 'phone']:
             raise serializers.ValidationError("方式必须在email和phone中选择")
+        return value
+
+    def validate_phone(self, value):
+        """校验手机号"""
+        if User.objects.filter(phone=value).count() > 0:
+            raise PhoneHasBeenBoundError()
+        return value
+
+    def validate_email(self, value):
+        """校验邮箱号"""
+        if User.objects.filter(email=value).count() > 0:
+            raise EmailHasBeenBoundError()
         return value
 
     def validate(self, attrs):

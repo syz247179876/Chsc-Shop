@@ -26,7 +26,7 @@ password_patterns = [
 # 个人信息子路由
 information_patterns = [
     path('password/', include(password_patterns)),
-    path('informatiom/', SaveInformation.as_view()),
+    path('detail/', SaveInformation.as_view()),
     path('binding/', BindEmailOrPhone.as_view()),
     path('identity/', VerifyIdCard.as_view()),
     path('head-image/', HeadImageOperation.as_view()),

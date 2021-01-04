@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 
-from Emall.exceptions import NoBindPhone
+from Emall.exceptions import NoBindPhone, CodeError, OldPasswordError, SqlServerError
 from Emall.response_code import response_code
 from universal_app.redis.retrieve_password_redis import RetrievePasswordRedis
 from user_app.redis.user_redis import RedisUserOperation
@@ -119,18 +119,16 @@ class ChangePassword(GenericAPIView):
         is_checked = user.check_password(old_password)  # 核查旧密码
         if not is_code_checked:
             # 验证码不正确
-            return Response(response_code.verification_code_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise CodeError()
         elif not is_checked:
             # 旧密码不正确
-            return Response(response_code.user_original_password_error,
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise OldPasswordError()
         else:
             user.set_password(new_password)  # 设置新密码
             try:
                 user.save(update_fields=["password"])
             except Exception:
-                return Response(response_code.modify_password_verification_error,
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                raise SqlServerError()
             else:
                 return Response(response_code.modify_password_verification_success, status=status.HTTP_200_OK)
 
