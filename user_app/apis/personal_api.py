@@ -19,6 +19,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from Emall.exceptions import UniversalServerError, OSSError, UserNotExists, SqlServerError, CodeError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
 from shop_app.models.commodity_models import Commodity
@@ -74,9 +75,9 @@ class HeadImageOperation(GenericAPIView):
         :return: instance
         """
         try:
-            return User.objects.get(user=self.request.user)
+            return self.request.user
         except User.DoesNotExist:
-            raise Http404
+            raise UserNotExists()
 
     def put(self, request):
         """修改头像"""
@@ -85,8 +86,7 @@ class HeadImageOperation(GenericAPIView):
         is_modify = serializer.update_head_image(self.get_object(), serializer.validated_data, self.get_storage())
         if is_modify:
             return Response(response_code.modify_head_image_success, status=status.HTTP_200_OK)
-        else:
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise OSSError()  # FastDFS 或者 第三方服务错误
 
 
 class SaveInformation(GenericAPIView):
@@ -112,7 +112,7 @@ class SaveInformation(GenericAPIView):
             self.get_object().save(update_fields=['username'])
         except Exception as e:
             consumer_logger.error(e)
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise UniversalServerError()
         else:
             return Response(response_code.user_infor_change_success, status=status.HTTP_200_OK)
 
@@ -179,10 +179,8 @@ class BindEmailOrPhone(GenericAPIView):
                 instance.save()
             except Exception as e:
                 consumer_logger.error(e)
-                return False
-            else:
-                return True
-        return False
+                raise SqlServerError()
+        raise CodeError() # 验证码校验错误
 
     def factory(self, way, validated_data, instance):
         """简单工厂管理手机号和邮箱的改绑"""
@@ -200,16 +198,15 @@ class BindEmailOrPhone(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         # 校验成功
         way = serializer.validated_data.get('way')
-        bind_success = self.factory(way, serializer.validated_data, request.user)
+        self.factory(way, serializer.validated_data, request.user)
         # 改绑成功
-        if bind_success:
-            return Response(response_code.bind_success, status=status.HTTP_200_OK)
-        # 改绑失败
-        return Response(response_code.bind_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(response_code.bind_success, status=status.HTTP_200_OK)
 
 
 class VerifyIdCard(GenericAPIView):
-    """OCR身份识别验证"""
+    """
+    OCR身份识别验证
+    """
 
     permission_classes = [IsAuthenticated]
 
@@ -223,10 +220,8 @@ class VerifyIdCard(GenericAPIView):
         """处理POST请求"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        is_update = serializer.update(self.get_object(), serializer.validated_data)
-        if is_update:
-            return Response(response_code.verify_id_card_success, status=status.HTTP_200_OK)
-        return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer.update(self.get_object(), serializer.validated_data)
+        return Response(response_code.verify_id_card_success, status=status.HTTP_200_OK)
 
 
 class AddressOperation(viewsets.ModelViewSet):

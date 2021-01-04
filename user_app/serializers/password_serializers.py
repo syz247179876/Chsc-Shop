@@ -11,8 +11,8 @@ from user_app.utils.validators import DRFPasswordValidator
 
 
 class PasswordSerializer(serializers.Serializer):
-    new_password = serializers.CharField(max_length=20, validators=[DRFPasswordValidator()])
-    old_password = serializers.CharField(max_length=20, validators=[DRFPasswordValidator()])
+    new_password = serializers.CharField(min_length=8, max_length=20, validators=[DRFPasswordValidator()])
+    old_password = serializers.CharField(min_length=8, max_length=20, validators=[DRFPasswordValidator()])
     code = serializers.CharField(max_length=6)  # 验证码
 
     def validate_code(self, value):

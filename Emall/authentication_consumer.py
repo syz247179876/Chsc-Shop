@@ -5,11 +5,11 @@
 # @Software: PyCharm
 
 import logging
-
+import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+
 from user_app.utils import validators
-from user_app.redis.user_redis import RedisUserOperation
 
 common_log = logging.getLogger('django')
 User = get_user_model()
@@ -33,6 +33,8 @@ class EmailOrUsername(ModelBackend):
             kwargs.pop('way')
             password = kwargs.pop('password')
             user = User.objects.get(**kwargs)
+            user.last_login=datetime.datetime.today()
+            user.save()
         except User.DoesNotExist: # 用户不存在
             return None
         else:                     # 密码错误
@@ -53,6 +55,8 @@ class Phone(ModelBackend):
             phone = kwargs.get('phone')
             if validators.phone_validate(phone):
                 user = User.objects.get(phone=phone)
+                user.last_login=datetime.datetime.today()
+                user.save()
             return user
         except User.DoesNotExist:
             return None

@@ -53,7 +53,6 @@ class RetrievePasswordSerializer(serializers.Serializer):
         ('2', '2')
     )
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -95,7 +94,6 @@ class RetrievePasswordSerializer(serializers.Serializer):
             return fields
         raise serializers.ValidationError('唯一凭证不正确')
 
-
     def validate(self, attrs):
         retrieve_key = attrs.get(self.RETRIEVE_KEY)
         way = attrs.get('way')
@@ -114,10 +112,7 @@ class RetrievePasswordSerializer(serializers.Serializer):
     def renew_password(self, validated_data):
         """设置新的密码"""
         hash_password = make_password(validated_data.pop('password'))
-        result = User.objects.filter(**validated_data).update(password=hash_password)
-        print(result)
-
-
+        User.objects.filter(**validated_data).update(password=hash_password)
 
 
 class NewPasswordSerializer(serializers.Serializer):

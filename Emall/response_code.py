@@ -246,6 +246,10 @@ ACQUIRE_COUPON_SUCCESS = 822
 
 ACQUIRE_COUPON_ERROR = 821
 
+# 修改密码成功
+
+MODIFY_PASSWORD_SUCCESS = 823
+
 
 class ResponseCode:
     result = {
@@ -662,10 +666,18 @@ class ResponseCode:
     def acquire_coupon_success(self):
         """获取优惠卷"""
         self.result.update(dict(code=ACQUIRE_COUPON_SUCCESS, msg='acquire_success', status='success'))
+        return self.result
 
     @property
     def acquire_coupon_error(self):
         """获取优惠卷"""
         self.result.update(dict(code=ACQUIRE_COUPON_ERROR, msg='acquire_error', status='error'))
+        return self.result
+
+    @property
+    def modify_password_success(self):
+        """修改密码成功"""
+        self.result.update(dict(code=MODIFY_PASSWORD_SUCCESS, msg='modify_success', status='success'))
+        return self.result
 
 response_code = ResponseCode()

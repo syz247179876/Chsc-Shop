@@ -179,7 +179,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     EMAIL_FIELD = 'email'
-    PHONE_FILED = 'phone'
+    PHONE_FIELD = 'phone'
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'phone']
 
@@ -198,6 +198,14 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         返回first
         """
         return self.full_name
+
+    @property
+    def get_phone(self):
+        """get phone for this User"""
+        phone = getattr(self, self.PHONE_FIELD)
+        if not phone:
+            return ''
+        return phone
 
     def head_images(self):
         # 这里添加一个防空判断
@@ -292,19 +300,19 @@ class Consumer(models.Model):
     @property
     def get_username(self):
         """get username for this User"""
-        user = getattr(self, self.USER_FIELD)
+        user = getattr(self.user, self.USER_FIELD)
         return user.get_username()
 
     @property
     def get_email(self):
         """get email for this User"""
-        user = getattr(self, self.USER_FIELD)
+        user = getattr(self.user, self.USER_FIELD)
         return user.get_email()
 
     @property
     def get_phone(self):
-        """get email for this User"""
-        phone = getattr(self, self.PHONE_FIELD)
+        """get phone for this User"""
+        phone = getattr(self.user, self.PHONE_FIELD)
         if not phone:
             return ''
         return phone

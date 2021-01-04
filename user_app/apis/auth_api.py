@@ -11,11 +11,15 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
+
+from Emall.exceptions import UserExists, CodeError, UniversalServerError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
 from user_app.redis.user_redis import RedisUserOperation
 from user_app.serializers.login_serializers import UserJwtLoginSerializer
 from user_app.serializers.register_serializers import RegisterSerializer
+from django.db import transaction
+from user_app.models import Consumer
 
 common_logger = Logging.logger('django')
 
@@ -38,12 +42,12 @@ class LoginAPIView(GenericAPIView):
         return context
 
     @staticmethod
-    def remember_username(response, is_remember, login_id):
+    def remember_username(response, is_remember, login_name):
         """设置cookie，本地暂存用户名1周"""
         if is_remember:
-            response.set_cookie('login_id', login_id, max_age=7 * 24 * 3600)
+            response.set_cookie('login_name', '22222', max_age=7 * 24 * 3600)
         else:
-            response.delete_cookie('login_id', login_id)
+            response.delete_cookie('login_name', '222222')
 
     @staticmethod
     def save_cookie(response, response_obj):
@@ -68,7 +72,7 @@ class LoginAPIView(GenericAPIView):
         # self.remember_username(response_obj, response.get('is_remember'),
         #                        response.pop('user').get_username())  # 设置cookie，记住用户名
         # # 将token存到response的cookie中，设置有效的日期
-        # self.save_cookie(response, response_obj)
+        self.save_cookie(response, response_obj)
         return response_obj
 
 
@@ -86,27 +90,33 @@ class RegisterAPIView(GenericAPIView):
         try:
             # 判断手机号是否注册，若没有，校验手机号
             self.User.objects.get(phone=phone)
-            return Response(response_code.user_existed, status=status.HTTP_400_BAD_REQUEST)
+            raise UserExists()
         except self.User.DoesNotExist:
             code_status = self.redis.check_code(phone, validated_data.get('code'))
             # 验证码错误或者过期
             if not code_status:
-                return Response(response_code.verification_code_error, status=status.HTTP_400_BAD_REQUEST)
+                raise CodeError()
         except Exception as e:
             consumer_logger.error('register_phone_error:{}'.format(e))
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise UniversalServerError()
 
         # 验证码正确，手机号尚未使用
         try:
-            self.User.objects.create_consumer(
-                password=validated_data.get('password'),
-                username=f"用户:{phone}",
-                phone=phone,
-            )
+            current_day = datetime.today()
+            with transaction.atomic():
+                user = self.User.objects.create_consumer(
+                    password=validated_data.get('password'),
+                    username=f"用户:{phone}",
+                    phone=phone,
+                    last_login=current_day
+                )
+                Consumer.consumer_.create(
+                    user=user
+                )
             # 使用jwt登录，跳转到登录界面
         except Exception as e:
             consumer_logger.error('register_email_create_error:{}'.format(e))
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise UniversalServerError()
         else:
             return Response(response_code.register_success)
 
@@ -117,23 +127,29 @@ class RegisterAPIView(GenericAPIView):
         try:
             # 判断邮箱是否已注册，若没有，校验手机号
             self.User.objects.get(email=email)
-            return Response(response_code.user_existed, status=status.HTTP_400_BAD_REQUEST)
+            raise UserExists()
         except self.User.DoesNotExist:
             code_status = self.redis.check_code(email, validated_data.get('code'))
             # 验证码错误或者过期
             if not code_status:
-                return Response(response_code.verification_code_error, status=status.HTTP_400_BAD_REQUEST)
+                raise CodeError()
 
         # 验证码正确，邮箱尚未使用
         try:
-            self.User.objects.create_consumer(
-                password=validated_data.get('password'),
-                username=username,
-                email=email,
-            )
+            current_day = datetime.today()
+            with transaction.atomic():
+                user = self.User.objects.create_consumer(
+                    password=validated_data.get('password'),
+                    username=username,
+                    email=email,
+                    last_login=current_day
+                )
+                Consumer.consumer_.create(
+                    user=user
+                )
         except Exception as e:
             consumer_logger.error('register_email_create_error:{}'.format(e))
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return UniversalServerError()
         return Response(response_code.register_success)
 
     def factory(self, validated_data):
