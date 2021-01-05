@@ -18,7 +18,7 @@ class UniversalServerError(APIException):
 class SqlServerError(APIException):
     """数据库错误"""
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = _('数据库产生错误')
+    default_detail = _('数据不匹配')
     default_code = 'SQL Server Error'
 
 
@@ -123,8 +123,15 @@ class OSSError(ThirdServiceBase):
 class IdentifyError(ThirdServiceBase):
     """身份证识别异常"""
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    default_detail = _('身份证服务异常')
-    default_code = 'OSS Error'
+    default_detail = _('身份校验服务异常')
+    default_code = 'OCR Error'
+
+
+class IdentifyExistError(APIException):
+    """身份证已经被校验过"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('身份证已经被校验过')
+    default_code = 'OCR has been validated'
 
 
 class AddressError(ThirdServiceBase):
@@ -140,6 +147,42 @@ class FileError(APIException):
     default_detail = _('文件操作异常')
     default_code = 'File Operation Error'
 
+
 class FileExistedException(FileError):
+    """文件已经存在"""
     pass
 
+
+class UploadFileOSSError(FileError):
+    """文件上传失败"""
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _('文件上传异常')
+    default_code = 'File Upload Error'
+
+
+class DeleteFileOSSError(FileError):
+    """删除文件失败"""
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _('删除文件失败')
+    default_code = 'File Delete Error'
+
+
+class ModifyFileOSSError(FileError):
+    """修改文件异常"""
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _('修改文件失败')
+    default_code = 'File Modify Error'
+
+
+class DownLoadOSSError(FileError):
+    """获取文件异常"""
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _('获取文件失败')
+    default_code = 'Retrieve File Error'
+
+
+class DataFormatError(APIException):
+    """数据格式非法"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('数据格式非法')
+    default_code = 'Data Format Error'

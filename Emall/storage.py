@@ -3,10 +3,15 @@
 # @Author : 司云中
 # @File : storage.py
 # @Software: Pycharm
+import os
+
 import oss2 as oss2
 from django.core.files import File
 from django.core.files.storage import Storage
 from django.conf import settings
+from oss2.exceptions import NoSuchBucket, InvalidArgument
+
+from Emall.exceptions import UploadFileOSSError, DeleteFileOSSError
 from Emall.loggings import Logging
 from Emall.settings import FDFS_URL, FDFS_CLIENT_CONF
 from django.utils.deconstruct import deconstructible
@@ -47,10 +52,9 @@ class FastDfsStorage(Storage):
         """
         return self._open(name, mode)
 
-    def _save(self, name, content):
+    def _save(self, content):
         """
         存储文件到FastDfs上
-        :param name:  文件名（无卵用)
         :param content: 打开的file对象
         :return:
         """
@@ -72,8 +76,8 @@ class FastDfsStorage(Storage):
         if not hasattr(content, 'chunks'):
             content = File(content, name)
 
-        name = self.get_available_name(name, max_length=max_length)  # 截取固定大小的文件名长度
-        return self._save(name, content)
+        # name = self.get_available_name(name, max_length=max_length)  # 截取固定大小的文件名长度
+        return self._save(content)
 
     def update(self, filebuffer, remote_file_id):
         """
@@ -101,7 +105,6 @@ class FastDfsStorage(Storage):
         保存文件时回调的函数
         保存在FastDfs中
         通过client来操作
-        :param name: 文件名
         :param filebuffer: 文件内容（二进制）
         :param meta_dict: dictionary e.g.:{
             'ext_name'  : 'jpg',
@@ -124,7 +127,7 @@ class FastDfsStorage(Storage):
                 raise Exception
             return True, ret_upload
             # file_name为bytes类型，只能返回str类型，不然会报错
-        except Exception as e:
+        except Exception:
             return False, None
 
     def url(self, name):
@@ -159,7 +162,7 @@ class FastDfsStorage(Storage):
         try:
             ret_download = self.client.download_to_file(local_path, remote_file_id)
             return True, ret_download
-        except Exception as e:
+        except Exception:
             return False, None
 
     def download_to_buffer(self, remote_file_id, offset=0, down_bytes=0):
@@ -179,7 +182,7 @@ class FastDfsStorage(Storage):
         try:
             ret_download = self.client.download_to_buffer(remote_file_id, offset, down_bytes)
             return True, ret_download
-        except Exception as e:
+        except Exception:
             return False, None
 
     def modify_by_buffer(self, filebuffer, appender_fileid, offset=0):
@@ -197,7 +200,7 @@ class FastDfsStorage(Storage):
         try:
             ret_modify = self.client.modify_by_buffer(filebuffer, appender_fileid, offset)
             return True, ret_modify
-        except Exception as e:
+        except Exception:
             return False, None
 
     def delete(self, remote_file_id):
@@ -209,13 +212,14 @@ class FastDfsStorage(Storage):
         try:
             ret_delete = self.client.delete_file(remote_file_id)
             return True, ret_delete
-        except Exception as e:
+        except Exception:
             return False, None
+
 
 class OSS(object):
     """操作OSS对象存储,上传文件"""
 
-    def __init__(self, app=None, config=None):
+    def __init__(self, config=None):
         self.config = config
         self.bucket = None
         self.auth = None
@@ -254,10 +258,10 @@ class OSS(object):
         filename = self.filename(file)
         related_path = self.file_related_path(filename, folder)
         outer_net = self.outer_net(related_path)
-        is_existed = self.bucket.object_exists(related_path)
-
-        if is_existed:  # 文件已经存在, 可以无需此功能
-            raise FileExistedException()
+        # is_existed = self.bucket.object_exists(related_path)
+        #
+        # if is_existed:  # 文件已经存在, 可以无需此功能
+        #     raise FileExistedException()
         try:
             result = self.bucket.put_object(related_path, self.get_buffer(file))
             if result.status == 200:
@@ -318,4 +322,3 @@ class OSS(object):
         :return: buffer
         """
         return file.stream.read()
-

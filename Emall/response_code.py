@@ -461,49 +461,49 @@ class ResponseCode:
     @property
     def address_add_success(self):
         """add new address successfully"""
-        self.result.update(dict(code=ADD_ADDRESS_SUCCESS, msg='add_address', stuats='success'))
+        self.result.update(dict(code=ADD_ADDRESS_SUCCESS, msg='add_address', status='success'))
         return self.result
 
     @property
     def address_add_error(self):
         """fail to add new address"""
-        self.result.update(dict(code=ADD_ADDRESS_ERROR, msg='add_error', stuats='error'))
+        self.result.update(dict(code=ADD_ADDRESS_ERROR, msg='add_error', status='error'))
         return self.result
 
     @property
     def modify_address_success(self):
         """modify new address successfully"""
-        self.result.update(dict(code=MODIFY_ADDRESS_SUCCESS, msg='modify_address', stuats='success'))
+        self.result.update(dict(code=MODIFY_ADDRESS_SUCCESS, msg='modify_address', status='success'))
         return self.result
 
     @property
     def modify_address_error(self):
         """fail to modify address """
-        self.result.update(dict(code=MODIFY_ADDRESS_ERROR, msg='modify_error', stuats='error'))
+        self.result.update(dict(code=MODIFY_ADDRESS_ERROR, msg='modify_error', status='error'))
         return self.result
 
     @property
     def modify_default_success(self):
         """modify address successfully"""
-        self.result.update(dict(code=MODIFY_DEFAULT_SUCCESS, msg='modify_success', stuats='success'))
+        self.result.update(dict(code=MODIFY_DEFAULT_SUCCESS, msg='modify_success', status='success'))
         return self.result
 
     @property
     def modify_default_error(self):
         """fail to modify address """
-        self.result.update(dict(code=MODIFY_DEFAULT_ERROR, msg='modify_error', stuats='error'))
+        self.result.update(dict(code=MODIFY_DEFAULT_ERROR, msg='modify_error', status='error'))
         return self.result
 
     @property
     def delete_address_success(self):
         """delete address successfully"""
-        self.result.update(dict(code=DELETE_ADDRESS_SUCCESS, msg='delete_success', stuats='success'))
+        self.result.update(dict(code=DELETE_ADDRESS_SUCCESS, msg='delete_success', status='success'))
         return self.result
 
     @property
     def delete_address_error(self):
         """fail to delete address """
-        self.result.update(dict(code=DELETE_ADDRESS_ERROR, msg='delete_error', stuats='error'))
+        self.result.update(dict(code=DELETE_ADDRESS_ERROR, msg='delete_error', status='error'))
         return self.result
 
     @property

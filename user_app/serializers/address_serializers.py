@@ -3,7 +3,7 @@
 # @Author : 司云中 
 # @File : address_serializers.py
 # @Software: PyCharm
-
+from Emall.exceptions import SqlServerError
 from user_app.models import Address
 from django.db import transaction, DatabaseError
 from Emall.loggings import Logging
@@ -27,7 +27,7 @@ class AddressSerializers(serializers.ModelSerializer):
         address_ = queryset.count()
         try:
             default_address = True if address_ == 0 else False
-            address = self.Meta.model.address_.create(
+            self.Meta.model.address_.create(
                 user=instance,
                 default_address=default_address,
                 recipients=validated_data['recipients'],
@@ -37,49 +37,37 @@ class AddressSerializers(serializers.ModelSerializer):
             )
         except Exception as e:
             consumer_logger.error(e)
-            return None
-        else:
-            return address
+            raise SqlServerError()
 
     @staticmethod
     def update_default_address(queryset, pk):
         """修改默认地址"""
         try:
-            if int(pk) <= 0:
-                raise serializers.ValidationError({'pk': ['必须为正整数']})
             # 开启事务
             with transaction.atomic():
                 addresses = queryset
                 addresses.filter(default_address=True).update(default_address=False)  # 全置为False
                 addresses.filter(pk=pk).update(default_address=True)  # 重设默认地址
-                return True
         except DatabaseError:
-            return False
+            raise SqlServerError()
 
     def update_address(self, queryset, validated_data, pk):
         """修改地址"""
-        if int(pk) < 0:
-            raise serializers.ValidationError({'pk': ['必须为正整数']})
-        instance = queryset.get(pk=pk)
-        for key, value in validated_data.items():
-            setattr(instance, key, value)
+
         try:
+            instance = queryset.get(pk=pk)
+            for key, value in validated_data.items():
+                setattr(instance, key, value)
             instance.save()
         except Exception as e:
             consumer_logger.error(e)
-            return False
-        else:
-            return True
+            raise SqlServerError()
 
     @staticmethod
     def delete_address(queryset, pk):
         """删除某个选定的地址"""
-        if int(pk) < 0:
-            raise serializers.ValidationError({'pk': ['必须为正整数']})
         try:
             queryset.get(pk=pk).delete()
         except Address.DoesNotExist as e:
             consumer_logger.error(e)
-            return False
-        else:
-            return True
+            raise SqlServerError()
