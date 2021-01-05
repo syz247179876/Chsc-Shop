@@ -124,7 +124,6 @@ class SaveInformation(GenericAPIView):
         return Response(serializer.data)
 
 
-
 class BindEmailOrPhone(GenericAPIView):
     """
     绑定（改绑）用户邮箱或者手机号
@@ -181,7 +180,7 @@ class BindEmailOrPhone(GenericAPIView):
             except Exception as e:
                 consumer_logger.error(e)
                 raise SqlServerError()
-        raise CodeError() # 验证码校验错误
+        raise CodeError()  # 验证码校验错误
 
     def factory(self, way, validated_data, instance):
         """简单工厂管理手机号和邮箱的改绑"""
@@ -256,7 +255,7 @@ class AddressOperation(viewsets.ModelViewSet):
         if not re.match('^[1-9]\d{0,1}$', pk):
             raise DataFormatError()  # 数据格式非法
         self.get_serializer_class().update_default_address(self.get_queryset(), pk)
-        return Response(response_code.modify_default_success, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     # @method_decorator(login_required(login_url='consumer/login/'))
     def update(self, request, *args, **kwargs):
@@ -292,7 +291,6 @@ class AddressOperation(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
 
 
 class FavoriteOperation(GenericViewSet):
@@ -576,4 +574,3 @@ class ShopCartOperation(GenericViewSet):
         if is_created:
             return Response(response_code.add_goods_into_shop_cart_success)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
