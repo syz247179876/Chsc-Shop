@@ -5,6 +5,7 @@
 # @Software: PyCharm
 import datetime
 import importlib
+import re
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -19,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from Emall.exceptions import UniversalServerError, OSSError, UserNotExists, SqlServerError, CodeError
+from Emall.exceptions import UniversalServerError, OSSError, UserNotExists, SqlServerError, CodeError, DataFormatError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
 from shop_app.models.commodity_models import Commodity
@@ -251,18 +252,22 @@ class AddressOperation(viewsets.ModelViewSet):
         单修改默认地址
         以字典形式传过来的
         """
-        if self.get_serializer_class().update_default_address(self.get_queryset(), kwargs.get('pk')):
-            return Response(response_code.modify_default_success, status=status.HTTP_200_OK)
-        return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        pk = kwargs.get('pk')
+        if not re.match('^[1-9]\d{0,1}$', pk):
+            raise DataFormatError()  # 数据格式非法
+        self.get_serializer_class().update_default_address(self.get_queryset(), pk)
+        return Response(response_code.modify_default_success, status=status.HTTP_200_OK)
 
     # @method_decorator(login_required(login_url='consumer/login/'))
     def update(self, request, *args, **kwargs):
         """单修改地址信息"""
+        pk = kwargs.get('pk')
+        if not re.match('^[1-9]\d{0,1}$', pk):
+            raise DataFormatError()  # 数据格式非法
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if serializer.update_address(self.get_queryset(), serializer.validated_data, kwargs.get('pk')):
-            return Response(response_code.modify_address_success, status=status.HTTP_200_OK)
-        return Response(response_code.modify_default_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer.update_address(self.get_queryset(), serializer.validated_data, pk)
+        return Response(response_code.modify_address_success, status=status.HTTP_200_OK)
 
     # 默认与post绑定，反射到post=>post映射到create
     # @method_decorator(login_required(login_url='consumer/login/'))
@@ -270,20 +275,24 @@ class AddressOperation(viewsets.ModelViewSet):
         """单添加地址"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if serializer.add_or_edit_address(self.get_queryset(), request.user, serializer.validated_data):
-            return Response(response_code.address_add_success, status=status.HTTP_200_OK)
-        return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer.add_or_edit_address(self.get_queryset(), request.user, serializer.validated_data)
+        return Response(response_code.address_add_success, status=status.HTTP_200_OK)
 
     # @method_decorator(login_required(login_url='consumer/login/'))
     def destroy(self, request, *args, **kwargs):
         """单删除地址DELETE请求"""
-        if self.get_serializer_class().delete_address(self.get_queryset(), kwargs.get('pk')):
-            return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
-        return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        pk = kwargs.get('pk')
+        if not re.match('^[1-9]\d{0,1}$', pk):
+            raise DataFormatError()  # 数据格式非法
+        self.get_serializer_class().delete_address(self.get_queryset(), pk)
+        return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
 
     def list(self, request, *args, **kwargs):
         """查看收货地址"""
-        # TODO
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 
 class FavoriteOperation(GenericViewSet):

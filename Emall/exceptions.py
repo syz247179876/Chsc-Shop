@@ -18,7 +18,7 @@ class UniversalServerError(APIException):
 class SqlServerError(APIException):
     """数据库错误"""
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = _('数据库产生错误')
+    default_detail = _('数据不匹配')
     default_code = 'SQL Server Error'
 
 
@@ -180,3 +180,9 @@ class DownLoadOSSError(FileError):
     default_detail = _('获取文件失败')
     default_code = 'Retrieve File Error'
 
+
+class DataFormatError(APIException):
+    """数据格式非法"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('数据格式非法')
+    default_code = 'Data Format Error'
