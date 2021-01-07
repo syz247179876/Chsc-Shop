@@ -20,6 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from Emall.drf_validators import validate_address_pk, validate_foot_pk
 from Emall.exceptions import UniversalServerError, OSSError, UserNotExists, SqlServerError, CodeError, DataFormatError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
@@ -252,7 +253,7 @@ class AddressOperation(viewsets.ModelViewSet):
         以字典形式传过来的
         """
         pk = kwargs.get('pk')
-        if not re.match('^[1-9]\d{0,1}$', pk):
+        if not validate_address_pk(pk):
             raise DataFormatError()  # 数据格式非法
         self.get_serializer_class().update_default_address(self.get_queryset(), pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -261,7 +262,7 @@ class AddressOperation(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """单修改地址信息"""
         pk = kwargs.get('pk')
-        if not re.match('^[1-9]\d{0,1}$', pk):
+        if not validate_address_pk(pk):
             raise DataFormatError()  # 数据格式非法
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -281,7 +282,7 @@ class AddressOperation(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """单删除地址DELETE请求"""
         pk = kwargs.get('pk')
-        if not re.match('^[1-9]\d{0,1}$', pk):
+        if not validate_address_pk(pk):
             raise DataFormatError()  # 数据格式非法
         self.get_serializer_class().delete_address(self.get_queryset(), pk)
         return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
@@ -415,6 +416,7 @@ class FavoriteOperation(GenericViewSet):
         obj = self.get_object()
         is_deleted, delete_dict = obj.delete()
         if is_deleted:
+            # 发送删除收藏夹商品的信号
             delete_favorites.send(
                 sender=Collection,
                 user=self.request.user,
@@ -444,7 +446,7 @@ class FavoriteOperation(GenericViewSet):
 class FootOperation(GenericViewSet):
     """浏览足迹处理"""
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     redis = FootRedisOperation.choice_redis_db('redis')
 
@@ -468,6 +470,7 @@ class FootOperation(GenericViewSet):
         page = self.request.query_params.get(self.pagination_class.page_query_param, 1)  # 默认使用第一页
         # 按照固定顺序查询固定范围内的商品pk列表
         commodity_dict = self.redis.get_foot_commodity_id_and_page(self.request.user.pk, page=page, page_size=page_size)
+        print(commodity_dict)
         setattr(self, 'commodity_dict', commodity_dict)
         ordering = 'FIELD(`id`,{})'.format(','.join((str(pk) for pk in commodity_dict.keys())))
         return Commodity.commodity_.filter(pk__in=commodity_dict.keys()).extra(select={"ordering": ordering},
@@ -480,10 +483,10 @@ class FootOperation(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.redis.add_foot_commodity_id(user.pk, serializer.validated_data)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"OK"}, status=status.HTTP_204_NO_CONTENT)
 
     # @method_decorator(cache_page(30, cache='redis'))
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
         """
         处理某用户固定数量的足迹
         """
@@ -497,21 +500,23 @@ class FootOperation(GenericViewSet):
             return Response(serializer.data)
         except Exception as e:
             consumer_logger.error(e)
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise UniversalServerError()
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, **kwargs):
         """删除一条记录"""
         user = request.user
         pk = kwargs.get('pk')
+        if not validate_foot_pk(pk):
+            raise DataFormatError()
         self.redis.delete_foot_commodity_id(user.pk, commodity_id=pk)
-        return Response(status=status.HTTP_204_NO_CONTENT)  # 删完前端刷新就行了
+        return Response({"OK"}, status=status.HTTP_204_NO_CONTENT)  # 删完前端刷新就行了
 
-    @action(methods=['delete'], detail=True)
-    def destroy_all(self, request, *args, **kwargs):
+    @action(methods=['delete'], detail=False)
+    def destroy_all(self, request):
         """删除全部记录"""
         user = request.user
         self.redis.delete_foot_commodity_id(user.pk, is_all=True)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"OK"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ShopCartOperation(GenericViewSet):
@@ -536,7 +541,7 @@ class ShopCartOperation(GenericViewSet):
     def get_delete_queryset(self, pk_list):
         return self.get_model_class().trolley_.filter(user=self.request.user, pk__in=pk_list)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
         """显示购物车列表"""
 
         queryset = self.get_queryset()
@@ -547,7 +552,7 @@ class ShopCartOperation(GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request):
         """单删购物车中的商品"""
         obj = self.get_object()
         row_counts, delete_dict = obj.delete()
@@ -556,7 +561,7 @@ class ShopCartOperation(GenericViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['delete'], detail=False)
-    def destroy_many(self, request, *args, **kwargs):
+    def destroy_many(self, request):
         """群删购物车中的商品"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -566,7 +571,7 @@ class ShopCartOperation(GenericViewSet):
             return Response(response_code.delete_shop_cart_good_success)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request):
         """添加商品到购物车"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

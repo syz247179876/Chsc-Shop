@@ -7,6 +7,7 @@ import datetime
 import time
 
 from Emall.base_redis import BaseRedis, manager_redis
+from Emall.exceptions import RedisOperationError
 from Emall.loggings import Logging
 
 common_logger = Logging.logger('django')
@@ -41,10 +42,12 @@ class FootRedisOperation(BaseRedis):
 
     @property
     def score(self):
-        """设置足迹有序集合中对应键的分数值"""
-        return int('%s%d' % (''.join(datetime.datetime.now().strftime('%Y-%m-%d').split('-')),int(time.time())))
+        """
+        设置足迹有序集合中对应键的分数值
+        202101071610024776
+        """
 
-
+        return int('%s%d' % (''.join(datetime.datetime.now().strftime('%Y-%m-%d').split('-')), int(time.time())))
 
     def get_foot_commodity_id_and_page(self, user_id, **kwargs):
         """
@@ -64,7 +67,7 @@ class FootRedisOperation(BaseRedis):
                 return commodity_dict
             except Exception as e:
                 consumer_logger.error(e)
-                return None
+                raise RedisOperationError()
 
     def add_foot_commodity_id(self, user_id, validated_data):
         """
@@ -88,8 +91,7 @@ class FootRedisOperation(BaseRedis):
                 return True
             except Exception as e:
                 consumer_logger.error(e)
-                return False
-
+                raise RedisOperationError()
 
     def delete_foot_commodity_id(self, user_id, **kwargs):
         """
@@ -102,11 +104,10 @@ class FootRedisOperation(BaseRedis):
             try:
                 key = self.key('foot', user_id)
                 if kwargs.get('is_all', None):  # 是否删除所有足迹
-                    commodity_id = kwargs.get('commodity_id')
-                    delete_counts = redis.zrem(key, commodity_id)  # 移除zset中某商品号元素
+                    redis.delete(key)  # 删除全部的记录
                 else:
-                    delete_counts = redis.delete(key)  # 删除全部的记录
-                return True if delete_counts else False
+                    commodity_id = kwargs.get('commodity_id')
+                    redis.zrem(key, commodity_id)  # 移除zset中某商品号元素
             except Exception as e:
                 consumer_logger.error(e)
-                return False
+                raise RedisOperationError()

@@ -63,6 +63,10 @@ class RetrievePasswordSerializer(serializers.Serializer):
         self.fields['password'] = serializers.CharField(min_length=8, max_length=20, required=False)
 
     def key(self, redis_manager, **attrs):
+        """
+        设计键名
+        way-phone/email-ip-mac
+        """
         return redis_manager.key(attrs.get('way'), attrs.get(self.RETRIEVE_KEY), retrieve_ip(self), retrieve_mac(self))
 
     def first_step(self, redis_manager, **attrs):

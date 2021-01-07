@@ -186,3 +186,10 @@ class DataFormatError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _('数据格式非法')
     default_code = 'Data Format Error'
+
+
+class RedisOperationError(APIException):
+    """Redis服务错误"""
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = _('内存数据库异常')
+    default_code = 'Redis Error'

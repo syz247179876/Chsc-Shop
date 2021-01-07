@@ -24,3 +24,20 @@ class DRFBaseValidator:
         )
         if not isinstance(value, self.type) or not getattr(re, self.re_method)(self.regex, value):
             raise serializers.ValidationError(self.message)
+
+
+def validate_address_pk(value):
+    """
+    校验url中的关于address的pk字段
+    一个用户只允许上限10个地址
+    """
+    return True if re.match('^[1-9]{0,1}$', value) else False
+
+
+def validate_foot_pk(value):
+    """
+    校验url中的关于foot的pk字段
+    商品id允许上限15位数
+    """
+    return True if re.match('^[1-9]\d{0,15}$', value) else False
+
