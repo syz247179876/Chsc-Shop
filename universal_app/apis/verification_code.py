@@ -3,6 +3,8 @@
 # @Author : 司云中
 # @File : verification_code.py
 # @Software: PyCharm
+
+"""兼容不使用第三方服务短信模板的情况"""
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.generics import GenericAPIView

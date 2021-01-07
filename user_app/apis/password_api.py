@@ -55,7 +55,6 @@ class RetrievePasswordOperation(GenericAPIView):
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        print(serializer.validated_data)
         serializer.renew_password(serializer.validated_data)
         return Response(response_code.modify_password)
 

@@ -24,7 +24,8 @@ class FootSerializer(serializers.ModelSerializer):
         return timestamp_dict.get(obj.pk)
 
     def validate_pk(self, value):
-        if not Commodity.commodity_.all().exists():
+        """校验pk字段是否存在   """
+        if not Commodity.commodity_.filter(pk=value).exists():
             raise serializers.ValidationError('商品信息无效')
         return value
 
