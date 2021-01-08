@@ -6,10 +6,12 @@
 import contextlib
 
 from django_redis import get_redis_connection
+
+from Emall.exceptions import RedisOperationError
 from Emall.settings import REDIS_SECRET
 from Emall.loggings import Logging
 
-common_logger = Logging.logger('django')
+redis_logger = Logging.logger('redis_')
 
 
 class BaseRedis:
@@ -25,6 +27,7 @@ class BaseRedis:
         """
         选择配置中指定的数据库
         单例模式，减小new实例的大量创建的次数，减少内存等资源的消耗（打开和关闭连接），共享同一个资源
+        :return cls
         """
 
         if not cls._instance.setdefault(cls.__name__, None):
@@ -62,7 +65,7 @@ class BaseRedis:
         :param value: value from outside
         :return: bool
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             if redis is None:
                 return False
             elif redis.exists(key):
@@ -78,8 +81,8 @@ class BaseRedis:
         :param key: key maybe in redis?
         :return: bool
         """
-        with manager_redis(self.db) as redis:
-            if redis is None:   # 后期改异常抛出
+        with manage_redis(self.db) as redis:
+            if redis is None:  # 后期改异常抛出
                 return False
             elif redis.exists(key):
                 return True
@@ -95,7 +98,7 @@ class BaseRedis:
         :return: bool
         """
 
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             if redis is None:
                 return False
             redis.setex(key, time, code)  # 原子操作，设置键和存活时间
@@ -108,7 +111,7 @@ class BaseRedis:
         :param key: key of redis
         :return: int
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             if redis is None:
                 return False
             redis.ttl(key)
@@ -116,23 +119,32 @@ class BaseRedis:
     @staticmethod
     def get_client_ip(request):
 
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR') # 真实IP
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR', None)  # 真实IP
         if x_forwarded_for:
-           ip = x_forwarded_for.split(',')[-1].strip()
+            ip = x_forwarded_for.split(',')[-1].strip()
         else:
-           ip = request.META.get('REMOTE_ADDR')   # 代理IP,如果没有代理,也是真实IP
+            ip = request.META.get('REMOTE_ADDR')  # 代理IP,如果没有代理,也是真实IP
         return ip
 
 
-
 @contextlib.contextmanager
-def manager_redis(db, redis_class=BaseRedis, redis=None):
+def manage_redis(db, redis_class=BaseRedis, redis=None):
     try:
         # redis = get_redis_connection(db)  # redis实例链接
         redis = redis_class.choice_redis_db(db).redis
         yield redis
     except Exception as e:
-        common_logger.info(e)
+        redis_logger.error(e)
+        raise RedisOperationError()
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
 
+
+@contextlib.contextmanager
+def redis_manager(db, redis_class=BaseRedis):
+    try:
+        redis_manager = redis_class.choice_redis_db(db)
+        yield redis_manager
+    except Exception as e:
+        redis_logger.error(e)
+        raise RedisOperationError()

@@ -3,15 +3,13 @@
 # @Author : 司云中
 # @File : individual_info_serializers.py
 # @Software: Pycharm
-from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
-from Emall.exceptions import OSSError, SqlServerError
+from Emall.exceptions import SqlServerError, IdentifyError, IdentifyExistError
+from user_app.utils.ali_card_ocr import Interface_identify
 from user_app.utils.validators import DRFUsernameValidator
-from user_app.tasks import ocr
 from Emall.loggings import Logging
 
 common_logger = Logging.logger('django')
@@ -93,13 +91,15 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
         OCR识别身份正反
         验证阶段验证身份信息是否正确或是否已被验证
         """
-        if self.context.get('request').user.full_name != '':
+        if self.context.get('request').user.full_name is not None:
             raise serializers.ValidationError('身份已被认证过！')
-        identify_instance_face = ocr.apply_async(args=(attrs.get('face'), 'face'))  # 扔到任务队列中调度
-        identify_instance_back = ocr.apply_async(args=(attrs.get('back'), 'face'))
-        # identify_instance_face = Interface_identify(attrs.get('face'), 'face')
-        # identify_instance_back = Interface_identify(attrs.get('back'), 'back')
-        is_success = identify_instance_face.get() and identify_instance_back.get()  #    检查身份验证是否全部正确
+
+        # identify_instance_face = ocr.apply_async(args=(attrs.get('face').read().decode(), 'face'))  # 扔到任务队列中调度
+        # identify_instance_back = ocr.apply_async(args=(attrs.get('back').read().decode(), 'back'))
+        identify_instance_face = Interface_identify(attrs.get('face'), 'face')
+        identify_instance_back = Interface_identify(attrs.get('back'), 'back')
+        # is_success = identify_instance_face.is() and identify_instance_back.get()  #    检查身份验证是否全部正确
+        is_success = identify_instance_face.is_success and identify_instance_back.is_success
         if is_success:
             ocr_attrs = {
                 'full_name': identify_instance_face.get_detail('actual_name'),
@@ -108,10 +108,10 @@ class VerifyIdCardSerializer(serializers.ModelSerializer):
                 # 'nationality': identify_instance_face.get_detail('nationality')
             }
             if User.objects.filter(full_name=identify_instance_face.get_detail('actual_name')).count() == 1:
-                raise serializers.ValidationError('身份证已被认证过！')
+                raise IdentifyExistError()
             else:
                 return ocr_attrs
-        raise serializers.ValidationError('身份校验异常')
+        raise IdentifyError()
 
     def update(self, instance, validated_data):
         """更新身份信息"""

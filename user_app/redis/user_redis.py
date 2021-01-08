@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : user_redis.py
 # @Software: PyCharm
-from Emall.base_redis import BaseRedis, manager_redis
+from Emall.base_redis import BaseRedis, manage_redis
 from Emall.loggings import Logging
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -47,7 +47,7 @@ class Add_Get_Browsing_History(APIView):
 
     def get_history(self, id, page):
         """Gets 10 browsing histories of the target user """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             try:
                 history_list = redis.lrange(id, page * 10, (page + 1) * 10)
                 history_counts = redis.llen(id)
@@ -57,7 +57,7 @@ class Add_Get_Browsing_History(APIView):
 
     def add_history(self, id, commodity):
         """append one browsing history for target user"""
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             try:
                 redis.lpush(id, commodity)
             except Exception as e:
@@ -114,19 +114,19 @@ class UserStatistic(APIView):
 
     def add_count(self, key):
         """add one count when user login"""
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             key = self.get_key
             redis.incr(key, 1)
 
     def get_visit_counts(self, key):
         """statistic the number of users intraday"""
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             counts = redis.get(key)
             return counts
 
     def get_online_counts(self, key=None):
         """statistic the number of users who online"""
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             if not key:
                 key = 'online'
             counts = redis.get(key)

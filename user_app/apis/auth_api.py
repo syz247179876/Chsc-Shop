@@ -6,8 +6,9 @@
 
 
 from datetime import datetime
+
 from django.contrib.auth import get_user_model
-from rest_framework import status
+from django.db import transaction
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
@@ -15,11 +16,10 @@ from rest_framework_jwt.settings import api_settings
 from Emall.exceptions import UserExists, CodeError, UniversalServerError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
+from user_app.models import Consumer
 from user_app.redis.user_redis import RedisUserOperation
 from user_app.serializers.login_serializers import UserJwtLoginSerializer
 from user_app.serializers.register_serializers import RegisterSerializer
-from django.db import transaction
-from user_app.models import Consumer
 
 common_logger = Logging.logger('django')
 

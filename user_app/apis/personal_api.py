@@ -5,7 +5,6 @@
 # @Software: PyCharm
 import datetime
 import importlib
-import re
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -20,8 +19,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from Emall.drf_validators import validate_address_pk, validate_foot_pk
-from Emall.exceptions import UniversalServerError, OSSError, UserNotExists, SqlServerError, CodeError, DataFormatError
+from Emall.decorator import validate_url_data
+from Emall.exceptions import UniversalServerError, OSSError, UserNotExists, SqlServerError, CodeError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
 from shop_app.models.commodity_models import Commodity
@@ -243,27 +242,29 @@ class AddressOperation(viewsets.ModelViewSet):
         # APIView重新封装过了request，因此self.request
         return Address.address_.filter(user=self.request.user)
 
+    @validate_url_data('address', 'pk')
+    def get_pk(self, **kwargs):
+        return kwargs.get('pk')
+
     # action中的detail用于标识为装饰的视图生成{view_name:url}的有序字典映射
     # 将url和视图绑定
     # @method_decorator(login_required(login_url='consumer/login/'))
+
+
     @action(methods=['put'], detail=True)
     def update_default_address(self, request, **kwargs):
         """
         单修改默认地址
         以字典形式传过来的
         """
-        pk = kwargs.get('pk')
-        if not validate_address_pk(pk):
-            raise DataFormatError()  # 数据格式非法
-        self.get_serializer_class().update_default_address(self.get_queryset(), pk)
+        self.get_serializer_class().update_default_address(self.get_queryset(), self.get_pk(**kwargs))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # @method_decorator(login_required(login_url='consumer/login/'))
+
+    @validate_url_data('address', 'pk')
     def update(self, request, *args, **kwargs):
         """单修改地址信息"""
         pk = kwargs.get('pk')
-        if not validate_address_pk(pk):
-            raise DataFormatError()  # 数据格式非法
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update_address(self.get_queryset(), serializer.validated_data, pk)
@@ -279,11 +280,10 @@ class AddressOperation(viewsets.ModelViewSet):
         return Response(response_code.address_add_success, status=status.HTTP_200_OK)
 
     # @method_decorator(login_required(login_url='consumer/login/'))
+    @validate_url_data('address', 'pk')
     def destroy(self, request, *args, **kwargs):
         """单删除地址DELETE请求"""
         pk = kwargs.get('pk')
-        if not validate_address_pk(pk):
-            raise DataFormatError()  # 数据格式非法
         self.get_serializer_class().delete_address(self.get_queryset(), pk)
         return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
 
@@ -502,12 +502,11 @@ class FootOperation(GenericViewSet):
             consumer_logger.error(e)
             raise UniversalServerError()
 
+    @validate_url_data('commodity', 'pk')
     def destroy(self, request, **kwargs):
         """删除一条记录"""
         user = request.user
         pk = kwargs.get('pk')
-        if not validate_foot_pk(pk):
-            raise DataFormatError()
         self.redis.delete_foot_commodity_id(user.pk, commodity_id=pk)
         return Response({"OK"}, status=status.HTTP_204_NO_CONTENT)  # 删完前端刷新就行了
 
@@ -579,3 +578,4 @@ class ShopCartOperation(GenericViewSet):
         if is_created:
             return Response(response_code.add_goods_into_shop_cart_success)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

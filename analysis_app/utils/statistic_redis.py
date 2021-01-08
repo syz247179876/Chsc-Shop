@@ -8,7 +8,7 @@
 
 import datetime
 from analysis_app.signals import login_user_browser_times, user_browser_times, buy_category, user_recommend
-from Emall.base_redis import BaseRedis, manager_redis
+from Emall.base_redis import BaseRedis, manage_redis
 from Emall.loggings import Logging
 from user_app.models import User
 
@@ -70,7 +70,7 @@ class StatisticRedis(BaseRedis):
         :return:
         """
         date = datetime.date.today()  # today
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             pipe = redis.pipeline()
             date_str = self.trans_date(date)  # offset:user_pk
             key = self.key('login-day', date_str)
@@ -93,7 +93,7 @@ class StatisticRedis(BaseRedis):
         date = datetime.date.today()  # today
         date_str = self.trans_date(date)
         key = self.key('browser-day', date_str)
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             redis.incrby(key, amount=1)
 
     def record_user_recommendation(self, sender, category, instance, **kwargs):
@@ -106,7 +106,7 @@ class StatisticRedis(BaseRedis):
         :param kwargs: 额外参数
         :return:
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             pipe = redis.pipeline()
             hash_key = self.key('love-category', instance.pk)
             pipe.zincrby(hash_key, amount=1, value=category)  # 默认从1开始
@@ -123,7 +123,7 @@ class StatisticRedis(BaseRedis):
         :param kwargs:额外参数
         :return:
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             date = datetime.date.today()  # today
             date_str = self.trans_date(date)
             zset_key = self.key('buy-category', date_str)

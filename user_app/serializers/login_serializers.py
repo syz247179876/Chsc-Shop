@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework_jwt.compat import PasswordField, get_username_field, Serializer
 from rest_framework_jwt.settings import api_settings
 
-from Emall.authentication_consumer import email_or_username, phone
+from Emall.authentication import email_or_username, phone
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER

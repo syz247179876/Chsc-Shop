@@ -13,7 +13,7 @@ from rest_framework_jwt.settings import api_settings
 
 from user_app.model.seller_models import Shoppers, Store
 from user_app.utils.validators import DRFPhoneValidator
-from Emall.authentication_consumer import email_or_username, phone
+from Emall.authentication import email_or_username, phone
 from Emall.loggings import Logging
 from django.utils.translation import gettext_lazy as _
 
