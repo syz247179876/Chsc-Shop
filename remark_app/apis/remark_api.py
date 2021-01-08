@@ -9,18 +9,20 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from Emall.decorator import validate_url_data
+from Emall.loggings import Logging
+from Emall.response_code import response_code
 from remark_app.models.remark_models import Remark
-from remark_app.utils.pagination import RemarkResultsSetPagination
 from remark_app.serializers.attitude_action_serializers import AttitudeRemarkSerializer
 from remark_app.serializers.user_marker_serializers import UserMarkerSerializer
 from remark_app.signals import remark_post, remark_cancel
-from Emall.loggings import Logging
-from Emall.response_code import response_code
+from remark_app.utils.pagination import RemarkResultsSetPagination
 from remark_app.utils.throttle import PraiseRateThrottle
 
 common_logger = Logging.logger('django')
 
 evaluate_logger = Logging.logger('evaluate_')
+
 
 
 class RemarkOperation(GenericViewSet):
@@ -31,16 +33,18 @@ class RemarkOperation(GenericViewSet):
 
     pagination_class = RemarkResultsSetPagination
 
+    @validate_url_data('commodity', 'pk')
     def get_queryset(self):
         """获取用户所浏览的店铺的评论"""
-        commodity_pk = self.kwargs.get('pk')
-        return Remark.remark_.select_related('consumer', 'commodity').filter(commodity__pk=commodity_pk, is_remark=True)
+        pk = self.request.query_params.get('pk')
+        return Remark.remark_.select_related('consumer', 'commodity').filter(commodity__pk=pk, is_remark=True)
 
+    @validate_url_data('commodity', 'pk')
     def get_user_remark(self):
         """获取用户对某商品的评论"""
-        commodity_pk = self.kwargs.get('pk')
+        pk = self.request.query_params.get('pk')
         return Remark.remark_.select_related('consumer', 'commodity').filter(consumer=self.request.user,
-                                                                             commodity__pk=commodity_pk)
+                                                                             commodity__pk=pk)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -58,7 +62,7 @@ class RemarkOperation(GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         # TODO 后期利用 gensim 对用户的评论进行分析，符合文明素质用于允许评论
-        query_object = self.get_user_remark().filter(is_remark=False)
+        query_object = self.get_user_remark('pk').filter(is_remark=False)
         if query_object.exists():  # 存在机会为True，每个商品只能评论一次
             query_object.update(is_reward=True, **serializer.validated_data)
             remark_post.send(    # 添加评论信号

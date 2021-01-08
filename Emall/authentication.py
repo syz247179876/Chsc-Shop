@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time : 2020/5/8 18:37
 # @Author : 司云中
-# @File : authentication_consumer.py
+# @File : authentication.py
 # @Software: PyCharm
 
 import logging

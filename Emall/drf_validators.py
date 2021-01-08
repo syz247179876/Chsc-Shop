@@ -34,10 +34,12 @@ def validate_address_pk(value):
     return True if re.match('^[1-9]{0,1}$', value) else False
 
 
-def validate_foot_pk(value):
+def validate_commodity_pk(value):
     """
-    校验url中的关于foot的pk字段
+    校验url中的关于商品的pk字段
     商品id允许上限15位数
     """
     return True if re.match('^[1-9]\d{0,15}$', value) else False
+
+
 
