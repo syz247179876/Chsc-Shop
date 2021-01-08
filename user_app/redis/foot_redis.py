@@ -6,7 +6,7 @@
 import datetime
 import time
 
-from Emall.base_redis import BaseRedis, manager_redis
+from Emall.base_redis import BaseRedis, manage_redis
 from Emall.exceptions import RedisOperationError
 from Emall.loggings import Logging
 
@@ -56,7 +56,7 @@ class FootRedisOperation(BaseRedis):
         :param kwargs:request.data的Querydict实例
         :return:Dict
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             try:
                 key = self.key('foot', user_id)
                 page = kwargs.get('page', 1)
@@ -77,7 +77,7 @@ class FootRedisOperation(BaseRedis):
         :return:boolean
         """
         # add_foot.apply_async(args=(pickle.dumps(self), user_id, validated_data))  # can't pickle _thread.lock objects
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             try:
                 key = self.key('foot', user_id)
                 timestamp = self.score  # 毫秒级别的时间戳
@@ -100,7 +100,7 @@ class FootRedisOperation(BaseRedis):
         :param kwargs:request.data的Querydict实例
         :return:boolean
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             try:
                 key = self.key('foot', user_id)
                 if kwargs.get('is_all', None):  # 是否删除所有足迹

@@ -51,7 +51,7 @@ class VoucherConsumerSerializer(serializers.ModelSerializer):
         """过滤pk，并创建voucher实例，替换原来的pk"""
         queryset = Voucher.voucher_.filter(is_grant=True, counts__gt=0, end_date__gt=datetime.datetime.now())
         filter_kwargs = {'pk':attrs.get('pk')}
-        obj = get_object_or_404(queryset, **filter_kwargs)  # 控制只有允许queryset，manager，model对象作为第一argument传入
+        obj = get_object_or_404(queryset, **filter_kwargs)  # 控制只有允许queryset，redis_manager，model对象作为第一argument传入
         attrs.update({'pk',obj})
         return attrs
 

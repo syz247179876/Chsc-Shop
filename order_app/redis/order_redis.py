@@ -4,7 +4,7 @@
 # @File : order_redis.py
 # @Software: Pycharm
 from order_app.serializers.order_serializers import OrderCreateSerializer
-from Emall.base_redis import BaseRedis, manager_redis
+from Emall.base_redis import BaseRedis, manage_redis
 
 
 class RedisOrderOperation(BaseRedis):
@@ -15,6 +15,6 @@ class RedisOrderOperation(BaseRedis):
 
     def set_order_expiration(self, pk):
         """设置订单过期30min时间"""
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             key = OrderCreateSerializer.generate_orderid(pk)
             redis.setex(key, 3000, 1)

@@ -5,7 +5,6 @@
 # @Software: PyCharm
 import datetime
 import importlib
-import re
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -579,3 +578,4 @@ class ShopCartOperation(GenericViewSet):
         if is_created:
             return Response(response_code.add_goods_into_shop_cart_success)
         return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

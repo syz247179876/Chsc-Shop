@@ -6,7 +6,7 @@
 
 from django.dispatch import Signal
 
-record_search = Signal(providing_args=["request", "key"])
+record_search = Signal(providing_args=["request", "keyword"])
 
 del_search_single = Signal(providing_args=["request", "key"])
 

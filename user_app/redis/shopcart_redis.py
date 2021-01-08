@@ -6,7 +6,7 @@
 import math
 
 from shop_app.models.commodity_models import Commodity
-from Emall.base_redis import BaseRedis, manager_redis
+from Emall.base_redis import BaseRedis, manage_redis
 from Emall.loggings import Logging
 
 common_logger = Logging.logger('django')
@@ -30,7 +30,7 @@ class ShopCartRedisOperation(BaseRedis):
         :param data:HttpRequest.GET数据
         :return: dict  key:include(store id),value: include(commodity list)
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             store_and_commodity = {}  # 商铺和商品映射
             commodity_and_counts = {}  # 商品和其对应的数量之间的映射
             commodity_and_price = {}  # 商品和其对应的数量乘积的总价格的映射
@@ -76,7 +76,7 @@ class ShopCartRedisOperation(BaseRedis):
         :param kwargs: 额外参数，包含store_id，good_id，counts
         :return:bool
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             if 'store_id' not in kwargs or 'good_id' not in kwargs:
                 return False
             else:
@@ -103,7 +103,7 @@ class ShopCartRedisOperation(BaseRedis):
         :param kwargs: 额外参数，包含store_id，good_id，way(add or minus)
         :return:bool
         """
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             if 'store_id' not in kwargs or 'good_id' not in kwargs or 'way' not in kwargs:
                 return False
             try:

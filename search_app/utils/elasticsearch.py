@@ -37,7 +37,7 @@ class ElasticSearchOperation:
         if hasattr(self, 'url'):
             return self.url
         query = self.request.query_params.copy()
-        # generate url
+        # 生成访问es的url
         credential = {'text':query.get('text')}
         url = self.BASE_URL + self.INDEX_DB + '/' + self.FUNC + '?' + '&'.join(
             ['q=' + key + ':' + value for key, value in credential.items()])

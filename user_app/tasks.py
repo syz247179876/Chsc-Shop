@@ -4,19 +4,20 @@
 # @File : tasks.py
 # @Software: PyCharm
 
-from user_app.apis.ali_card_ocr import Interface_identify
+from user_app.utils.ali_card_ocr import Interface_identify
 from Emall import celery_apps as app
 
 
 @app.task
-def ocr(image_instance, type_):
+def ocr(image_str, type_):
     """
     身份验证
-    :param image_instance: InMemoryUploadedFile 文件对象
+    :param image_str: InMemoryUploadedFile 文件对象的二进制的解码格式数据
     :param type_: String 身份证类型 face or back
     :return:  Bool
     """
-    identify_instance = Interface_identify(image_instance, type_)
+
+    identify_instance = Interface_identify(image_str, type_)
     return identify_instance.is_success
 
 

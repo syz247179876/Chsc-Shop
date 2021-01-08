@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : retrieve_password_redis.py
 # @Software: Pycharm
-from Emall.base_redis import BaseRedis, manager_redis
+from Emall.base_redis import BaseRedis, manage_redis
 
 
 class RetrievePasswordRedis(BaseRedis):
@@ -14,7 +14,7 @@ class RetrievePasswordRedis(BaseRedis):
         """校验唯一凭证并返回凭证值后删除凭证"""
         try:
 
-            with manager_redis(self.db) as redis:
+            with manage_redis(self.db) as redis:
                 pipe = redis.pipeline()
                 identity = pipe.get(key)
                 pipe.delete(key)

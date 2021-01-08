@@ -10,7 +10,7 @@ from django.core import serializers
 
 from user_app import signals
 from user_app.models import Collection
-from Emall.base_redis import BaseRedis, manager_redis
+from Emall.base_redis import BaseRedis, manage_redis
 from Emall.json_serializer import JsonCustomEncoder
 from Emall.loggings import Logging
 
@@ -53,7 +53,7 @@ class RedisFavoritesOperation(BaseRedis):
         :return: list（读取redis)， 查询集（读取mysql）
         """
 
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             user_pk = user.pk
             zset_key = self.zset_key_commodity(user_pk)
             collection_dict = {int(key.decode()): value for key, value in
@@ -147,7 +147,7 @@ class RedisFavoritesOperation(BaseRedis):
         :return:  同步是否成功, bool
         """
 
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             user_pk = user.pk
             zset_key = self.zset_key_commodity(user_pk)
             serialized_commodity = serializers.serialize('python', queryset)  # 序列化商品
@@ -171,7 +171,7 @@ class RedisFavoritesOperation(BaseRedis):
         同步删除redis中的favorites数据，信号回调函数
         """
 
-        with manager_redis(self.db) as redis:
+        with manage_redis(self.db) as redis:
             user_pk = user.pk
             zset_key = self.zset_key_commodity(user_pk)
             pipe = redis.pipeline()
