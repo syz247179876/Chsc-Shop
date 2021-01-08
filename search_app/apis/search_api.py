@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
+from Emall.exceptions import DataFormatError
 from Emall.loggings import Logging
 from search_app import signals
 from search_app.serailaizers.shop_search_serializers import CommoditySerializer
@@ -69,14 +70,16 @@ class CommoditySearchOperation(GenericAPIView):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
-        self.send_record_signal(request)  # TODO: 修改为异步任务发送信号,记录用户浏览记录
+        self.send_record_signal(request)  # 异步任务发送信号,记录用户浏览记录
         return Response(serializer.data)
 
     def delete(self, request):
         """单删历史搜索记录"""
-        if self.request.query_params.get('many') == 'true':
+        if request.query_params.get('many') == 'true':
             self.send_delete_signal(request, many=True)
         else:
+            if not request.query_params.get('key', None):
+                raise DataFormatError()
             self.send_delete_signal(request)
         return Response({"OK"}, status=status.HTTP_204_NO_CONTENT)
 
@@ -86,7 +89,7 @@ class CommoditySearchOperation(GenericAPIView):
         if many:
             signals.del_search_all.send(sender=identity, request=request)
         else:
-            signals.del_search_single.send(sender=identity, request=request, key=request.GET.get('text', ''))
+            signals.del_search_single.send(sender=identity, request=request, key=request.query_params.get('key', ''))
 
     @identity
     def send_record_signal(self, identity):

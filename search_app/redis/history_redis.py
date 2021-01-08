@@ -38,7 +38,7 @@ class HistoryRedisOperation(BaseRedis):
         return int(time())
 
     def user_key(self, key):
-        return f'user-{key}'
+        return f'user-history-{key}'
 
     def heat_key(self, date):
         return f'heat-{date.strftime("%Y-%m-%d")}'
@@ -51,6 +51,7 @@ class HistoryRedisOperation(BaseRedis):
         """
         with manage_redis(self.DB, type(self)) as redis:
             # 为每个用户维护一个搜索有序集合
+            # 为所有关键词维护一个有序集合,用于分析
             with redis.pipeline() as pipe:
                 pipe.zadd(self.user_key(sender), {key: self.score})
                 # 60*60*24*30 = 25920000 30天存活
