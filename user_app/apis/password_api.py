@@ -23,7 +23,7 @@ class RetrievePasswordOperation(GenericAPIView):
     """找回密码"""
 
     serializer_class = RetrievePasswordSerializer
-    redis_manager = BaseRedis.choice_redis_db('redis')
+    redis_manager = RetrievePasswordRedis.choice_redis_db('redis')
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -63,11 +63,11 @@ class NewPassword(GenericAPIView):
     """更换新密码"""
 
     serializer_class = NewPasswordSerializer
-    redis = RetrievePasswordRedis.choice_redis_db('redis')
+    redis_manager = RetrievePasswordRedis.choice_redis_db('redis')
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({'redis': self.redis})
+        context.update({'redis_manager': self.redis_manager})
         return context
 
     def post(self, request):

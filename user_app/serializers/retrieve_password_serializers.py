@@ -24,7 +24,7 @@ def retrieve_mac(self):
     return self.context.get('request').query_params.get('mac')
 
 
-def retrieve_redis(self):
+def retrieve_redis_manager(self):
     return self.context.get('redis_manager')
 
 
@@ -109,7 +109,7 @@ class RetrievePasswordSerializer(serializers.Serializer):
             if DRFPhoneValidator()(retrieve_key):
                 raise serializers.ValidationError('手机号不正确!')
 
-        redis_manager = retrieve_redis(self)
+        redis_manager = retrieve_redis_manager(self)
         step = attrs.get('step')
         return self.first_step(redis_manager, **attrs) if step == '1' else self.second_step(redis_manager, **attrs)
 
@@ -120,7 +120,7 @@ class RetrievePasswordSerializer(serializers.Serializer):
 
 
 class NewPasswordSerializer(serializers.Serializer):
-    """重置密码序列化器"""
+    """重置新密码序列化器"""
 
     RETRIEVE_KEY = 'retrieve_key'
 
@@ -148,8 +148,8 @@ class NewPasswordSerializer(serializers.Serializer):
     def key(self):
         """生成访问唯一redis的唯一凭证"""
         request = self.context.get('request')
-        redis = retrieve_redis(self)
-        key = redis.key(request.GET.get('way'), request.GET.get(self.RETRIEVE_KEY), retrieve_ip(self),
+        redis_manager = retrieve_redis_manager(self)
+        key = redis_manager.key(request.GET.get('way'), request.GET.get(self.RETRIEVE_KEY), retrieve_ip(self),
                         request.GET.get('mac'))
         return key
 
@@ -161,8 +161,8 @@ class NewPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('新旧密码不一致')
 
         # 验证唯一凭证
-        redis = retrieve_redis(self)
-        is_check, identity = redis.check_code_retrieve(self.key)
+        redis_manager = retrieve_redis_manager(self)
+        is_check, identity = redis_manager.check_code_retrieve(self.key)
 
         if is_check:
             attrs.update({'identity': identity, 'way': self.context.get('request').GET.get(self.RETRIEVE_KEY)})
