@@ -135,7 +135,7 @@ def manage_redis(db, redis_class=BaseRedis, redis=None):
         yield redis
     except Exception as e:
         redis_logger.error(e)
-        raise RedisOperationError()
+        raise RedisOperationError(e)
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
 
@@ -147,4 +147,4 @@ def redis_manager(db, redis_class=BaseRedis):
         yield redis_manager
     except Exception as e:
         redis_logger.error(e)
-        raise RedisOperationError()
+        raise RedisOperationError(e)

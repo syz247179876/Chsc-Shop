@@ -250,13 +250,17 @@ ACQUIRE_COUPON_ERROR = 821
 
 MODIFY_PASSWORD_SUCCESS = 823
 
+# 删除历史记录成功
+DELETE_HISTORY_SUCCESS = 824
+
+
+
 
 class ResponseCode:
     result = {
         'code': '',
         'msg': '',
         'status': '',
-        'data': '',
     }
 
     @property
@@ -678,6 +682,12 @@ class ResponseCode:
     def modify_password_success(self):
         """修改密码成功"""
         self.result.update(dict(code=MODIFY_PASSWORD_SUCCESS, msg='modify_success', status='success'))
+        return self.result
+
+    @property
+    def delete_history_success(self):
+        """删除历史搜索记录成功"""
+        self.result.update(dict(code=DELETE_HISTORY_SUCCESS, msg='delete_success',status='success'))
         return self.result
 
 response_code = ResponseCode()

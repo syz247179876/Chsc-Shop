@@ -7,6 +7,7 @@ import datetime
 from time import time
 
 from Emall.base_redis import BaseRedis, manage_redis
+from Emall.exceptions import TypeTransformError
 from search_app import signals
 from user_app.redis.favorites_redis import RedisFavoritesOperation
 
@@ -17,7 +18,9 @@ def client_key(func):
     def decorate(self, sender, request, **kwargs):
         if sender is None:  # 如果用户未登录
             sender = BaseRedis.get_client_ip(request=request)  # 获取客户端IP
-            func(self, sender, **kwargs)
+            kwargs.update({'request': request})
+            return func(self, sender, **kwargs)
+
     return decorate
 
 
@@ -30,17 +33,20 @@ class HistoryRedisOperation(BaseRedis):
 
     def connect(self):
         signals.record_search.connect(self.save_search, sender=None)
-        signals.del_search_single.connect(self.delete_search_single, sender=None)
-        signals.del_search_all.connect(self.delete_search_all, sender=None)
+        signals.del_search_single.connect(self.delete_single_search, sender=None)
+        signals.del_search_all.connect(self.delete_all_search, sender=None)
+        signals.retrieve_record.connect(self.retrieve_record, sender=None)
 
     @property
     def score(self):
         return int(time())
 
-    def user_key(self, key):
+    @staticmethod
+    def user_key(key):
         return f'user-history-{key}'
 
-    def heat_key(self, date):
+    @staticmethod
+    def heat_key(date):
         return f'heat-{date.strftime("%Y-%m-%d")}'
 
     @client_key
@@ -60,30 +66,37 @@ class HistoryRedisOperation(BaseRedis):
                 pipe.execute()
 
     @client_key
-    def delete_search_single(self, sender, key, **kwargs):
+    def delete_single_search(self, sender, key, **kwargs):
         """
         单删某条搜索历史记录
         """
         with manage_redis(self.DB, type(self)) as redis:
-            redis.zrem(self.user_key(sender), key)
+            return redis.zrem(self.user_key(sender), key)
 
     @client_key
-    def delete_search_all(self, sender, **kwargs):
+    def delete_all_search(self, sender, **kwargs):
         """
         群删所有搜索历史记录
         """
         with manage_redis(self.DB, type(self)) as redis:
-            redis.delete(self.user_key(sender))
+            return redis.delete(self.user_key(sender))
 
     @client_key
-    def retrieve_last_ten(self, sender, key, **kwargs):
-        """根据分页获取最新的10条搜索记录"""
+    def retrieve_record(self, sender, **kwargs):
+        """
+        根据分页获取最新的搜索记录
+        默认为10条
+        """
 
         # with 生存周期持续到函数结束
         with manage_redis(self.DB, type(self)) as redis:
-            page = kwargs.get('page')
-            count = kwargs.get('count')
-            result = redis.zrevrange(self.user_key(sender), page * count, (page + 1) * count)  # 返回分数从高到低的前十个(时间最近的前十个)
+            request = kwargs.pop('request')
+            try:  # 检查类型,类型错误,抛出异常,由RedisOperationError捕获
+                page = int(request.query_params.get('page', '1'))
+                limit = int(request.query_params.get('limit', '10'))
+            except ValueError:
+                raise TypeTransformError()
+            result = redis.zrevrange(self.user_key(sender), (page - 1) * limit, page * limit)  # 返回分数从高到低的前十个(时间最近的前十个)
             return result
 
     def heat_search(self, sender, key, **kwargs):

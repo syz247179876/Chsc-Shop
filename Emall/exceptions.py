@@ -193,3 +193,10 @@ class RedisOperationError(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = _('内存数据库异常')
     default_code = 'Redis Error'
+
+
+class TypeTransformError(APIException):
+    """数据类型转换异常"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('类型错误')
+    default_code = 'Type Error'
