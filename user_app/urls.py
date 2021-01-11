@@ -1,11 +1,17 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+from user_app.apis.address_api import AddressOperation
 from user_app.apis.auth_api import RegisterAPIView, LoginAPIView
+from user_app.apis.bind_api import BindEmailOrPhone
+from user_app.apis.cart_api import ShopCartOperation
+from user_app.apis.foot_api import FootOperation
+from user_app.apis.head_image_api import HeadImageOperation
+from user_app.apis.information_api import SaveInformation
+from user_app.apis.ocr_api import VerifyIdCard
 from user_app.apis.password_api import ChangePassword
 from django.conf import settings
-from user_app.apis.personal_api import SaveInformation, BindEmailOrPhone, VerifyIdCard, HeadImageOperation, \
-    AddressOperation, FootOperation, FavoriteOperation, ShopCartOperation
+
 from user_app.apis.password_api import RetrievePasswordOperation, NewPassword
 
 app_name = 'user_app'
