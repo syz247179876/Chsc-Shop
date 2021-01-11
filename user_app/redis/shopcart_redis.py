@@ -122,11 +122,11 @@ class ShopCartRedisOperation(BaseRedis):
                     if kwargs['way'] == 'add':
                         redis.zincrby(second_key, 1, good_id)  # 对id为good_id的商品数量加1,O(1)
                         redis.zincrby(third_key, float(signal_good_discounts * signal_good_price),
-                                           good_id)  # 对id为good_id的商品数量加上优惠价,O(1)
+                                      good_id)  # 对id为good_id的商品数量加上优惠价,O(1)
                     elif kwargs['way'] == 'minus':
                         redis.zincrby(second_key, -1, good_id)
                         redis.zincrby(third_key, -(float(signal_good_discounts * signal_good_price)),
-                                           good_id)
+                                      good_id)
                     # self.redis.zadd(third_key,
                     #                 {good_id: float(signal_good_price * signal_good_discounts * int(kwargs['counts']))})
             except Exception as e:
@@ -134,3 +134,6 @@ class ShopCartRedisOperation(BaseRedis):
                 return False
             else:
                 return True
+
+
+shopcart = ShopCartRedisOperation.choice_redis_db('redis')

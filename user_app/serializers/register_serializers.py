@@ -25,7 +25,7 @@ class RegisterSerializer(serializers.Serializer):
         self.fields['email'] = serializers.EmailField(required=False)
         self.fields['username'] = serializers.CharField(required=False, max_length=20, validators=[DRFUsernameValidator()])
         self.fields['phone'] = serializers.CharField(required=False, validators=[DRFPhoneValidator()])
-        self.fields['code'] = serializers.CharField(max_length=6, required=False)  # 验证码
+        self.fields['code'] = serializers.CharField(max_length=6, required=True)  # 验证码
         self.fields['way'] = serializers.ChoiceField(choices=self.REGISTER_WAY)  # 登录方式
 
     def validate_code(self, value):
@@ -38,10 +38,10 @@ class RegisterSerializer(serializers.Serializer):
         """前端传过来的数据中必须包含email和phone二者之一"""
         way = attrs.get('way')
         if way == 'phone':
-            if attrs.get('email') or not attrs.get('code'):
+            if attrs.get('email') or attrs.get('username'):
                 raise serializers.ValidationError('手机号注册条件不满足或过多')
         elif way == 'email':
-            if attrs.get('phone') or not attrs.get('username') or not attrs.get('password'):
+            if attrs.get('phone') or not attrs.get('username'):
                 raise serializers.ValidationError('邮箱注册条件不满足或过多')
         return attrs
 

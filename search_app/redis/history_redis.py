@@ -55,7 +55,7 @@ class HistoryRedisOperation(BaseRedis):
             with redis.pipeline() as pipe:
                 pipe.zadd(self.user_key(sender), {key: self.score})
                 # 60*60*24*30 = 25920000 30天存活
-                pipe.expire(sender, 25920000)
+                pipe.expire(self.user_key(sender), 25920000)
                 pipe.zincrby(self.heat_key(datetime.datetime.today()), 1, key)  # 将该关键字添加到热搜有序集合中,如果存在key,则+1,不存在设置为1
                 pipe.execute()
 
@@ -77,7 +77,7 @@ class HistoryRedisOperation(BaseRedis):
 
     @client_key
     def retrieve_last_ten(self, sender, key, **kwargs):
-        """获取最新的10条搜索记录"""
+        """根据分页获取最新的10条搜索记录"""
 
         # with 生存周期持续到函数结束
         with manage_redis(self.DB, type(self)) as redis:

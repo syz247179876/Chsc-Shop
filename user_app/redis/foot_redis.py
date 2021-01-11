@@ -84,11 +84,10 @@ class FootRedisOperation(BaseRedis):
                 commodity_id = validated_data['pk']
                 # pipe = self.redis.pipeline()  # 添加管道，减少客户端和服务端之间的TCP包传输次数
                 redis.zadd(key, {commodity_id: timestamp})  # 分别表示用户id（加密），当前日期+时间戳（分数值），商品id
-                # 每个用户最多缓存100条历史记录
+                # 每个用户最多记录100条历史记录
                 if redis.zcard(key) >= 100:  # 集合中key为键的数量
                     redis.zremrangebyrank(key, 0, 0)  # 移除时间最早的那条记录
                 # pipe.execute()
-                return True
             except Exception as e:
                 consumer_logger.error(e)
                 raise RedisOperationError()
