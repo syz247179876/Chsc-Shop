@@ -73,7 +73,6 @@ USER_INFOR_CHANGE_ERROR = -4
 
 USER_ORIGINAL_PASSWORD_ERROR = -6
 
-
 # 绑定手机成功
 
 BIND_SUCCESS = 13
@@ -253,7 +252,8 @@ MODIFY_PASSWORD_SUCCESS = 823
 # 删除历史记录成功
 DELETE_HISTORY_SUCCESS = 824
 
-
+# 获取热度词成功
+RETRIEVE_HEAT_SEARCH = 825
 
 
 class ResponseCode:
@@ -374,7 +374,7 @@ class ResponseCode:
     @property
     def bind_qq(self):
         """qq帐号已被绑定"""
-        self.result.update(dict(msg='QQ帐号已被绑定',status='error'))
+        self.result.update(dict(msg='QQ帐号已被绑定', status='error'))
         return self.result
 
     @property
@@ -419,7 +419,6 @@ class ResponseCode:
         self.result.update(dict(code=USER_ORIGINAL_PASSWORD_ERROR, msg='原密码不正确', status='error'))
         return self.result
 
-
     @property
     def bind_success(self):
         """绑定手机成功"""
@@ -442,6 +441,24 @@ class ResponseCode:
     def verify_id_card_error(self):
         """身份认证失败"""
         self.result.update(dict(code=VERIFY_ID_CARD_ERROR, msg='身份认证失败', status='error'))
+        return self.result
+
+    @property
+    def modify_password_success(self):
+        """修改密码成功"""
+        self.result.update(dict(code=MODIFY_PASSWORD_SUCCESS, msg='修改密码成功', status='success'))
+        return self.result
+
+    @property
+    def delete_history_success(self):
+        """删除历史搜索记录成功"""
+        self.result.update(dict(code=DELETE_HISTORY_SUCCESS, msg='删除历史搜索记录成功', status='success'))
+        return self.result
+
+    @property
+    def retrieve_heat_search(self):
+        """获取热度搜索热词"""
+        self.result.update(dict(code=RETRIEVE_HEAT_SEARCH, msg='获取热度词成功', status='success'))
         return self.result
 
     # @property
@@ -573,7 +590,7 @@ class ResponseCode:
     @property
     def add_foot_success(self):
         """succeed to add foot"""
-        self.result.update(dict(code=ADD_FOOT_SUCCESS, msg='add_success', status='success'))
+        self.result.update(dict(code=ADD_FOOT_SUCCESS, msg='add successfully', status='success'))
         return self.result
 
     @property
@@ -585,7 +602,7 @@ class ResponseCode:
     @property
     def delete_shop_cart_good_success(self):
         """succeed to delete good from shop cart"""
-        self.result.update(dict(code=DELETE_SHOP_CART_GOOD_SUCCESS, msg='delete_success', status='success'))
+        self.result.update(dict(code=DELETE_SHOP_CART_GOOD_SUCCESS, msg='delete successfully', status='success'))
         return self.result
 
     @property
@@ -597,19 +614,19 @@ class ResponseCode:
     @property
     def edit_shop_cart_good_success(self):
         """succeed to edit good from shop cart"""
-        self.result.update(dict(code=EDIT_SHOP_CART_GOOD_SUCCESS, msg='edit_success', status='success'))
+        self.result.update(dict(code=EDIT_SHOP_CART_GOOD_SUCCESS, msg='edit successfully', status='success'))
         return self.result
 
     @property
     def edit_shop_cart_good_error(self):
         """fail to edit good from shop cart"""
-        self.result.update(dict(code=EDIT_SHOP_CART_GOOD_ERROR, msg='edit_error', status='error'))
+        self.result.update(dict(code=EDIT_SHOP_CART_GOOD_ERROR, msg='edit error', status='error'))
         return self.result
 
     @property
     def create_order_success(self):
         """succeed to create new order"""
-        self.result.update(dict(code=CREATE_ORDER_SUCCESS, msg='create_success', status='success'))
+        self.result.update(dict(code=CREATE_ORDER_SUCCESS, msg='create successfully', status='success'))
         return self.result
 
     @property
@@ -621,73 +638,62 @@ class ResponseCode:
     @property
     def add_goods_into_shop_cart_success(self):
         """succeed to add goods into shop cart of current consumer"""
-        self.result.update(dict(code=ADD_GOOD_INTO_SHOP_CART_SUCCESS, msg='add_success', status='success'))
+        self.result.update(dict(code=ADD_GOOD_INTO_SHOP_CART_SUCCESS, msg='add successfully', status='success'))
         return self.result
 
     @property
     def add_goods_into_shop_cart_error(self):
         """fail to add goods into shop cart of current consumer"""
-        self.result.update(dict(code=ADD_GOOD_INTO_SHOP_CART_ERROR, msg='add_error', status='error'))
+        self.result.update(dict(code=ADD_GOOD_INTO_SHOP_CART_ERROR, msg='add error', status='error'))
         return self.result
 
     @property
     def add_goods_into_favorites_success(self):
         """succeed to add goods into shop cart of current consumer"""
-        self.result.update(dict(code=ADD_GOOD_INTO_FAVORITES_SUCCESS, msg='add_success', status='success'))
+        self.result.update(dict(code=ADD_GOOD_INTO_FAVORITES_SUCCESS, msg='add successfully', status='success'))
         return self.result
 
     @property
     def add_goods_into_favorites_error(self):
         """fail to add goods into favorites of current consumer"""
-        self.result.update(dict(code=ADD_GOOD_INTO_FAVORITIES_ERROR, msg='add_error', status='error'))
+        self.result.update(dict(code=ADD_GOOD_INTO_FAVORITIES_ERROR, msg='add fail', status='error'))
         return self.result
 
     @property
     def create_shopper_success(self):
         """商家创建成功"""
-        self.result.update(dict(code=CREATE_SHOPPER_SUCCESS, msg='create_success', status='success'))
+        self.result.update(dict(code=CREATE_SHOPPER_SUCCESS, msg='create successfully', status='success'))
         return self.result
 
     @property
     def delete_remark_success(self):
         """评论删除成功"""
-        self.result.update(dict(code=DELETE_REMARK_SUCCESS, msg='delete_success', status='success'))
+        self.result.update(dict(code=DELETE_REMARK_SUCCESS, msg='delete successfully', status='success'))
         return self.result
 
     @property
     def modify_head_image_success(self):
         """修改头像成功"""
-        self.result.update(dict(code=MODIFY_HEAD_IMAGE_SUCCESS, msg='modify_success', status='success'))
+        self.result.update(dict(code=MODIFY_HEAD_IMAGE_SUCCESS, msg='modify success', status='success'))
         return self.result
 
     @property
     def add_action_remark_success(self, data):
         """点赞/差评成功"""
-        self.result.update(dict(code=ADD_ACTION_REMARK_SUCCESS, msg='modify_success', status='success', data=data))
+        self.result.update(dict(code=ADD_ACTION_REMARK_SUCCESS, msg='modify success', status='success', data=data))
         return self.result
 
     @property
     def acquire_coupon_success(self):
         """获取优惠卷"""
-        self.result.update(dict(code=ACQUIRE_COUPON_SUCCESS, msg='acquire_success', status='success'))
+        self.result.update(dict(code=ACQUIRE_COUPON_SUCCESS, msg='acquire success', status='success'))
         return self.result
 
     @property
     def acquire_coupon_error(self):
         """获取优惠卷"""
-        self.result.update(dict(code=ACQUIRE_COUPON_ERROR, msg='acquire_error', status='error'))
+        self.result.update(dict(code=ACQUIRE_COUPON_ERROR, msg='acquire error', status='error'))
         return self.result
 
-    @property
-    def modify_password_success(self):
-        """修改密码成功"""
-        self.result.update(dict(code=MODIFY_PASSWORD_SUCCESS, msg='modify_success', status='success'))
-        return self.result
-
-    @property
-    def delete_history_success(self):
-        """删除历史搜索记录成功"""
-        self.result.update(dict(code=DELETE_HISTORY_SUCCESS, msg='delete_success',status='success'))
-        return self.result
 
 response_code = ResponseCode()

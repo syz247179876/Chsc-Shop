@@ -36,6 +36,7 @@ class HistoryRedisOperation(BaseRedis):
         signals.del_search_single.connect(self.delete_single_search, sender=None)
         signals.del_search_all.connect(self.delete_all_search, sender=None)
         signals.retrieve_record.connect(self.retrieve_record, sender=None)
+        signals.retrieve_heat_keyword.connect(self.get_heat_keyword, sender=None)
 
     @property
     def score(self):
@@ -99,10 +100,10 @@ class HistoryRedisOperation(BaseRedis):
             result = redis.zrevrange(self.user_key(sender), (page - 1) * limit, page * limit)  # 返回分数从高到低的前十个(时间最近的前十个)
             return result
 
-    def heat_search(self, sender, key, **kwargs):
+    def get_heat_keyword(self, sender, **kwargs):
         """
         每日热搜
-        动态更新每日的前十位
+        动态更新每日的前十位热度搜索关键字
         """
         with manage_redis(self.DB, type(self)) as redis:
             date = datetime.datetime.today()

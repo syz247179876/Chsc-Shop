@@ -13,3 +13,5 @@ del_search_single = Signal(providing_args=["request", "key"])
 del_search_all = Signal(providing_args=["request"])
 
 retrieve_record = Signal(providing_args=["request"])
+
+retrieve_heat_keyword = Signal()
