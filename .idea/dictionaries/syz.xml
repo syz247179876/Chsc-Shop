@@ -6,6 +6,7 @@
       <w>asgi</w>
       <w>celerybeat</w>
       <w>commonmodule</w>
+      <w>corsheaders</w>
       <w>elasticsearch</w>
       <w>fdfs</w>
       <w>filebuffer</w>

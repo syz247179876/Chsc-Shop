@@ -49,10 +49,11 @@ class SendCode:
         def send(obj, way, number, **kwargs):
             """选择手机号还是邮箱进行验证码发送"""
             is_satisfied = func(obj, number)  # 根据number验证用户是否存在,obj为类实例
+            print(is_satisfied)
             if is_satisfied:
                 # 如果用户存在
                 response_code_func = getattr(response_code, is_satisfied)
-                return Response(response_code_func, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(response_code_func)
             # 获取6位验证码
             code = set_verification_code()
             try:

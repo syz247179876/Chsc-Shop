@@ -17,42 +17,42 @@ class UniversalServerError(APIException):
 
 class SqlServerError(APIException):
     """数据库错误"""
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_200_OK
     default_detail = _('数据不匹配')
     default_code = 'SQL Server Error'
 
 
 class OldPasswordError(APIException):
     """旧密码错误"""
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_200_OK
     default_detail = _('旧密码错误')
     default_code = 'Old Password Error'
 
 
 class NoBindPhone(APIException):
     """尚未绑定手机号异常"""
-    status_code = status.HTTP_204_NO_CONTENT
+    status_code = status.HTTP_200_OK
     default_detail = _('用户尚未绑定手机号')
     default_code = 'No Bind Phone'
 
 
 class NoBindEmail(APIException):
     """尚未绑定邮箱号"""
-    status_code = status.HTTP_204_NO_CONTENT
+    status_code = status.HTTP_200_OK
     default_detail = _('用户尚未绑定邮箱号')
     default_code = 'No Bind Email'
 
 
 class UserNotExists(APIException):
     """用户不存在异常"""
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_200_OK
     default_detail = _('用户不存在')
     default_code = 'User Not Exists'
 
 
 class UserExists(APIException):
     """用户存在异常"""
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_200_OK
     default_detail = _('用户已存在')
     default_code = 'User has existed'
 
@@ -73,21 +73,21 @@ class ThirdServiceBase(APIException):
 
 class EmailHasBeenBoundError(APIException):
     """邮件已经绑定"""
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_200_OK
     default_detail = _('邮件已经绑定')
     default_code = 'Emailed has been bound'
 
 
 class PhoneHasBeenBoundError(APIException):
     """手机已经绑定"""
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_200_OK
     default_detail = _('手机已经绑定')
     default_code = 'Phone has been bound'
 
 
 class CodeError(APIException):
     """验证码校验错误"""
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code = status.HTTP_200_OK
     default_detail = _('验证码校验错误')
     default_code = 'Code Validate Error'
 
@@ -129,14 +129,14 @@ class IdentifyError(ThirdServiceBase):
 
 class IdentifyExistError(APIException):
     """身份证已经被校验过"""
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code = status.HTTP_200_OK
     default_detail = _('身份证已经被校验过')
     default_code = 'OCR has been validated'
 
 
 class AddressError(ThirdServiceBase):
     """地址存在异常"""
-    status_code = status.HTTP_204_NO_CONTENT
+    status_code = status.HTTP_200_OK
     default_detail = _('地址操作存在异常')
     default_code = 'Address Error'
 
