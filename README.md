@@ -42,7 +42,7 @@
 
 ## **Version 2.0🐙（所在分支为version2.0，去除了静态资源)：**
 
-🐋重构Version1.0，基于后端框架Django+接口框架Django-Restful-Framework框架（正在开发，目前已开发80%的功能），前端欲打算使用Vue框架（才刚动工）,实现前后段分离式开发。
+🐋重构Version1.0，基于后端框架Django+接口框架Django-Restful-Framework框架（正在开发，目前已开发80%的功能），前端欲打算使用Vue框架（正在开发）,实现前后段分离式开发。
 
 
 🐲2020年6月5日-----目前（正在开发中）
@@ -58,6 +58,14 @@
 
 
 🐠服务管理工具：supervisor
+
+
+---
+## **项目地址**
+
+[本后端API项目地址](https://github.com/syz247179876/Django-Mall/)
+
+[搭配本API项目的前端项目地址](https://github.com/PleaseKillMe-Ok/vue-mall/)
 
 ---
 ## **开发流程**
