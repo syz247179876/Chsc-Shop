@@ -49,7 +49,6 @@ class SendCode:
         def send(obj, way, number, **kwargs):
             """选择手机号还是邮箱进行验证码发送"""
             is_satisfied = func(obj, number)  # 根据number验证用户是否存在,obj为类实例
-            print(is_satisfied)
             if is_satisfied:
                 # 如果用户存在
                 response_code_func = getattr(response_code, is_satisfied)
@@ -153,7 +152,6 @@ class FactoryBase(VerificationBase):
         way = validated_data.get('way')
         func = func_list.get(way)
         number = validated_data.get(way)  # email or phone or any other
-        self.title = self.title % {'way': way}
         result = getattr(self, func)
         return result(way, number, title=self.title, content=self.content,
                       template_code=template_code)
@@ -173,21 +171,36 @@ class VerificationCodeRetrieve(FactoryBase):
         return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_EXIST, template_code=None)
 
 
+class VerificationCodeLogin(FactoryBase):
+    """用户登录"""
+
+    title = "吃或商城用户登录"
+    content = '亲爱的用户,【吃货们的】商城欢迎您,您的邀请码%(code)s,有效期10分钟，如非本人操作，请勿理睬！'
+
+    def post(self, request):
+        """发送验证码(登录)"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_EXIST,
+                            template_code=TEMPLATES_CODE_LOGIN)
+
+
 class VerificationCodeRegister(FactoryBase):
     """用户注册"""
-    title = '吃货商城用户%(way)s注册'
+    title = '吃货商城用户注册'
     content = '亲爱的用户,【吃货们的】商城欢迎您,您的邀请码%(code)s,有效期10分钟，如非本人操作，请勿理睬！'
 
     def post(self, request):
         """发送验证码（改绑/绑定）"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_NONE, template_code=TEMPLATES_CODE_REGISTER)
+        return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_NONE,
+                            template_code=TEMPLATES_CODE_REGISTER)
 
 
 class VerificationCodeBind(FactoryBase):
     """绑定邮箱 or 手机号"""
-    title = '吃货商城用户%(way)s绑定'
+    title = '吃货商城用户绑定'
     content = '亲爱的【吃货商城】用户,您正在绑定帐号,您的换绑验证码为%(code)s,有效期10分钟，' \
               '如非本人操作，请勿理睬！'
 
@@ -195,7 +208,8 @@ class VerificationCodeBind(FactoryBase):
         """发送验证码（改绑/绑定）"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_EXIST, template_code=TEMPLATES_CODE_REGISTER)
+        return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_EXIST,
+                            template_code=TEMPLATES_CODE_REGISTER)
 
 
 # class VerificationCodePay(VerificationBase):
@@ -213,7 +227,7 @@ class VerificationCodeBind(FactoryBase):
 
 
 class VerificationCodeShopperOpenStore(VerificationBase):
-    title = '吃货商城用户%(way)s开店'
+    title = '吃货商城用户开店'
     content = '亲爱的【吃货商城】用户,您正在开通您的店铺,您的店铺开通的短信验证码为%(code)s,' \
               '有效期10分钟，如非本人操作，请勿理睬！'
 
@@ -230,11 +244,12 @@ class VerificationCodeShopperOpenStore(VerificationBase):
 
 class VerificationCodeModifyPassword(FactoryBase):
     """手机验证"""
-    title = '吃货商城用户%(way)s密码修改提醒'
+    title = '吃货商城用户密码修改提醒'
     content = '亲爱的【吃货商城】用户,您正在为您的账户修改密码,您的修改密码的短信验证码为%(code)s,' \
               '有效期10分钟，如非本人操作，请勿理睬！'
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_EXIST, template_code=TEMPLATES_CODE_REGISTER)
+        return self.factory(serializer.validated_data, func_list=self.FUNC_LIST_EXIST,
+                            template_code=TEMPLATES_CODE_REGISTER)

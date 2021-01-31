@@ -70,10 +70,10 @@ class BaseRedis:
                 return False
             elif redis.exists(key):
                 _value = redis.get(key).decode()
-                redis.delete(key)
-                return True if _value == value else False
-            else:
-                return False
+                if _value == value:
+                    redis.delete(key)
+                    return True
+            return False
 
     def existed_key(self, key):
         """

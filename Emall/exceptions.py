@@ -8,6 +8,13 @@ from rest_framework.exceptions import APIException
 from django.utils.translation import gettext_lazy as _
 
 
+class UserForbiddenError(APIException):
+    """用户禁止登录"""
+    status_code = status.HTTP_200_OK
+    default_detail = _('用户无登录权限')
+    default_code = 'Login Forbidden'
+
+
 class UniversalServerError(APIException):
     """服务器通用错误"""
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

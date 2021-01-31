@@ -10,6 +10,7 @@ from rest_framework_jwt.compat import PasswordField, get_username_field, Seriali
 from rest_framework_jwt.settings import api_settings
 
 from Emall.authentication import email_or_username, phone
+from Emall.exceptions import CodeError, UserForbiddenError, UserNotExists
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -42,7 +43,7 @@ class UserJwtLoginSerializer(Serializer):
             max_length=20
         )
         self.fields['password'] = PasswordField(write_only=True, required=False, min_length=8, max_length=20)
-        self.fields['next'] = serializers.URLField()  # 前一页url
+        self.fields['next'] = serializers.URLField(required=False)  # 前一页url
         self.fields['code'] = serializers.CharField(max_length=6, required=False)  # 验证码
         self.fields['is_remember'] = serializers.BooleanField()  # 是否记住用户名
         self.fields['way'] = serializers.ChoiceField(choices=self.LOGIN_WAY)
@@ -75,7 +76,7 @@ class UserJwtLoginSerializer(Serializer):
 
         # 手机校验验证码
         if way == 'phone' and not self.redis.check_code(attrs.get(self.LOGIN_KEY), attrs.get('code')):
-            raise serializers.ValidationError('验证码不存在或错误')
+            raise CodeError()
 
         credentials = self.filter_credentials(**attrs)  # 过滤不同操作所需字段
 
@@ -87,8 +88,7 @@ class UserJwtLoginSerializer(Serializer):
 
         if user:
             if not user.is_active:
-                msg = _('用户被禁止登录')
-                raise serializers.ValidationError(msg)
+                raise UserForbiddenError()
             payload = jwt_payload_handler(user)
 
             return {
@@ -100,7 +100,7 @@ class UserJwtLoginSerializer(Serializer):
             }
         else:
             msg = _('用户不存在或密码不正确')
-            raise serializers.ValidationError(msg)
+            raise UserNotExists(msg)
 
     @property
     def redis(self):
