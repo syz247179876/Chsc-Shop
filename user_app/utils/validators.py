@@ -33,7 +33,17 @@ class RecipientsValidator(validators.RegexValidator):
 class RegionValidator(validators.RegexValidator):
     """验证收货地址"""
     regex = r'^\w{0,50}$'
-    message = _('收货地址设置不超过50个汉子')
+    message = _('收货地址格式不规范')
+    flags = 0
+
+    def __init__(self, regex=regex, message=message, code=None, inverse_match=None, flags=flags):
+        super().__init__(regex, message, flags)
+
+@deconstructible
+class ProvinceValidator(validators.RegexValidator):
+    """验证省份-城市"""
+    regex =  r'^\w{0,10}/\w{0,15}$'
+    message = _('省份格式不规范')
     flags = 0
 
     def __init__(self, regex=regex, message=message, code=None, inverse_match=None, flags=flags):

@@ -70,10 +70,10 @@ class BaseRedis:
                 return False
             elif redis.exists(key):
                 _value = redis.get(key).decode()
-                redis.delete(key)
-                return True if _value == value else False
-            else:
-                return False
+                if _value == value:
+                    redis.delete(key)
+                    return True
+            return False
 
     def existed_key(self, key):
         """
@@ -135,7 +135,7 @@ def manage_redis(db, redis_class=BaseRedis, redis=None):
         yield redis
     except Exception as e:
         redis_logger.error(e)
-        raise RedisOperationError()
+        raise RedisOperationError(e)
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
 
@@ -147,4 +147,4 @@ def redis_manager(db, redis_class=BaseRedis):
         yield redis_manager
     except Exception as e:
         redis_logger.error(e)
-        raise RedisOperationError()
+        raise RedisOperationError(e)

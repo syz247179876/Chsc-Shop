@@ -14,7 +14,8 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from shop_app.models.commodity_models import Commodity
 from user_app.model.seller_models import Store
-from user_app.utils.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator
+from user_app.utils.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator, \
+    ProvinceValidator
 
 
 class UserManager(BaseUserManager):
@@ -338,7 +339,13 @@ class Address(models.Model):
                                   validators=[RecipientsValidator(), ]
                                   )
 
-    # 收件地址，所在地区,后期改成下拉列表的形式
+    # 省份
+    province = models.CharField(verbose_name=_('省份'),
+                                max_length=20,
+                                validators=[ProvinceValidator(),]
+                                )
+
+    # 收件地址,街道,区等
     region = models.CharField(verbose_name=_('所在地区'),
                               max_length=50,
                               validators=[RegionValidator(), ]
@@ -356,7 +363,7 @@ class Address(models.Model):
                                     )
     # 是否设置为默认地址
     default_address = models.BooleanField(verbose_name=_('默认地址'),
-                                          default=False)
+                                          default=False,)
 
     # 手机号，必须
     phone = models.CharField(verbose_name=_('手机号'),
