@@ -15,26 +15,33 @@ consumer_logger = Logging.logger('consumer_')
 
 
 class AddressSerializers(serializers.ModelSerializer):
+
     class Meta:
         model = Address
-        fields = ['pk', 'recipients', 'region', 'address_tags', 'phone', 'default_address']
+        fields = ['pk', 'recipients', 'region', 'address_tags', 'phone', 'default_address', 'province']
 
     def add_or_edit_address(self, queryset, instance, validated_data):
         """
         创建新的地址
         如果第一次创建地址，则将第一个地址设置为默认地址
         """
-        address_ = queryset.count()
+        address_count = queryset.count()
         try:
-            default_address = True if address_ == 0 else False
-            self.Meta.model.address_.create(
+            default_address = validated_data.get('default_address', False)
+
+            address = self.Meta.model.address_.create(
                 user=instance,
                 default_address=default_address,
                 recipients=validated_data['recipients'],
                 region=validated_data['region'],
                 address_tags=validated_data['address_tags'],
                 phone=validated_data['phone'],
+                province=validated_data['province']
             )
+            # 默认地址为True且有其他地址数据集时修改
+            if default_address and address_count > 0:
+                self.update_default_address(queryset, address.pk)
+
         except Exception as e:
             consumer_logger.error(e)
             raise SqlServerError()
@@ -51,7 +58,8 @@ class AddressSerializers(serializers.ModelSerializer):
         except DatabaseError:
             raise SqlServerError()
 
-    def update_address(self, queryset, validated_data, pk):
+    @staticmethod
+    def update_address(queryset, validated_data, pk):
         """修改地址"""
 
         try:

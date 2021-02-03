@@ -8,6 +8,7 @@ import json
 
 from rest_framework import serializers
 
+from Emall.exceptions import DataTypeError, DataFormatError, LabelError, SqlServerError
 from Emall.loggings import Logging
 from shop_app.models.commodity_models import Commodity
 from user_app.model.seller_models import Store
@@ -83,21 +84,21 @@ class ShopCartSerializer(serializers.ModelSerializer):
                         }
                     }
                 except ValueError:
-                    raise serializers.ValidationError('参数类型不正确')
-        raise serializers.ValidationError('参数格式不正确')
+                    raise DataTypeError()
+        raise DataFormatError()
 
     def validate(self, attrs):
         if self.context.get('request').method == 'DELETE':
             if not attrs.get('pk_list', None):
-                raise serializers.ValidationError('参数不符合要求')
+                raise DataFormatError('参数不符合要求')
         elif self.context.get('request').method == 'POST':
             if not attrs.get('provision', None):
-                raise serializers.ValidationError('参数不符合要求')
+                raise DataFormatError('参数不符合要求')
         return attrs
 
     def label_exist(self, obj, label_pk, label_content):
         """
-        判断选择是否存在商品的总label中
+        判断选择的标签是否存在商品的总label中
         :param obj: Commodity object
         :param label_pk: 选择标签pk
         :param label_choice: 选择标签content
@@ -125,17 +126,16 @@ class ShopCartSerializer(serializers.ModelSerializer):
             commodity_obj = Commodity.commodity_.select_related('store').get(
                 pk=commodity_pk)  # 这里不计算是否还有库存，结算时再计算是否还有库存
             is_exist = self.label_exist(commodity_obj, label.pop('pk'), label.pop('content'))
-            if is_exist:
+            if is_exist: # 标签存在
                 price = self.compute_price(commodity_obj, commodity_count)
                 time = datetime.datetime.now()
-                trolley_obj = self.Meta.model.trolley_.create(user=user, commodity=commodity_obj,
+                self.Meta.model.trolley_.create(user=user, commodity=commodity_obj,
                                                               store=commodity_obj.store,
                                                               time=time, count=commodity_count, price=price)
-                if trolley_obj:
-                    return True
-            raise serializers.ValidationError({'error': '不存在选择标签'})
+                return True
+            raise LabelError('不存在选择标签')
         except Commodity.DoesNotExist:
-            return False
+            raise SqlServerError()
 
     class Meta:
         model = Trolley

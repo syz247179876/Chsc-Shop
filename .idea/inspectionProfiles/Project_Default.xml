@@ -82,6 +82,7 @@
           <option value="remark_app.models.remark_models.Remark.*" />
           <option value="search_app.utils.elasticsearch.ElasticSearchOperation.*" />
           <option value="oauth_app.models.OauthQQ.*" />
+          <option value="shop_app.models.commodity_models.Commodity.DoesNotExist" />
         </list>
       </option>
     </inspection_tool>

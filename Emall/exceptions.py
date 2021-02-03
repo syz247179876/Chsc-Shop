@@ -8,6 +8,26 @@ from rest_framework.exceptions import APIException
 from django.utils.translation import gettext_lazy as _
 
 
+class LabelError(APIException):
+    """标签格式错误"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('标签格式错误')
+    default_code = 'Label Error'
+
+class DataTypeError(APIException):
+    """数据类型错误"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('数据类型错误')
+    default_code = 'Params Type Error'
+
+
+class DataFormatError(APIException):
+    """数据格式非法"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _('数据格式非法')
+    default_code = 'Data Format Error'
+
+
 class UserForbiddenError(APIException):
     """用户禁止登录"""
     status_code = status.HTTP_200_OK
@@ -24,7 +44,7 @@ class UniversalServerError(APIException):
 
 class SqlServerError(APIException):
     """数据库错误"""
-    status_code = status.HTTP_200_OK
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = _('数据不匹配')
     default_code = 'SQL Server Error'
 
@@ -186,13 +206,6 @@ class DownLoadOSSError(FileError):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_detail = _('获取文件失败')
     default_code = 'Retrieve File Error'
-
-
-class DataFormatError(APIException):
-    """数据格式非法"""
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _('数据格式非法')
-    default_code = 'Data Format Error'
 
 
 class RedisOperationError(APIException):
