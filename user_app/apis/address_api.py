@@ -8,7 +8,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+
 from Emall.decorator import validate_url_data
+from Emall.exceptions import SqlServerError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
 from user_app.models import Address
@@ -39,11 +41,17 @@ class AddressOperation(viewsets.ModelViewSet):
     def get_pk(self, **kwargs):
         return kwargs.get('pk')
 
+    def get_object(self):
+        try:
+            return Address.address_.get(user=self.request.user,pk=self.kwargs[self.lookup_field])
+        except Address.DoesNotExist:
+            raise SqlServerError()
+
     # action中的detail用于标识为装饰的视图生成{view_name:url}的有序字典映射
     # 将url和视图绑定
     # @method_decorator(login_required(login_url='consumer/login/'))
 
-    @action(methods=['put'], detail=True)
+    @action(methods=['put'], detail=True, url_path='default')
     def update_default_address(self, request, **kwargs):
         """
         单修改默认地址
@@ -83,3 +91,10 @@ class AddressOperation(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @validate_url_data('address', 'pk')
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+
+
