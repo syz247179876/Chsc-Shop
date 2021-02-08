@@ -5,6 +5,8 @@
 # @Software: Pycharm
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+
+from Emall.exceptions import ESConnectError
 from Emall.loggings import Logging
 from search_app.serailaizers.shop_search_serializers import CommoditySerializer
 from search_app.tasks import record_user_search
@@ -12,7 +14,7 @@ from search_app.utils.elasticsearch import ElasticSearchOperation
 from search_app.utils.pagination import CommodityResultsSetPagination
 from shop_app.models.commodity_models import Commodity
 from search_app.utils.common import identity
-
+from requests.exceptions import ConnectionError
 common_logger = Logging.logger('django')
 
 
@@ -41,18 +43,24 @@ class CommoditySearchOperation(GenericAPIView):
         return getattr(self, 'elastic')
 
     def get_queryset(self):
+        """从es检索数据,解析出id,查询数据库"""
         elastic = self.get_elastic(request=self.request)
         return elastic.get_queryset()
 
     def get(self, request):
         """请求关键字商品"""
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        self.send_record_signal(request)  # 异步任务发送信号,记录用户浏览记录
+        try:
+            queryset = self.get_queryset()
+            page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            self.send_record_signal(request)  # 异步任务发送信号,记录用户浏览记录
+
+        except ConnectionError:
+            # ES服务连接超时
+            raise ESConnectError()
         return Response(serializer.data)
 
     @identity

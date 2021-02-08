@@ -1,13 +1,15 @@
-
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import Manager
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from mdeditor.fields import MDTextField
+
 from Emall.settings import AUTH_USER_MODEL
-from user_app.model.seller_models import Store
 from shop_app.utils.validators import *
+from user_app.model.seller_models import Store
 
 
 class Commodity(models.Model):
@@ -72,7 +74,6 @@ class Commodity(models.Model):
                                 max_length=10,
                                 choices=commodity_choice,
                                 )
-
 
     status = models.BooleanField(verbose_name=_('上架状态'),
                                  help_text=_('请选择商品是否上架'),
@@ -143,7 +144,7 @@ class Commodity(models.Model):
         verbose_name_plural = _('商品表')
 
     def __str__(self):
-        return  'commodity_name:{}'.format(self.commodity_name)
+        return 'commodity_name:{}'.format(self.commodity_name)
 
     def colored_status(self):
         """替换状态颜色"""
@@ -162,31 +163,42 @@ class Commodity(models.Model):
     colored_status.short_description = '上架状态'
 
 
-class GoodsBy(models.Model):
+class Carousel(models.Model):
     """商品轮播表"""
 
-    # 商品名
-    commodity_name = models.CharField(verbose_name=_('商品名称'),
-                                      help_text=_('Please enter the name of the product'),
-                                      max_length=100,
-                                      )
     # 图片
-    picture = models.ImageField(verbose_name=_('轮播图片'),
-                                upload_to='carousel')
+    picture = models.CharField(verbose_name=_('轮播图片地址'), max_length=128)
 
-    # 商品链接
-    url = models.URLField(verbose_name=_('商品链接'), max_length=20)
+    # 轮播图链接
+    url = models.URLField(verbose_name=_('轮播图链接'), max_length=20)
 
     # 排序
     sort = models.IntegerField(verbose_name=_('顺序'), default=0)
 
+    TYPE = (
+        ('1', '单个商品'),
+        ('2', '商品系列'),
+        ('3', '活动'),
+        ('4', '店铺')
+    )
+
+    type = models.CharField(verbose_name=_('轮播图内容类型'), choices=TYPE, default='1', max_length=1)
+
+    # 添加时间
+    add_time = models.DateTimeField(auto_now=True)
+
+    # 可扩展外键,可能参照商品,也可能是商品,也可能是店铺,或者其他活动
+    content_type = models.ForeignKey(to=ContentType, on_delete=True, null=True)  # 外键关联django_content_type表
+
+    object_id = models.PositiveIntegerField(null=True)  # 关联数据的主键
+
+    content_object = GenericForeignKey()  # 关联content_type 和 object_id
+
     class Meta:
-        db_table = "Carousel_index"
+        db_table = "Carousel"
         verbose_name = _('首页轮播商品')
         verbose_name_plural = _('首页轮播商品')
-
-    def __str__(self):
-        return self.commodity_name
+        ordering = ('sort',)
 
 
 class GoodsType(models.Model):
@@ -203,6 +215,7 @@ class GoodsType(models.Model):
 
 class Promotion(models.Model):
     """首页促销表"""
+
     # 促销商品名
     commodity_name = models.CharField(verbose_name=_('商品名称'), max_length=20)
     # 促销链接
@@ -244,4 +257,3 @@ class SeckKill(models.Model):
         db_table = "SeckKill"
         verbose_name = _('秒杀商品')
         verbose_name_plural = _('秒杀商品')
-
