@@ -7,6 +7,19 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 from django.utils.translation import gettext_lazy as _
 
+class ESConnectError(APIException):
+    """ES连接出错"""
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _('ES服务连接超时')
+    default_code = 'ES Connection Error'
+
+
+class AuthenticationError(APIException):
+    """jwt校验错误"""
+    status_code = status.HTTP_401_UNAUTHORIZED
+    default_detail = _('身份校验错误')
+    default_code = 'Authentication Failed'
+
 
 class LabelError(APIException):
     """标签格式错误"""
