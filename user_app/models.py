@@ -110,17 +110,8 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             'unique': _('A user with that email already exists')
         })
 
-    is_seller = models.BooleanField(
-        _('卖家身份'),
-        default=False,
-        help_text=_(
-            'Consumer upgrade to sellers by registering to open store'
-            'who have access to the background'
-        ),
-    )
-
     is_staff = models.BooleanField(
-        _('销售员工'),
+        _('普通管理员'),
         default=False,
         help_text=_(
             'Consumer upgrade to sellers by registering to open store'
@@ -139,8 +130,8 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     )
 
     # 是否是系统管理员
-    is_manager = models.BooleanField(
-        _('系统管理员'),
+    is_super_manager = models.BooleanField(
+        _('超级管理员'),
         default=False,
         help_text=_(
             'Manager of this system who possess the highest priority of the whole operation'
