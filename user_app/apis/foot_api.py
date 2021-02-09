@@ -11,10 +11,13 @@ from rest_framework.viewsets import GenericViewSet
 
 from Emall.decorator import validate_url_data
 from Emall.exceptions import UniversalServerError
+from Emall.loggings import Logging
 from shop_app.models.commodity_models import Commodity
 from user_app.redis.foot_redis import FootRedisOperation
 from user_app.serializers.foot_serializers import FootSerializer
 from user_app.utils.pagination import FootResultsSetPagination
+
+consumer_logger = Logging.logger('consumer_')
 
 
 class FootOperation(GenericViewSet):
@@ -39,12 +42,14 @@ class FootOperation(GenericViewSet):
         return self.commodity_dict if hasattr(self, 'commodity_dict') else {}
 
     def get_queryset(self):
-        """获取足迹固定数量的商品查询集"""
+        """
+        获取足迹固定数量的商品查询集
+        与分页器切片数据集效果重复,先不改了
+        """
         page_size = FootResultsSetPagination.page_size
         page = self.request.query_params.get(self.pagination_class.page_query_param, 1)  # 默认使用第一页
         # 按照固定顺序查询固定范围内的商品pk列表
         commodity_dict = self.redis.get_foot_commodity_id_and_page(self.request.user.pk, page=page, page_size=page_size)
-        print(commodity_dict)
         setattr(self, 'commodity_dict', commodity_dict)
         ordering = 'FIELD(`id`,{})'.format(','.join((str(pk) for pk in commodity_dict.keys())))
         return Commodity.commodity_.filter(pk__in=commodity_dict.keys()).extra(select={"ordering": ordering},
@@ -62,7 +67,7 @@ class FootOperation(GenericViewSet):
     # @method_decorator(cache_page(30, cache='redis'))
     def list(self, request):
         """
-        处理某用户固定数量的足迹
+        获取某用户固定数量的足迹
         """
         try:
             queryset = self.get_queryset()

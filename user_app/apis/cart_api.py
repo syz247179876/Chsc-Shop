@@ -72,6 +72,7 @@ class ShopCartOperation(GenericViewSet):
         """添加商品到购物车"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        print(serializer.validated_data)
         is_created = serializer.add_trolley(serializer.validated_data)
         if is_created:
             return Response(response_code.add_goods_into_shop_cart_success)

@@ -9,9 +9,7 @@ from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
 from shop_app.models.commodity_models import Commodity
-from user_app.model.seller_models import Store
 from voucher_app.models.voucher_models import Voucher, VoucherConsumer
-
 
 
 class CommoditySerializer(serializers.ModelSerializer):
@@ -22,19 +20,10 @@ class CommoditySerializer(serializers.ModelSerializer):
         fields = ('commodity_name',)
 
 
-class StoreSerializer(serializers.ModelSerializer):
-    """与优惠卷有关的店铺序列化器"""
-
-    class Meta:
-        model = Store
-        fields = ('store_name',)
-
 class VoucherInfoSerializer(serializers.ModelSerializer):
     """优惠卷信息序列化器"""
 
     commodity = CommoditySerializer(read_only=True)
-
-    store = StoreSerializer(read_only=True)
 
     class Meta:
         model = Voucher

@@ -11,8 +11,7 @@ from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 
 from shop_app.models.commodity_models import Commodity
-from user_app.model.seller_models import Store
-from voucher_app.managers.voucher_manager import  VoucherConsumerManager
+from voucher_app.managers.voucher_manager import VoucherConsumerManager
 
 
 class Integrals(models.Model):
@@ -63,7 +62,6 @@ class Integral_commodity(models.Model):
 
     integral_commodity_ = Manager()
 
-
     class Meta:
         db_table = 'Integral_commodity'
         verbose_name = _('积分商品表')
@@ -72,8 +70,8 @@ class Integral_commodity(models.Model):
     def __str__(self):
         return self.commodity_name
 
-class VoucherCategory(models.Model):
 
+class VoucherCategory(models.Model):
     category = models.CharField(verbose_name=_('礼卷种类'), max_length=15, help_text=_('创建新的礼卷类型'))
 
     # 是否审核
@@ -84,7 +82,6 @@ class VoucherCategory(models.Model):
         verbose_name = _('礼卷类别')
         verbose_name_plural = _('礼卷类别')
         ordering = ('category',)
-
 
 
 class Voucher(models.Model):
@@ -104,13 +101,11 @@ class Voucher(models.Model):
     category = models.OneToOneField(VoucherCategory, verbose_name=_('礼卷类型'), help_text=_('选择礼卷的类型'), on_delete=True)
 
     # 优惠卷标题
-    bonus_title = models.CharField(max_length=20,verbose_name=_('礼卷标题'), help_text=_('需指明礼卷所属活动'))
-
-    # 发放到某个店铺上
-    store = models.ForeignKey(Store, related_name='voucher', on_delete=True, help_text=_('将礼卷发放到指定的商铺下'), null=True)
+    bonus_title = models.CharField(max_length=20, verbose_name=_('礼卷标题'), help_text=_('需指明礼卷所属活动'))
 
     # 发放到某个商品下
-    commodity = models.ForeignKey(Commodity, related_name='voucher', on_delete=True, help_text=_('将优惠卷发放到指定的商品下'), null=True)
+    commodity = models.ForeignKey(Commodity, related_name='voucher', on_delete=True, help_text=_('将优惠卷发放到指定的商品下'),
+                                  null=True)
 
     # 是否审核
     is_check = models.BooleanField(default=False, help_text=_('该优惠卷是否被管理员审核？'), verbose_name=_('是否审核'))
@@ -146,18 +141,13 @@ class Voucher(models.Model):
 
     end_date = models.DateTimeField(auto_now=True)
 
-
-
     voucher_ = Manager()
 
-
     class Meta:
-
         db_table = 'Voucher'
         verbose_name = _('礼卷')
         verbose_name_plural = _('礼卷')
         ordering = ('-commit_time',)
-
 
     def __str__(self):
         return self.bonus_title
@@ -184,16 +174,11 @@ class VoucherConsumer(models.Model):
 
     voucher_state = models.CharField(choices=states, default=1, max_length=1)
 
-
     voucher_ = VoucherConsumerManager()
 
-
     class Meta:
-
-        default_manager_name = 'voucher_' # 设置为_default_manager,多个manager的时候比较游泳
+        default_manager_name = 'voucher_'  # 设置为_default_manager,多个manager的时候比较游泳
         db_table = 'VoucherConsumer'
         verbose_name = _('用户优惠卷')
         verbose_name_plural = _('用户优惠卷')
         ordering = ('-acquire_time',)
-
-

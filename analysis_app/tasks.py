@@ -7,7 +7,7 @@ import datetime
 
 from Emall import celery_apps as app
 from Emall.loggings import Logging
-from analysis_app.utils.statistic_redis import statistic_redis
+from analysis_app.redis.statistic_redis import statistic_redis
 
 common_logger = Logging.logger('django')
 

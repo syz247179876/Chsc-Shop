@@ -9,25 +9,11 @@ from mdeditor.fields import MDTextField
 
 from Emall.settings import AUTH_USER_MODEL
 from shop_app.utils.validators import *
-from user_app.model.seller_models import Store
 
 
 class Commodity(models.Model):
     """商品表"""
-    # 店铺
-    store = models.ForeignKey(Store,
-                              verbose_name=_('商铺'),
-                              help_text=_('商品所在的店铺'),
-                              on_delete=models.CASCADE,
-                              related_name='commodity',
-                              )
-    # 店家
-    shopper = models.ForeignKey(AUTH_USER_MODEL,
-                                verbose_name=_('商家'),
-                                help_text=_('商品所属的商家'),
-                                on_delete=models.CASCADE,
-                                related_name='commodity',
-                                )
+
 
     # 商品名称
     commodity_name = models.CharField(verbose_name=_('商品名称'),
@@ -187,12 +173,14 @@ class Carousel(models.Model):
     # 添加时间
     add_time = models.DateTimeField(auto_now=True)
 
-    # 可扩展外键,可能参照商品,也可能是商品,也可能是店铺,或者其他活动
-    content_type = models.ForeignKey(to=ContentType, on_delete=True, null=True)  # 外键关联django_content_type表
+    # # 可扩展外键,可能参照商品,也可能是商品,也可能是店铺,或者其他活动
+    # content_type = models.ForeignKey(to=ContentType, on_delete=True, null=True)  # 外键关联django_content_type表
+    #
+    # object_id = models.PositiveIntegerField(null=True)  # 关联数据的主键
+    #
+    # content_object = GenericForeignKey()  # 关联content_type 和 object_id
 
-    object_id = models.PositiveIntegerField(null=True)  # 关联数据的主键
-
-    content_object = GenericForeignKey()  # 关联content_type 和 object_id
+    carousel_ = Manager()
 
     class Meta:
         db_table = "Carousel"
