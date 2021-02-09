@@ -15,7 +15,6 @@ Including another URLconf
 """
 
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import path, include
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
@@ -28,7 +27,6 @@ schema_view = get_schema_view(title='云逸电子商城开发接口文档', rend
                               description="司云中出品!")
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     # path('search/', SearchView(), name='search'),
     path('404/', error_404, name='404'),
     path('payment/', include('payment_app.urls', namespace='payment')),
