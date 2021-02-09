@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/9/2 下午9:24
 # @Author : 司云中
-# @File : utils.py
+# @File : common.py
 # @Software: Pycharm
 from payment_app.models.Alipay_models import PayInformation
 from voucher_app.models.voucher_models import Integrals

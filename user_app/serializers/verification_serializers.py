@@ -76,11 +76,6 @@ class RetrieveCodeSerializer(VerificationSerializer):
 
 
 
-
-
-
-
-
 class VerificationModifyPwdSerializer(serializers.Serializer):
     """转为修改密码设置的手机验证序列化器"""
 

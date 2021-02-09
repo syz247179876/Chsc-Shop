@@ -16,7 +16,7 @@ from user_app.serializers.individual_info_serializers import IndividualInfoSeria
 consumer_logger = Logging.logger('consumer_')
 
 
-class SaveInformation(GenericAPIView):
+class InformationOperation(GenericAPIView):
     """
     保存信息
     修改用户名后需重新登录

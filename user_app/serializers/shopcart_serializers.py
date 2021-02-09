@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*- 
-# @Time : 2020/5/30 10:38 
-# @Author : 司云中 
+# -*- coding: utf-8 -*-
+# @Time : 2020/5/30 10:38
+# @Author : 司云中
 # @File : shopcart_serializers.py
 # @Software: PyCharm
 import datetime
@@ -11,7 +11,6 @@ from rest_framework import serializers
 from Emall.exceptions import DataTypeError, DataFormatError, LabelError, SqlServerError
 from Emall.loggings import Logging
 from shop_app.models.commodity_models import Commodity
-from user_app.model.seller_models import Store
 from user_app.model.trolley_models import Trolley
 
 common_logger = Logging.logger('django')
@@ -31,16 +30,7 @@ class CommoditySerializer(serializers.ModelSerializer):
         fields = ('pk', 'commodity_name', 'price')
 
 
-class StoreSerializer(serializers.ModelSerializer):
-    commodity = CommoditySerializer(many=True, read_only=True)  # 一条trolley中的一个store对应的是多个commodity
-
-    class Meta:
-        model = Store
-        fields = ('pk', 'store_name',)
-
-
 class ShopCartSerializer(serializers.ModelSerializer):
-    store = StoreSerializer(read_only=True)  # 一条trolley记录对应一个store
 
     pk_list = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=None, max_length=99999,
                                     write_only=True, required=False)  # 删除的pk列表

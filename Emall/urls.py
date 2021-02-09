@@ -21,14 +21,11 @@ from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
 
 from Emall import settings
 # 重要的是如下三行
-from Emall.base_view import error_404
 
 schema_view = get_schema_view(title='云逸电子商城开发接口文档', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer],
                               description="司云中出品!")
 
 urlpatterns = [
-    # path('search/', SearchView(), name='search'),
-    path('404/', error_404, name='404'),
     path('payment/', include('payment_app.urls', namespace='payment')),
     path('consumer/', include('user_app.urls', namespace='consumer')),
     path('order/', include('order_app.urls', namespace='order')),

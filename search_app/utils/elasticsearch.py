@@ -45,7 +45,7 @@ class ElasticSearchOperation:
         return url
 
     def get_search_results(self):
-        """获取索引库的商品id"""
+        """发送请求,获取索引库的商品id"""
         if hasattr(self, 'pk_list'):
             return self.pk_list
         url = self.combine_url()

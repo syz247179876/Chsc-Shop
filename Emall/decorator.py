@@ -12,7 +12,7 @@ def validate_url_data(model, field):
     """
     通用校验字段装饰器工厂函数
     校验GET请求方式下不同Model中字段的数据格式
-    :param model: 具体field所处的model类型,设计多个模块,Model不一样,如foot, history, favorites, commodity, user等
+    :param model: 具体field所处的model类型,涉及多个模块,Model不一样,如foot, history, favorites, commodity, user等
     :param field: 具体字段,如pk, username, phone, commodity_name等
     :return: callback func(self, field)
     """

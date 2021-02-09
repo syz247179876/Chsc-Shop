@@ -6,4 +6,3 @@ class SearchAppConfig(AppConfig):
 
     def ready(self):
         import search_app.redis.history_redis
-        print(23213312)

@@ -14,6 +14,7 @@ from user_app.utils import validators
 common_log = logging.getLogger('django')
 User = get_user_model()
 
+
 class EmailOrUsername(ModelBackend):
     """
     针对邮箱或者用户名登录，自定义认证
@@ -33,11 +34,11 @@ class EmailOrUsername(ModelBackend):
             kwargs.pop('way')
             password = kwargs.pop('password')
             user = User.objects.get(**kwargs)
-            user.last_login=datetime.datetime.today()
+            user.last_login = datetime.datetime.today()
             user.save()
-        except User.DoesNotExist: # 用户不存在
+        except User.DoesNotExist:  # 用户不存在
             return None
-        else:                     # 密码错误
+        else:  # 密码错误
             return user if user.check_password(password) else None
 
 
@@ -55,7 +56,7 @@ class Phone(ModelBackend):
             phone = kwargs.get('phone')
             if validators.phone_validate(phone):
                 user = User.objects.get(phone=phone)
-                user.last_login=datetime.datetime.today()
+                user.last_login = datetime.datetime.today()
                 user.save()
             return user
         except User.DoesNotExist:

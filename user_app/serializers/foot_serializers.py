@@ -16,7 +16,7 @@ class FootSerializer(serializers.ModelSerializer):
     """the serializer of Foot(足迹)"""
 
     pk = serializers.IntegerField(write_only=True) #  商品 id
-    timestamp = serializers.SerializerMethodField()
+    timestamp = serializers.SerializerMethodField()  # 只读特性,将任何类型数据添加到序列化表示中
 
     def get_timestamp(self, obj):
         """为每个足迹追加时间戳"""
@@ -31,7 +31,6 @@ class FootSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Commodity
-        fields = ('id', 'timestamp', 'commodity_name', 'price', 'intro',
-                  'category', 'status', 'discounts', 'image', 'pk')
+        fields = ('id', 'timestamp', 'commodity_name', 'price', 'status', 'discounts', 'image', 'pk')
         read_only_fields = (
-            'id', 'commodity_name', 'price', 'intro', 'category', 'status', 'discounts', 'image')
+            'id', 'commodity_name', 'price', 'status', 'discounts', 'image')

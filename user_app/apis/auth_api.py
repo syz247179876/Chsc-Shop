@@ -16,6 +16,7 @@ from rest_framework_jwt.settings import api_settings
 from Emall.exceptions import UserExists, CodeError, UniversalServerError
 from Emall.loggings import Logging
 from Emall.response_code import response_code
+from oauth_app.serializers.oauth_serializer import jwt_response_payload_handler
 from user_app.models import Consumer
 from user_app.redis.user_redis import RedisUserOperation
 from user_app.serializers.login_serializers import UserJwtLoginSerializer
@@ -24,9 +25,6 @@ from user_app.serializers.register_serializers import RegisterSerializer
 common_logger = Logging.logger('django')
 
 consumer_logger = Logging.logger('consumer_')
-
-jwt_response_payload_handler = api_settings.JWT_RESPONSE_PAYLOAD_HANDLER
-
 
 class LoginAPIView(GenericAPIView):
     """ 使用JWT登录"""

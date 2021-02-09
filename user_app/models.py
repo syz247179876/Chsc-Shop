@@ -13,7 +13,6 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from shop_app.models.commodity_models import Commodity
-from user_app.model.seller_models import Store
 from user_app.utils.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator, \
     ProvinceValidator
 
@@ -418,9 +417,6 @@ class Collection(models.Model):
     # 商品
     commodity = models.ForeignKey(Commodity, related_name='collections', verbose_name=_('商品'), on_delete=True,
                                   null=True)
-
-    # 店铺
-    store = models.ForeignKey(Store, related_name='store', verbose_name=_('店铺'), on_delete=True, null=True)
 
     # 浏览时间
     datetime = models.DateTimeField(auto_now_add=True, verbose_name=_('收藏时间'))
