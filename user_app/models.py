@@ -49,25 +49,21 @@ class UserManager(BaseUserManager):
         return self.filter(extra_fields).count() > 0
 
     def create_consumer(self, password=None, **extra_fields):
-        extra_fields.setdefault('is_seller', False)
-        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_stuff', False)
+        extra_fields.setdefault('is_super_manager', False)
         password = make_password(password)
         return self._create_user(password=password, **extra_fields)
 
-    def create_seller(self, password=None, **extra_fields):
-        extra_fields.setdefault('is_seller', True)
+    def create_staff(self, password=None, **extra_fields):
         extra_fields.setdefault('is_stuff', True)
-        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_super_manager', False)
         password = make_password(password)
         return self._create_user(password=password, **extra_fields)
 
     def create_superuser(self, username, email, password, **extra_fields):
-        extra_fields.setdefault('is_seller', False)
         extra_fields.setdefault('is_stuff', True)
-        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_super_manager', True)
 
-        if extra_fields.get('is_seller') is True:
-            raise ValueError('Superuser must not have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
 
@@ -220,6 +216,10 @@ class User(AbstractUser):
 
     class Meta(AbstractUser.Meta):
         swappable = 'AUTH_USER_MODEL'
+
+    def get_username_field(self):
+        return self.USERNAME_FIELD
+
 
 
 class Consumer(models.Model):
