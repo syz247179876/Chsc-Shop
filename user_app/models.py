@@ -7,6 +7,8 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Manager
 from django.utils import timezone
@@ -46,32 +48,41 @@ class UserManager(BaseUserManager):
         return user
 
     def _check_user_existed(self, **extra_fields):
-        return self.filter(extra_fields).count() > 0
+        return self.filter(extra_fields).exists()
 
     def create_consumer(self, password=None, **extra_fields):
-        extra_fields.setdefault('is_stuff', False)
+        extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_super_manager', False)
         password = make_password(password)
         return self._create_user(password=password, **extra_fields)
 
     def create_staff(self, password=None, **extra_fields):
-        extra_fields.setdefault('is_stuff', True)
+        extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_super_manager', False)
         password = make_password(password)
         return self._create_user(password=password, **extra_fields)
 
     def create_superuser(self, username, email, password, **extra_fields):
-        extra_fields.setdefault('is_stuff', True)
+        extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_super_manager', True)
 
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        if extra_fields.get('is_super_manager') is not True:
+            raise ValueError('Superuser must have is_super_manager=True.')
 
         return self._create_superuser(username, email, password, **extra_fields)
 
     def check_user_existed(self, **extra_fields):
-
+        extra_fields['password'] = make_password(extra_fields.pop('password'))
         return self._check_user_existed(**extra_fields)
+
+    def check_manager_login(self, **validated_fields):
+        validated_fields['password'] = make_password(validated_fields.pop('password'))
+        try:
+            return self.select_related('mo').get(**validated_fields)
+        except self.model.DoesNotExist:
+            return None
+
+
 
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
@@ -194,17 +205,6 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             return ''
         return phone
 
-    def head_images(self):
-        # 这里添加一个防空判断
-        if not self.head_image:
-            return '无'
-        else:
-            return format_html("<img src='{}' style='width:50px;height:50px;'>",
-                               self.head_image.url,
-                               self.head_image)
-
-    head_images.short_description = '头像'
-
 
 class User(AbstractUser):
     """
@@ -213,6 +213,7 @@ class User(AbstractUser):
 
     Username and password are required. Other fields are optional.
     """
+
 
     class Meta(AbstractUser.Meta):
         swappable = 'AUTH_USER_MODEL'
@@ -224,6 +225,7 @@ class User(AbstractUser):
 
 class Consumer(models.Model):
     """用户表"""
+
     # 用户名
     user = models.OneToOneField(
         User,
