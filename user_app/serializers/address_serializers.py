@@ -18,7 +18,7 @@ class AddressSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Address
-        fields = ['pk', 'recipients', 'region', 'address_tags', 'phone', 'default_address', 'province']
+        fields = ['pk', 'recipient', 'address', 'address_tags', 'phone', 'default_address', 'province']
 
     def add_or_edit_address(self, queryset, instance, validated_data):
         """
@@ -27,13 +27,13 @@ class AddressSerializers(serializers.ModelSerializer):
         """
         address_count = queryset.count()
         try:
-            default_address = validated_data.get('default_address', False)
+            default_address = validated_data.get('default_address')
 
             address = self.Meta.model.address_.create(
                 user=instance,
                 default_address=default_address,
-                recipients=validated_data['recipients'],
-                region=validated_data['region'],
+                recipients=validated_data['recipient'],
+                region=validated_data['address'],
                 address_tags=validated_data['address_tags'],
                 phone=validated_data['phone'],
                 province=validated_data['province']

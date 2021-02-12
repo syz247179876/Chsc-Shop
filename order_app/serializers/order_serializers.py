@@ -5,7 +5,7 @@
 # @Software: PyCharm
 import datetime
 
-from order_app.models.order_models import Order_details, Order_basic
+from order_app.models.order_models import OrderDetails, OrderBasic
 from shop_app.models.commodity_models import Commodity
 from user_app.models import Address
 from django.db import transaction, DatabaseError
@@ -27,7 +27,7 @@ order_logger = Logging.logger('order_')
 
 
 class CommoditySerializer(serializers.ModelSerializer):
-    """ the serializer of commodity which used to combine with Order_details"""
+    """ the serializer of commodity which used to combine with OrderDetails"""
 
     store_name = serializers.CharField(source='store.store_name')
 
@@ -39,7 +39,7 @@ class CommoditySerializer(serializers.ModelSerializer):
 class OrderDetailsSerializer(serializers.ModelSerializer):
     """
     订单商品详情序列化容器
-    The serializer of Order_details which used to combine with Order_basic
+    The serializer of OrderDetails which used to combine with OrderBasic
     """
 
     commodity = CommoditySerializer()
@@ -51,8 +51,8 @@ class OrderDetailsSerializer(serializers.ModelSerializer):
     #     return ''
 
     class Meta:
-        model = Order_details
-        fields = ('price', 'commodity', 'commodity_counts')
+        model = OrderDetails
+        fields = ('price', 'commodity', 'counts')
 
 
 class OrderBasicSerializer(serializers.ModelSerializer):
@@ -70,14 +70,14 @@ class OrderBasicSerializer(serializers.ModelSerializer):
 
     # def get_order_details(self, obj):
     #     """嵌套order_details"""
-    #     order_details = Order_details.order_details_.filter(order_basic=obj.pk)
+    #     order_details = OrderDetails.order_details_.filter(order_basic=obj.pk)
     #     if order_details.count() > 0:
     #         return OrderDetailsSerializer(order_details, many=True).data
     #     return ''
 
     class Meta:
-        model = Order_basic
-        fields = ('orderId', 'trade_number', 'total_price', 'commodity_total_counts', 'generate_time', 'status',
+        model = OrderBasic
+        fields = ('orderId', 'trade_number', 'total_price', 'total_counts', 'generate_time', 'status',
                   'order_details', 'generate_time', 'list_pk')
 
 
@@ -101,12 +101,12 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 pk__in=[int(pk) for pk in commodity_dict.keys()])  # one hit database
             for value in commodity:
                 # 创建详细订单表
-                Order_details.order_details_.create(belong_shopper=value.shopper,
-                                                    commodity=value,
-                                                    order_basic=order_basic,
-                                                    price=value.discounts * value.price,
-                                                    commodity_counts=commodity_dict.get(str(value.pk)),
-                                                    )
+                OrderDetails.order_details_.create(belong_shopper=value.shopper,
+                                                   commodity=value,
+                                                   order_basic=order_basic,
+                                                   price=value.discounts * value.price,
+                                                   commodity_counts=commodity_dict.get(str(value.pk)),
+                                                   )
                 total_price += value.price * value.discounts * commodity_dict.get(str(value.pk))
         except Exception as e:
             order_logger.error(e)
@@ -139,13 +139,13 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 pk = user.pk
                 orderId = self.generate_orderid(pk)  # 产生订单号
                 address = self.get_address(user)
-                order_basic = Order_basic.order_basic_.create(consumer=user, region=address, orderId=orderId,
-                                                              payment=validated_data.get('payment'))  # 创建初始订单
+                order_basic = OrderBasic.order_basic_.create(consumer=user, region=address, orderId=orderId,
+                                                             payment=validated_data.get('payment'))  # 创建初始订单
                 total_price, total_counts = self.compute_order_details(validated_data, order_basic)  # 计算总价和总数量
                 # 重新修改订单表总数量
                 order_basic.total_price = total_price
                 order_basic.total_counts = total_counts
-                order_basic.save(update_fields=['total_price', 'commodity_total_counts'])
+                order_basic.save(update_fields=['total_price', 'total_counts'])
         except DatabaseError as e:  # rollback
             order_logger.error(e)
             return None
@@ -154,7 +154,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             return order_basic
 
     class Meta:
-        model = Order_basic
+        model = OrderBasic
         fields = ('commodity_dict', 'payment')
 
 
@@ -193,7 +193,7 @@ class OrderAddressSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_address(user):
-        """get address of current consumer"""
+        """get address of current user"""
         try:
             return Address.address_.filter(user=user)
         except Address.DoesNotExist:

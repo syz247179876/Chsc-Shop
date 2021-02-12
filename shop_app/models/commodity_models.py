@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
 from django.utils.html import format_html
@@ -245,3 +245,35 @@ class SeckKill(models.Model):
         db_table = "SeckKill"
         verbose_name = _('秒杀商品')
         verbose_name_plural = _('秒杀商品')
+
+
+
+class Sku(models.Model):
+    """
+    sku表
+
+    对能够影响商品销量和库存的关键属性集合进行排列组合的迪卡尔积种类
+    """
+
+    # 关系为多对一,原因在于对sku中的关键属性进行排列组合,每一种情况都是一个sku,因此多个sku对应一个商品
+    commodity = models.ForeignKey(Commodity, on_delete=models.CASCADE, verbose_name=_('商品'), related_name='sku')
+
+    stock = models.PositiveIntegerField(verbose_name=_('sku的库存'), default=0)
+
+
+    price =  models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的价格'),
+                                validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
+                                            MinValueValidator(0, message=_('商品价格必须为正数'))])
+
+    # sku分类, 3.1使用允许使用JsonField字段
+    category = models.TextField()
+
+
+class SkuProps(models.Model):
+    """
+    Sku的规格
+    """
+    pass
+
+
+

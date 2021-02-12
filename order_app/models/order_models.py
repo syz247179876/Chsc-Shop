@@ -1,4 +1,4 @@
-
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
@@ -6,28 +6,40 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from shop_app.models.commodity_models import Commodity
-from user_app.models import Address, User
+from user_app.models import Address
+from voucher_app.models.voucher_models import Voucher
+
+User = get_user_model()
 
 
-class Order_basic(models.Model):
+class OrderBasic(models.Model):
     """订单基本信息"""
 
     # 订单号
-    orderId = models.CharField(
-        max_length=100, verbose_name=_("支付流水号"))
+    order_id = models.CharField(
+        max_length=50, verbose_name=_("订单号"))
 
     # 用户，一个用户多个收货地址
-    consumer = models.ForeignKey(User, verbose_name=_('用户名'),
-                                 max_length=50,
-                                 related_name='order_basic',
-                                 on_delete=models.CASCADE,
-                                 )
+    user = models.ForeignKey(User, verbose_name=_('用户名'),
+                             max_length=50,
+                             related_name='order_basic',
+                             on_delete=models.CASCADE,
+                             )
 
     # 收货地址,后期改成下拉列表的形式
-    region = models.ForeignKey(Address, verbose_name=_('收货人'),
-                               on_delete=models.CASCADE,
-                               related_name='order_basic'
-                               )
+    address = models.ForeignKey(Address, verbose_name=_('收货人'),
+                                on_delete=models.SET_NULL,
+                                null=True,
+                                related_name='order_basic'
+                                )
+
+    # 红包优惠卷
+    voucher = models.ForeignKey(Voucher, verbose_name=_('红包优惠卷'),
+                                on_delete=models.SET_NULL,
+                                null=True,
+                                related_name='order_basic'
+                                )
+
     # 支付方式
     payment_choice = (
         ('1', '货到付款'),
@@ -41,17 +53,34 @@ class Order_basic(models.Model):
                                )
 
     # 商品总数
-    commodity_total_counts = models.PositiveIntegerField(verbose_name=_('商品总数'),
-                                                         default=1,
-                                                         validators=[
-                                                             MaxValueValidator(10000,
-                                                                               message=_('订单中商品总数不超过10000件')), ])
+    total_counts = models.PositiveIntegerField(verbose_name=_('商品总数'),
+                                               default=1,
+                                               validators=[
+                                                   MaxValueValidator(10000,
+                                                                     message=_('订单中商品总数不超过10000件')),
+                                                   MinValueValidator(0, message=_('商品价格必须为正数'))])
     # 商品总价钱
     total_price = models.DecimalField(max_digits=9, decimal_places=2,
                                       verbose_name=_('商品总价格'),
-                                      validators=[MaxValueValidator(99999999.99,
-                                                                    message=_('商品的总价格不能超过999999.99人民币')), ],
-                                      null=True)
+                                      help_text=_('商品原价*商品数量'),
+                                      validators=[MaxValueValidator(9999999.99,
+                                                                    message=_('商品的总价格不能超过9999999.99人民币')),
+                                                  MinValueValidator(0, message=_('商品价格必须为正数'))])
+    # 商品优惠总价格
+    favourable_price = models.DecimalField(max_digits=9, decimal_places=2,
+                                           verbose_name=_('商品优惠总价格'),
+                                           help_text=_('商品原价*折扣*商品数量'),
+                                           validators=[MaxValueValidator(9999999.99,
+                                                                         message=_('商品的总价格不能超过9999999.99人民币')),
+                                                       MinValueValidator(0, message=_('商品价格必须为正数'))])
+
+    # 商品真实总价格,优惠价格再减去使用的红包礼卷
+    true_price = models.DecimalField(max_digits=9, decimal_places=2,
+                                     verbose_name=_('商品真实的总价格'),
+                                     help_text=_('商品原价*折扣*商品数量-红包礼卷'),
+                                     validators=[MaxValueValidator(9999999.99,
+                                                                   message=_('商品的总价格不能超过9999999.99人民币')),
+                                                 MinValueValidator(0, message=_('商品价格必须为正数'))])
 
     # 产生订单日期
     generate_time = models.DateTimeField(verbose_name=_('生成订单时间'), auto_now_add=True)
@@ -82,61 +111,65 @@ class Order_basic(models.Model):
                               )
 
     # 是否审核（同意接单）
-    checked = models.BooleanField(verbose_name=_('是否审核'), default=False)
+    is_checked = models.BooleanField(verbose_name=_('是否审核'), default=False)
 
     # 是否可以评论
-    remarked = models.BooleanField(verbose_name=_('是否可以评论'), default=False)
+    is_remark = models.BooleanField(verbose_name=_('是否可以评论'), default=False)
 
     # 用户删除订单状态，假删除
     delete_consumer = models.BooleanField(verbose_name=_('消费者是否删除订单'), default=False)
 
     # 商家删除订单状态，假删除
-    delete_shopper = models.BooleanField(verbose_name=_('商家是否删除订单'), default=False)
+    delete_seller = models.BooleanField(verbose_name=_('商家是否删除订单'), default=False)
 
     # 订单提交有效时间
-    efficient_time = models.DateTimeField(verbose_name=_('订单过期时间'), null=True, auto_now=True)
+    efficient_time = models.DateTimeField(verbose_name=_('订单过期时间'), auto_now=True)
+
+    # 当前订单使用的优惠卷
 
     order_basic_ = Manager()
 
     class Meta:
-        db_table = 'Order_basic'
-        verbose_name = _('订单信息表')
-        verbose_name_plural = _('订单信息表')
+        db_table = 'order_basic'
+        verbose_name = _('订单基本表')
+        verbose_name_plural = _('订单基本表')
 
     def __str__(self):
-        return '订单号:{}'.format(self.orderId)
+        return '订单号:{}'.format(self.order_id)
 
 
-class Order_details(models.Model):
+class OrderDetails(models.Model):
     """子订单商品表，详情订单，针对某一种商品"""
 
     # 对应的店家
-    belong_shopper = models.ForeignKey(User,
-                                       verbose_name=_('商家'),
-                                       help_text=_('该商品所对应的商家'),
-                                       on_delete=models.CASCADE,
-                                       related_name='order_details',
-                                       )
-    # 商品，商品下架，订单详情销毁
+    seller = models.ForeignKey(User, verbose_name=_('商家'),
+                               help_text=_('该商品所对应的商家'),
+                               on_delete=models.SET_NULL,  # 商家帐号删除后,值为null, 商品对应下架
+                               related_name='order_details',
+                               null=True
+                               )
+
+    # 商品，显示商品下架
     commodity = models.OneToOneField(Commodity,
                                      verbose_name=_('商品'),
                                      related_name='order_details',
-                                     on_delete=models.CASCADE,
+                                     on_delete=models.SET_NULL,
+                                     null=True
                                      )
 
     # 属于哪一个订单，订单号
-    order_basic = models.ForeignKey(Order_basic, verbose_name=_('订单号'),
+    order_basic = models.ForeignKey(OrderBasic, verbose_name=_('订单号'),
                                     help_text=_('属于哪个一个订单'),
                                     on_delete=models.CASCADE,
                                     related_name='order_details',
                                     )
-    # 商品的价格,可以是折后价
+    # 商品的优惠价
     price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('商品价格'),
                                 validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
                                             MinValueValidator(0, message=_('商品价格必须为正数'))])
 
     # 某种商品的数量
-    commodity_counts = models.PositiveIntegerField(
+    counts = models.PositiveIntegerField(
         verbose_name=_('商品总数'),
         default=1,
         validators=[
@@ -149,7 +182,7 @@ class Order_details(models.Model):
     order_details_ = Manager()
 
     class Meta:
-        db_table = 'Order_details'
+        db_table = 'OrderDetails'
         verbose_name = _('订单商品详情表')
         verbose_name_plural = _('订单商品详情表')
 
@@ -157,7 +190,7 @@ class Order_details(models.Model):
 class Logistic(models.Model):
     """物流表"""
     # 订单
-    order_basic = models.ForeignKey(Order_basic,
+    order_basic = models.ForeignKey(OrderBasic,
                                     verbose_name=_('订单'),
                                     related_name='logistic',
                                     on_delete=models.CASCADE)
