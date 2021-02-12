@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from order_app.utils.pagination import OrderResultsSetPagination
-from order_app.models.order_models import Order_basic
+from order_app.models.order_models import OrderBasic
 from order_app.redis.order_redis import RedisOrderOperation
 from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCommoditySerializer, \
     OrderAddressSerializer, OrderCreateSerializer
@@ -39,7 +39,7 @@ class OrderBasicOperation(viewsets.GenericViewSet):
 
     def get_queryset(self):
         """默认获取该用户的所有订单"""
-        return Order_basic.order_basic_.filter(consumer=self.request.user)
+        return OrderBasic.order_basic_.filter(user=self.request.user)
 
     def disguise_del_order_list(self, validated_data):
         """逻辑群删除订单"""
@@ -124,8 +124,8 @@ class OrderListOperation(GenericAPIView):
         """根据status返回查询集"""
         status_ = self.kwargs.get(self.lookup_field, '0')
         if status_ == '0':
-            return Order_basic.order_basic_.filter(delete_consumer=False)
-        return Order_basic.order_basic_.filter(status=status_, delete_consumer=False)
+            return OrderBasic.order_basic_.filter(delete_consumer=False)
+        return OrderBasic.order_basic_.filter(status=status_, delete_consumer=False)
 
     def get(self, request, *args, **kwargs):
         """
@@ -221,7 +221,7 @@ class OrderCreateOperation(GenericAPIView):
 #     ultimate_class = PageSerializer
 #
 #     def get_queryset(self):
-#         return Order_basic.order_basic_.filter(consumer=self.request.user)
+#         return OrderBasic.order_basic_.filter(consumer=self.request.user)
 #
 #     def list(self, request, *args, **kwargs):
 #         """根据订单状态分批列出某用户的订单"""

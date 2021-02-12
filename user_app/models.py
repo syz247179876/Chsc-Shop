@@ -87,12 +87,11 @@ class UserManager(BaseUserManager):
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
     username_validator = UnicodeUsernameValidator()
-
     username = models.CharField(
         _('昵称'),
-        max_length=30,
+        max_length=20,
         unique=True,
-        help_text=_('Required. 30 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+        help_text=_('Required. 20 characters or fewer. Letters, digits and @/./+/-/_ only.'),
         validators=[username_validator],
         error_messages={
             'unique': _("A user with that username already exists."),
@@ -109,12 +108,13 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         })
     phone = models.CharField(
         _('手机号'),
+        unique=True,
         blank=True,
         null=True,
         max_length=11,
         validators=[PhoneValidator],
         error_messages={
-            'unique': _('A user with that email already exists')
+            'unique': _('A user with that phone already exists')
         })
 
     is_staff = models.BooleanField(
@@ -182,9 +182,9 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email', 'phone']
 
     class Meta:
-        db_table = 'User'
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
+        db_table = 'base_user'
+        verbose_name = _('base_user')
+        verbose_name_plural = _('base_users')
         abstract = True
 
     def clean(self):
@@ -224,14 +224,14 @@ class User(AbstractUser):
 
 
 class Consumer(models.Model):
-    """用户表"""
+    """消费者表"""
 
     # 用户名
     user = models.OneToOneField(
         User,
         verbose_name=_('消费者'),
         on_delete=models.CASCADE,
-        related_name='consumer',
+        related_name='user',
     )
 
     rank_choice = (
@@ -253,20 +253,10 @@ class Consumer(models.Model):
         choices=rank_choice
     )
 
-    safety = models.DecimalField(
+    safety = models.PositiveIntegerField(
         _('安全分数'),
         help_text=_('您的信息安全分数'),
-        decimal_places=0,
-        max_digits=3,
         default=60,
-    )
-
-    nationality = models.CharField(
-        _('详细地址'),
-        help_text=_('详细地址信息'),
-        max_length=30,
-        null=True,
-        blank=True
     )
 
     integral = models.PositiveIntegerField(
@@ -282,10 +272,9 @@ class Consumer(models.Model):
     consumer_ = Manager()
 
     class Meta:
-        db_table = 'Consumer'
+        db_table = 'user'
         verbose_name = _('消费者')
         verbose_name_plural = _('消费者')
-        # permissions = [('can_view_address','can_v')]
 
     def __str__(self):
         return self.user.get_username()
@@ -326,10 +315,10 @@ class Address(models.Model):
                              on_delete=models.CASCADE,
                              related_name='address')
     # 收件人
-    recipients = models.CharField(verbose_name=_('收件人'),
-                                  max_length=20,
-                                  validators=[RecipientsValidator(), ]
-                                  )
+    recipient = models.CharField(verbose_name=_('收件人'),
+                                 max_length=20,
+                                 validators=[RecipientsValidator(), ]
+                                 )
 
     # 省份
     province = models.CharField(verbose_name=_('省份'),
@@ -354,15 +343,11 @@ class Address(models.Model):
                                     validators=[AddressTagValidator(), ],
                                     )
     # 是否设置为默认地址
-    default_address = models.BooleanField(verbose_name=_('默认地址'),
-                                          default=False,)
+    default_address = models.BooleanField(verbose_name=_('默认地址'))
 
     # 手机号，必须
     phone = models.CharField(verbose_name=_('手机号'),
-                             help_text=_('Please write your cell-phone number'),
-                             error_messages={
-                                 'unique': _('A telephone number with this already exists.'),
-                             },
+                             help_text=_('输入正确的手机号格式'),
                              validators=[PhoneValidator(), ],
                              max_length=11,
                              )
@@ -370,13 +355,13 @@ class Address(models.Model):
     address_ = Manager()
 
     class Meta:
-        db_table = 'Address'
+        db_table = 'address'
         verbose_name = _('收获地址')
         verbose_name_plural = _('收获地址')
         ordering = ('-default_address',)
 
     def __str__(self):
-        return self.recipients
+        return self.recipient
 
 
 class Foot(models.Model):
@@ -388,14 +373,16 @@ class Foot(models.Model):
     # 商品
     commodity = models.ManyToManyField(Commodity, related_name='foots', verbose_name=_('商品'))
 
-    # 浏览时间
-    time = models.DateField(auto_now_add=True, verbose_name=_('浏览时间'))
+    # 浏览次数
+    view_counts = models.PositiveIntegerField(default=0, verbose_name=_('浏览次数'))
+
+
 
     class Meta:
         db_table = 'Foot'
         verbose_name = _('足迹')
         verbose_name_plural = _('足迹')
-        ordering = ('time',)
+        ordering = ('view_counts',)
 
     def __str__(self):
         return '浏览商品id:{}'.format(self.commodity)
@@ -412,18 +399,16 @@ class Collection(models.Model):
                                   null=True)
 
     # 浏览时间
-    datetime = models.DateTimeField(auto_now_add=True, verbose_name=_('收藏时间'))
+    collect_time = models.DateTimeField(auto_now_add=True, verbose_name=_('收藏时间'))
+
+    # 逻辑删除
+    fake_delete = models.BooleanField(default=False, verbose_name=_('逻辑删除'))
+
 
     collection_ = Manager()
 
     class Meta:
-        db_table = 'Collection'
+        db_table = 'collection'
         verbose_name = _('收藏夹')
         verbose_name_plural = _('收藏夹')
-        ordering = ('datetime',)
-
-    def __str__(self):
-        """对模型进行序列化"""
-        return {
-            'user': self.user
-        }
+        ordering = ('collect_time',)
