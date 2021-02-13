@@ -14,7 +14,7 @@ from shop_app.utils.validators import *
 
 
 
-class Category(models.Model):
+class CommodityCategory(models.Model):
     """商品类别表"""
 
     # 种类名
@@ -31,6 +31,79 @@ class Category(models.Model):
 
     # 分数值排序
     sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'))
+
+
+    class Meta:
+        db_table = 'commodity_category'
+        ordering = ('add_time',)
+        verbose_name = _('分类表')
+        verbose_name_plural = _('分类表')
+
+
+class CommodityGroup(models.Model):
+    """商品分组表"""
+
+    name = models.CharField(verbose_name=_('分组名称'), max_length=15)
+    class Meta:
+        db_table = '商品分组表'
+
+
+class Freight(models.Model):
+    """商品运费表"""
+    name = models.CharField(verbose_name=_('运费模板名称'), max_length=15)
+
+    # 是否包邮
+    isFree = models.BooleanField(verbose_name=_('是否包邮'))
+
+    # 收费方式
+    CHARGE_TYPE = (
+        ('0', '按重量'),
+        ('1', '按件数'),
+        ('2', '按体积')
+    )
+
+    chargeType = models.CharField(max_length=1, verbose_name=_('收费方式'), null=True)
+
+
+    class Meta:
+        db_table = 'freight'
+        verbose_name = _('运费模板表')
+        verbose_name_plural = _('运费模板表')
+
+
+class FreightItem(models.Model):
+    """
+    运费项表
+    可根据不同区域进行配置,每固定区域内为一个运费项
+    """
+
+    freight = models.ForeignKey(to=Freight, verbose_name=_('运费id'), on_delete=models.CASCADE)
+
+    # 不同首件个数不同优惠幅度
+    first_piece = models.PositiveIntegerField(verbose_name=_('首件数量'))
+
+    # 多件商品后运费价格会变化
+    continue_piece = models.PositiveIntegerField(verbose_name=_('续件数量'))
+
+    # 首件对应的运费价格
+    first_price = models.PositiveIntegerField(verbose_name=_('首件运费'))
+
+    # 续件对应的运费价格
+    continue_price = models.PositiveIntegerField(verbose_name=_('续件运费'))
+
+    class Meta:
+        db_table = "freight_item"
+
+
+class FreightItemCity(models.Model):
+    """运费项城市表"""
+
+    freight_item = models.ForeignKey(to=FreightItem, on_delete=models.CASCADE, verbose_name=_('运费项id'))
+
+    freight = models.ForeignKey(to=Freight, on_delete=models.CASCADE, verbose_name=_('运费表id'))
+
+    city = models.CharField(max_length=20, verbose_name=_('城市id'))
+
 
 
 class Commodity(models.Model):
@@ -66,7 +139,11 @@ class Commodity(models.Model):
                              max_length=80,
                              )
 
-    category = models.ForeignKey(to=Category, verbose_name=_('商品类别'), on_delete=models.SET_NULL , null=True)
+    # 商品分类
+    category = models.ForeignKey(to=CommodityCategory, verbose_name=_('商品类别'), on_delete=models.SET_NULL , null=True)
+
+    # 商品分组,多对多
+    group = models.ManyToManyField(to=CommodityGroup, verbose_name=_('商品分组'))
 
     # 商品上架状态
     status = models.BooleanField(verbose_name=_('上架状态'),
@@ -88,10 +165,9 @@ class Commodity(models.Model):
     sell_counts = models.PositiveIntegerField(verbose_name=_('销售量'),
                                               default=0, )
 
-    # # 运费
-    # freight = models.PositiveIntegerField(verbose_name=_('运费'),
-    #                                       default=0,
-    #                                       help_text=_('该商品是否有运费'))
+    # 运费模板, 在删除该运费模板时,若已被使用抛出ProtectedError异常
+    freight = models.ForeignKey(to=Freight, verbose_name=_('运费模板id'),
+                                          help_text=_('该商品是否有运费'), on_delete=models.PROTECT)
 
     # 商品主图片
     big_image = models.CharField(verbose_name=_('主图片'), help_text=_('商品主图片'), max_length=256)
@@ -105,7 +181,7 @@ class Commodity(models.Model):
                                         default=0)
 
     # 分数值排序
-    sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'))
+    sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'), default=0)
 
     commodity_ = Manager()
 
