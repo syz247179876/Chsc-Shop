@@ -16,7 +16,7 @@ class CommodityCategory(models.Model):
     name = models.CharField(verbose_name=_('种类名'), max_length=50)
 
     # 添加时间
-    add_time = models.DateTimeField(verbose_name=_('添加种类时间'), auto_now=True)
+    add_time = models.DateTimeField(verbose_name=_('添加种类时间'), auto_now_add=True)
 
     # 种类简要介绍
     intro = models.CharField(verbose_name=_('简要介绍'), max_length=100)
@@ -28,7 +28,7 @@ class CommodityCategory(models.Model):
     sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'))
 
     # 上一级分类的id
-    pre_id = models.ForeignKey('self', on_delete=models.CASCADE)
+    pre = models.ForeignKey('self', on_delete=models.CASCADE)
 
 
     class Meta:
