@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : auth_api.py
 # @Software: Pycharm
+
 from django.contrib.auth import get_user_model
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -37,18 +38,18 @@ class ManagerLoginApiView(GenericAPIView):
         msg = _('用户不存在或密码不正确')
         raise UserNotExists(msg)
 
+
 class ManagerRegisterApiView(GenericAPIView):
     """
     管理员注册
     用户名注册
     """
-    pass
+    serializer_class = ManagerRegisterSerializer
 
 
 class ManagerRoleApiView(GenericAPIView):
     """
     根据token解析role,获取目标用户所属角色的权限
     """
-
-    def get(self, head):
+    pass
 
