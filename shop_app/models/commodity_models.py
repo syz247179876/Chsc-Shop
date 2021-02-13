@@ -1,17 +1,12 @@
 import datetime
 
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from mdeditor.fields import MDTextField
 
-from Emall.settings import AUTH_USER_MODEL
 from shop_app.utils.validators import *
-
 
 
 class CommodityCategory(models.Model):
@@ -31,6 +26,9 @@ class CommodityCategory(models.Model):
 
     # 分数值排序
     sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'))
+
+    # 上一级分类的id
+    pre_id = models.ForeignKey('self', on_delete=models.CASCADE)
 
 
     class Meta:
