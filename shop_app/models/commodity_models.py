@@ -51,7 +51,7 @@ class Freight(models.Model):
     name = models.CharField(verbose_name=_('运费模板名称'), max_length=15)
 
     # 是否包邮
-    isFree = models.BooleanField(verbose_name=_('是否包邮'))
+    is_free = models.BooleanField(verbose_name=_('是否包邮'))
 
     # 收费方式
     CHARGE_TYPE = (
@@ -60,7 +60,7 @@ class Freight(models.Model):
         ('2', '按体积')
     )
 
-    chargeType = models.CharField(max_length=1, verbose_name=_('收费方式'), null=True)
+    change_type = models.CharField(max_length=1, verbose_name=_('收费方式'), null=True)
 
 
     class Meta:
