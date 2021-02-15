@@ -37,6 +37,7 @@ urlpatterns = [
     path('oauth/', include('oauth_app.urls', namespace='oauth')),
     path('analysis/', include('analysis_app.urls', namespace='analysis')),
     path('universal/', include('universal_app.urls', namespace='universal')),
+    path('manager/', include('manager_app.urls', namespace='manager')),
     path('mdeditor/', include('mdeditor.urls')),
 ]
 

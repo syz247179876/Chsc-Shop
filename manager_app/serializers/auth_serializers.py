@@ -8,7 +8,7 @@ from django.db import transaction, DataError
 from rest_framework import serializers
 
 from Emall.exceptions import DataFormatError, SqlServerError
-from manager_app.models import Managers
+from manager_app.models import Managers, ManagerPermission
 
 User = get_user_model()
 class ManagerLoginSerializer(serializers.ModelSerializer):
@@ -16,8 +16,14 @@ class ManagerLoginSerializer(serializers.ModelSerializer):
     后台登录序列化器
     """
 
-    username = serializers.CharField(max_length=20, min_length=2)
-    password = serializers.CharField(max_length=128)
+    username = serializers.CharField(max_length=20, min_length=2, write_only=True)
+    password = serializers.CharField(max_length=128, write_only=True)
+
+
+    class Meta:
+        model = ManagerPermission
+        fields = ('name', 'pid')
+        read_only_fields = ('name', 'pid')
 
 
 class ManagerRegisterSerializer(serializers.ModelSerializer):

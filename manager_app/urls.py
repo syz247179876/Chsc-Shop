@@ -6,16 +6,17 @@
 from django.conf import settings
 from django.urls import path, include
 
-from manager_app.apis.auth_api import ManagerRoleApiView, ManagerLoginApiView, ManagerRegisterApiView
+from manager_app.apis.auth_api import ManagerLoginApiView, ManagerRegisterApiView
+from manager_app.apis.manage_role_api import ManageRoleApiView
 
 app_name = "manager_app"
 
 auth_patterns = [
     path('login/', ManagerLoginApiView.as_view()),
     path('register/', ManagerRegisterApiView.as_view()),
-    path('role/', ManagerRoleApiView.as_view()),
 ]
 
 urlpatterns = {
-    path(f'{settings.URL_PREFIX}/manager/auth', include(auth_patterns))
+    path(f'{settings.URL_PREFIX}/auth', include(auth_patterns)),
+    path(f'{settings.URL_PREFIX}/role/', ManageRoleApiView.as_view()),
 }
