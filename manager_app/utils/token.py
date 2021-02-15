@@ -10,12 +10,15 @@ from rest_framework_jwt.settings import api_settings
 
 
 def generate_payload(user):
-    """为不同权限的管理者生成不同的token"""
+    """
+    为不同权限的管理者生成不同的token
+    追加role角色,稍后请求根据role获取用户具备的权限
+    """
     payload = {
-        'mid':user.pk,
+        'mid':user.manager.pk,
         'username':user.is_super_manager,
         'role':user.manager.role,
-        'exp': datetime.utcnow() + api_settings.JWT_EXPIRATION_DELTA
+        'exp': datetime.utcnow() + api_settings.JWT_EXPIRATION_DELTA,
     }
 
     if api_settings.JWT_ALLOW_REFRESH:

@@ -39,11 +39,12 @@ class ManagerRegisterSerializer(serializers.ModelSerializer):
     identity = serializers.CharField(max_length=1)
 
     # 角色
-    role = serializers.IntegerField(min_value=1)
+    rid = serializers.IntegerField(min_value=1)
 
 
     def create_manager(self):
         identity = self.validated_data.pop('identity')
+        rid = self.validated_data.pop('rid')
         if identity not in self.IDENTITY:
             raise DataFormatError()
         # 生成数据库所需字段
@@ -55,7 +56,7 @@ class ManagerRegisterSerializer(serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 user = User.objects.create(**credential) # 创建user对象
-
+                Managers.manager_.create(user=user, role_id=rid)
         except DataError:
             raise SqlServerError()
 

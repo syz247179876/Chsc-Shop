@@ -10,9 +10,12 @@ from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 
 from Emall.exceptions import UserNotExists
-from manager_app.serializers.auth_serializers import ManagerLoginSerializer
-
+from Emall.response_code import response_code
+from manager_app.serializers.auth_serializers import ManagerLoginSerializer, ManagerRegisterSerializer
+from manager_app.serializers.permission_serializers import PermissionSerializer
+from manager_app.utils.permission import get_permission
 from manager_app.utils.token import generate_payload
+
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 User = get_user_model()
 
@@ -46,10 +49,26 @@ class ManagerRegisterApiView(GenericAPIView):
     """
     serializer_class = ManagerRegisterSerializer
 
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.create_manager()
+        return response_code.register_success
+
 
 class ManagerRoleApiView(GenericAPIView):
     """
     根据token解析role,获取目标用户所属角色的权限
     """
-    pass
+
+    serializer_class = PermissionSerializer
+
+    def get(self, request):
+        permissions = get_permission(request)
+        serializer = self.get_serializer(instance=permissions, many=True)
+        return Response(serializer.data)
+
+
+
+
 
