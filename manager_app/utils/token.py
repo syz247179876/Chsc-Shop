@@ -15,9 +15,11 @@ def generate_payload(user):
     追加role角色,稍后请求根据role获取用户具备的权限
     """
     payload = {
-        'mid':user.manager.pk,
-        'username':user.is_super_manager,
-        'role':user.manager.role,
+        'identity': 'manager',
+        'user_id': user.pk,
+        'mid': user.manager.pk,
+        'username': user.is_super_manager,
+        'role': user.manager.role,
         'exp': datetime.utcnow() + api_settings.JWT_EXPIRATION_DELTA,
     }
 
@@ -33,5 +35,3 @@ def generate_payload(user):
         payload['iss'] = api_settings.JWT_ISSUER
 
     return payload
-
-

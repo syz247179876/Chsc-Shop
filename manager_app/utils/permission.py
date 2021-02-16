@@ -4,17 +4,19 @@
 # @File : permission.py
 # @Software: Pycharm
 import jwt
-
-from Emall.exceptions import UserForbiddenError, AuthenticationError, UserNotExists
 from rest_framework import HTTP_HEADER_ENCODING
+from rest_framework.permissions import BasePermission
 from rest_framework_jwt.settings import api_settings
 
+from Emall.exceptions import UserForbiddenError, AuthenticationError, UserNotExists
 from manager_app.models import Managers
-
+from django.utils.translation import gettext_lazy as _
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+
+
 def get_permission_token(request):
     """从请求头获取权限token"""
-    token = request.Meta.get('ROLE_PERMISSION',b'')
+    token = request.Meta.get('HTTP_ROLE_PERMISSION', b'')
     if not token:
         raise UserForbiddenError()
     if isinstance(token, str):
@@ -37,7 +39,7 @@ def get_permission(request):
         msg = _('Incorrect authentication credentials')
         raise AuthenticationError(msg)
 
-    mid = payload.get('mid') # manager的id
+    mid = payload.get('mid')  # manager的id
     try:
         manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
         # 如果当前管理者没有对应任何角色 或者  如果管理者对应某个角色,但是该角色没有任何权限
@@ -48,3 +50,29 @@ def get_permission(request):
     except Managers.DoesNotExist:
         raise UserNotExists()
 
+
+def get_pid(request):
+    """从请求头中获取权限pid"""
+    return request.Meta.get('HTTP_PERMISSION', None)
+
+
+class ManagerPermissionValidation(BasePermission):
+    """校验管理员的request请求权限"""
+
+    def has_permission(self, request, view):
+        """
+        从请求头部中获取pid,然后
+        :param request: 请求
+        :param view: 视图
+        :return: bool
+        """
+
+        payload = request.jwt_payload
+        mid = payload.get('mid')
+        manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
+        permissions = manager.role.permission.values_list('pid', flat=True)
+        return self.judge_header_permission(request, permissions)
+
+    def judge_header_permission(self, request, permissions):
+        permission_number = request.Meta.get('HTTP_PERMISSION_NUM')
+        return permission_number in permissions

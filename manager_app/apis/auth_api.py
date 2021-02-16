@@ -12,7 +12,6 @@ from rest_framework_jwt.settings import api_settings
 from Emall.exceptions import UserNotExists
 from Emall.response_code import response_code
 from manager_app.serializers.auth_serializers import ManagerLoginSerializer, ManagerRegisterSerializer
-from manager_app.serializers.permission_serializers import PermissionSerializer
 from manager_app.utils.permission import get_permission
 from manager_app.utils.token import generate_payload
 

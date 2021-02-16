@@ -5,12 +5,14 @@
 # @Software: Pycharm
 
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from Emall.decorator import validate_url_data
 from Emall.exceptions import SqlServerError
 from Emall.response_code import response_code
 from manager_app.serializers.permission_serializers import PermissionSerializer
+from manager_app.utils.permission import ManagerPermissionValidation
 
 
 class ManagePermissionApiView(GenericAPIView):
@@ -18,6 +20,7 @@ class ManagePermissionApiView(GenericAPIView):
 
     serializer_class = PermissionSerializer
 
+    permission_classes = [IsAuthenticated, ManagerPermissionValidation]
 
     def get_obj(self, pk):
         """获取权限记录"""

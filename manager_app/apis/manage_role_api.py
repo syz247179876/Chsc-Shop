@@ -5,17 +5,21 @@
 # @Software: Pycharm
 
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from Emall.decorator import validate_url_data
 from Emall.response_code import response_code
 from manager_app.serializers.role_serializers import RoleSerializer
+from manager_app.utils.permission import ManagerPermissionValidation
 
 
 class ManageRoleApiView(GenericAPIView):
     """超级管理员角色管理"""
 
     serializer_class = RoleSerializer
+
+    permission_classes = [IsAuthenticated, ManagerPermissionValidation]
 
     def get_queryset(self):
         return self.serializer_class.Meta.model.role_.all()
