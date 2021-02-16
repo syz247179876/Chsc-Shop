@@ -44,8 +44,8 @@ class ManageRoleApiView(GenericAPIView):
 
 
     @validate_url_data('role', 'pid')
-    def delete(self):
+    def delete(self, request):
         """删除角色"""
-        pid_list = self.request.data.get('pid')
+        pid_list = request.data.get('pid')
         self.serializer_class.Meta.model.role_.filter(pid__in=pid_list).delete()
         return response_code.delete_role_success

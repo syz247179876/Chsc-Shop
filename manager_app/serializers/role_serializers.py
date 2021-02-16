@@ -18,13 +18,9 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ManagerRole
         fields = ('role_name', 'description', 'pid')
-        extra_kwargs = {'pid': {'read_only': True}}
 
     def add_role(self):
-        credential = self.validated_data
-        pid = str(time.time() * 1000000)[4:12]
-        credential['pid'] = pid
-        self.Meta.model.role_.create(**credential)
+        self.Meta.model.role_.create(**self.validated_data)
 
     def modify_role(self):
         self.Meta.model.role_.update(**self.validated_data)

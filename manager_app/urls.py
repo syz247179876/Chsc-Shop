@@ -7,6 +7,7 @@ from django.conf import settings
 from django.urls import path, include
 
 from manager_app.apis.auth_api import ManagerLoginApiView, ManagerRegisterApiView
+from manager_app.apis.manage_permission_api import ManagePermissionApiView
 from manager_app.apis.manage_role_api import ManageRoleApiView
 
 app_name = "manager_app"
@@ -19,4 +20,5 @@ auth_patterns = [
 urlpatterns = {
     path(f'{settings.URL_PREFIX}/auth', include(auth_patterns)),
     path(f'{settings.URL_PREFIX}/role/', ManageRoleApiView.as_view()),
+    path(f'{settings.URL_PREFIX}/permission/', ManagePermissionApiView.as_view())
 }
