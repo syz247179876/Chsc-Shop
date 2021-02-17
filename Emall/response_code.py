@@ -255,6 +255,15 @@ DELETE_HISTORY_SUCCESS = 824
 # 获取热度词成功
 RETRIEVE_HEAT_SEARCH = 825
 
+# 删除角色成功
+DELETE_ROLE_SUCCESS = 826
+
+# 修改角色成功
+MODIFY_ROLE_SUCCESS = 827
+
+# 修改角色
+ADD_ROLE_SUCCESS = 828
+
 
 class ResponseCode:
     result = {
@@ -307,14 +316,14 @@ class ResponseCode:
 
     @property
     def register_success(self):
-        """注册验证成功"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_SUCCESS, msg='注册验证成功', status='success'))
+        """注册成功"""
+        self.result.update(dict(code=REGISTER_VERIFICATION_SUCCESS, msg='注册成功', status='success'))
         return self.result
 
     @property
     def register_error(self):
-        """注册验证失败"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_ERROR, msg='注册验证失败', status='error'))
+        """注册失败"""
+        self.result.update(dict(code=REGISTER_VERIFICATION_ERROR, msg='注册失败', status='error'))
         return self.result
 
     @property
@@ -637,25 +646,25 @@ class ResponseCode:
 
     @property
     def add_goods_into_shop_cart_success(self):
-        """succeed to add goods into shop cart of current consumer"""
+        """succeed to add goods into shop cart of current user"""
         self.result.update(dict(code=ADD_GOOD_INTO_SHOP_CART_SUCCESS, msg='add successfully', status='success'))
         return self.result
 
     @property
     def add_goods_into_shop_cart_error(self):
-        """fail to add goods into shop cart of current consumer"""
+        """fail to add goods into shop cart of current user"""
         self.result.update(dict(code=ADD_GOOD_INTO_SHOP_CART_ERROR, msg='add error', status='error'))
         return self.result
 
     @property
     def add_goods_into_favorites_success(self):
-        """succeed to add goods into shop cart of current consumer"""
+        """succeed to add goods into shop cart of current user"""
         self.result.update(dict(code=ADD_GOOD_INTO_FAVORITES_SUCCESS, msg='add successfully', status='success'))
         return self.result
 
     @property
     def add_goods_into_favorites_error(self):
-        """fail to add goods into favorites of current consumer"""
+        """fail to add goods into favorites of current user"""
         self.result.update(dict(code=ADD_GOOD_INTO_FAVORITIES_ERROR, msg='add fail', status='error'))
         return self.result
 
@@ -693,6 +702,24 @@ class ResponseCode:
     def acquire_coupon_error(self):
         """获取优惠卷"""
         self.result.update(dict(code=ACQUIRE_COUPON_ERROR, msg='acquire error', status='error'))
+        return self.result
+
+    @property
+    def delete_role_success(self):
+        """删除角色"""
+        self.result.update(dict(code=DELETE_ROLE_SUCCESS, msg='delete success', status='success'))
+        return self.result
+
+    @property
+    def modify_role_success(self):
+        """修改角色"""
+        self.result.update(dict(code=MODIFY_ROLE_SUCCESS, msg='modify success', status='success'))
+        return self.result
+
+    @property
+    def add_role_success(self):
+        """添加角色"""
+        self.result.update(dict(code=ADD_ROLE_SUCCESS, msg='add success', status='success'))
         return self.result
 
 

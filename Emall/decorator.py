@@ -23,8 +23,7 @@ def validate_url_data(model, field):
             validate_func = getattr(drf_validators, validate_func_name, None)  # 找到目标校验方法
             if not func:
                 raise ImportError('无匹配的校验方法')
-            value = self.request.query_params.get(field) if self.request.query_params.get(field, None) else kwargs.get(
-                field, None)
+            value = self.request.query_params.get(field) or kwargs.get(field, None) or self.request.data.get(field, None)
 
             if not value:
                 raise DataFormatError('缺少必要的数据')

@@ -1,126 +1,185 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
+import datetime
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from mdeditor.fields import MDTextField
 
-from Emall.settings import AUTH_USER_MODEL
 from shop_app.utils.validators import *
+
+
+class CommodityCategory(models.Model):
+    """商品类别表"""
+
+    # 种类名
+    name = models.CharField(verbose_name=_('种类名'), max_length=50)
+
+    # 添加时间
+    add_time = models.DateTimeField(verbose_name=_('添加种类时间'), auto_now_add=True)
+
+    # 种类简要介绍
+    intro = models.CharField(verbose_name=_('简要介绍'), max_length=100)
+
+    # 缩略图
+    thumbnail = models.CharField(verbose_name=_('列表缩略图'), max_length=50)
+
+    # 分数值排序
+    sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'))
+
+    # 上一级分类的id
+    pre = models.ForeignKey('self', on_delete=models.CASCADE)
+
+
+    class Meta:
+        db_table = 'commodity_category'
+        ordering = ('add_time',)
+        verbose_name = _('分类表')
+        verbose_name_plural = _('分类表')
+
+
+class CommodityGroup(models.Model):
+    """商品分组表"""
+
+    name = models.CharField(verbose_name=_('分组名称'), max_length=15)
+    class Meta:
+        db_table = '商品分组表'
+
+
+class Freight(models.Model):
+    """商品运费表"""
+    name = models.CharField(verbose_name=_('运费模板名称'), max_length=15)
+
+    # 是否包邮
+    is_free = models.BooleanField(verbose_name=_('是否包邮'))
+
+    # 收费方式
+    CHARGE_TYPE = (
+        ('0', '按重量'),
+        ('1', '按件数'),
+        ('2', '按体积')
+    )
+
+    change_type = models.CharField(max_length=1, verbose_name=_('收费方式'), null=True)
+
+
+    class Meta:
+        db_table = 'freight'
+        verbose_name = _('运费模板表')
+        verbose_name_plural = _('运费模板表')
+
+
+class FreightItem(models.Model):
+    """
+    运费项表
+    可根据不同区域进行配置,每固定区域内为一个运费项
+    """
+
+    freight = models.ForeignKey(to=Freight, verbose_name=_('运费id'), on_delete=models.CASCADE)
+
+    # 不同首件个数不同优惠幅度
+    first_piece = models.PositiveIntegerField(verbose_name=_('首件数量'))
+
+    # 多件商品后运费价格会变化
+    continue_piece = models.PositiveIntegerField(verbose_name=_('续件数量'))
+
+    # 首件对应的运费价格
+    first_price = models.PositiveIntegerField(verbose_name=_('首件运费'))
+
+    # 续件对应的运费价格
+    continue_price = models.PositiveIntegerField(verbose_name=_('续件运费'))
+
+    class Meta:
+        db_table = "freight_item"
+
+
+class FreightItemCity(models.Model):
+    """运费项城市表"""
+
+    freight_item = models.ForeignKey(to=FreightItem, on_delete=models.CASCADE, verbose_name=_('运费项id'))
+
+    freight = models.ForeignKey(to=Freight, on_delete=models.CASCADE, verbose_name=_('运费表id'))
+
+    city = models.CharField(max_length=20, verbose_name=_('城市id'))
+
 
 
 class Commodity(models.Model):
     """商品表"""
 
-
     # 商品名称
     commodity_name = models.CharField(verbose_name=_('商品名称'),
                                       help_text=_('Please enter the name of the product'),
-                                      max_length=50,
+                                      max_length=25,
                                       validators=[CommodityValidator(), ]
                                       )
     # 商品价格,正整数
     price = models.PositiveIntegerField(verbose_name=_('价格'),
-                                        help_text=_('Please enter the price of the goods'),
-                                        validators=[MaxValueValidator(999999, message=_('商品最高价格不能高于999999'))]
+                                        help_text=_('商品原价'),
+                                        validators=[MaxValueValidator(9999999, message=_('商品最高价格不能高于9999999'))]
                                         )
+
+    # 商品优惠价格
+    favourable_price = models.PositiveIntegerField(verbose_name=_('优惠价格'),
+                                                   help_text=_('优惠后的商品价格'),
+                                                   validators=[
+                                                       MaxValueValidator(9999999, message=_('商品最高价格不能高于9999999'))]
+                                                   )
+
     # 商品详细描述
-    details = MDTextField(verbose_name=_('商品的详细描述'),
-                          help_text=_('Please describe your product in detail'),
-                          )
+    details = models.TextField(verbose_name=_('商品的详细描述'),
+                               help_text=_('商品详细描述'),
+                               )
 
     # 商品简单描述
     intro = models.TextField(verbose_name=_('商品的简要描述'),
-                             help_text=_('A briefly describe'),
-                             max_length=100,
+                             help_text=_('商品简单描述'),
+                             max_length=80,
                              )
 
-    # 商品种类
-    commodity_choice = (
-        ('衣服', '衣服'),
-        ('裤子', '裤子'),
-        ('鞋子', '鞋子'),
-        ('电子设备', '电子设备'),
-        ('化妆品', '化妆品'),
-        ('食品', '食品'),
-        ('帽子', '帽子'),
-        ('袜子', '袜子'),
-        ('游戏', '游戏'),
-        ('户外装备', '户外装备'),
-        ('手表', '手表'),
-        ('饰品', '饰品'),
-        ('生活用品', '生活用品'),
-        ('家居', '家居'),
-        ('其他', '其他')
-    )
-    category = models.CharField(verbose_name=_('商品类别'),
-                                help_text=_('Please select the type of goods'),
-                                max_length=10,
-                                choices=commodity_choice,
-                                )
+    # 商品分类
+    category = models.ForeignKey(to=CommodityCategory, verbose_name=_('商品类别'), on_delete=models.SET_NULL , null=True)
 
+    # 商品分组,多对多
+    group = models.ManyToManyField(to=CommodityGroup, verbose_name=_('商品分组'))
+
+    # 商品上架状态
     status = models.BooleanField(verbose_name=_('上架状态'),
                                  help_text=_('请选择商品是否上架'),
                                  default=False
                                  )
 
-    # 上架时间
-
+    # 上架时间,自动设置
     onshelve_time = models.DateTimeField(auto_now=True,
                                          verbose_name=_('上架时间'),
                                          )
 
     # 下架时间
-
-    unshelve_time = models.DateTimeField(auto_now=True,
+    unshelve_time = models.DateTimeField(default=datetime.timezone,
+                                         null=True,
                                          verbose_name=_('下架时间'))
 
-    # 是否存在优惠,打几折
-
-    discounts = models.DecimalField(verbose_name=_('是否优惠'),
-                                    max_digits=2,
-                                    decimal_places=1,
-                                    default=1.0,
-                                    help_text=_('是否在节假日打折,打几折？'))
     # 销售量
     sell_counts = models.PositiveIntegerField(verbose_name=_('销售量'),
                                               default=0, )
 
-    # 运费
-    freight = models.PositiveIntegerField(verbose_name=_('运费'),
-                                          default=0,
-                                          help_text=_('该商品是否有运费'))
+    # 运费模板, 在删除该运费模板时,若已被使用抛出ProtectedError异常
+    freight = models.ForeignKey(to=Freight, verbose_name=_('运费模板id'),
+                                          help_text=_('该商品是否有运费'), on_delete=models.PROTECT)
 
     # 商品主图片
-    image = models.ImageField(verbose_name=_('图片'), upload_to='commodity_head', help_text=_('商品主图片'), null=True)
+    big_image = models.CharField(verbose_name=_('主图片'), help_text=_('商品主图片'), max_length=256)
 
-    # 商品不同款式标签
-
-    label = models.TextField(verbose_name=_('商品标签'))
-
-    def images(self):
-        # 显示图片而不是文件名
-        if not self.image:
-            return '无'
-        else:
-            return format_html("<img src='{}' style='width:100px;height:100px;'>",
-                               self.image.url,
-                               self.image)
-
-    # 优惠活动说明
-    discounts_intro = models.TextField(
-        verbose_name=_('优惠活动说明'),
-        max_length=100,
-        help_text=_('请对优惠活动进行说明'),
-        default=_('该店铺目前暂无优惠活动'),
-    )
+    # 商品小图片
+    little_image = models.CharField(verbose_name=_('小图片'), help_text=_('商品小图片'), max_length=256)
 
     # 库存
-    stock = models.IntegerField(verbose_name=_('库存'),
-                                help_text=_('请修改您的库存量'),
-                                default=5000)
+    stock = models.PositiveIntegerField(verbose_name=_('库存'),
+                                        help_text=_('请修改您的库存量'),
+                                        default=0)
+
+    # 分数值排序
+    sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'), default=0)
 
     commodity_ = Manager()
 
@@ -172,13 +231,6 @@ class Carousel(models.Model):
 
     # 添加时间
     add_time = models.DateTimeField(auto_now=True)
-
-    # # 可扩展外键,可能参照商品,也可能是商品,也可能是店铺,或者其他活动
-    # content_type = models.ForeignKey(to=ContentType, on_delete=True, null=True)  # 外键关联django_content_type表
-    #
-    # object_id = models.PositiveIntegerField(null=True)  # 关联数据的主键
-    #
-    # content_object = GenericForeignKey()  # 关联content_type 和 object_id
 
     carousel_ = Manager()
 
@@ -247,7 +299,6 @@ class SeckKill(models.Model):
         verbose_name_plural = _('秒杀商品')
 
 
-
 class Sku(models.Model):
     """
     sku表
@@ -260,8 +311,7 @@ class Sku(models.Model):
 
     stock = models.PositiveIntegerField(verbose_name=_('sku的库存'), default=0)
 
-
-    price =  models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的价格'),
+    price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的价格'),
                                 validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
                                             MinValueValidator(0, message=_('商品价格必须为正数'))])
 
@@ -274,6 +324,3 @@ class SkuProps(models.Model):
     Sku的规格
     """
     pass
-
-
-

@@ -42,4 +42,12 @@ def validate_commodity_pk(value):
     return True if re.match('^[1-9]\d{0,15}$', value) else False
 
 
-
+def validate_role_pid(value):
+    """
+    校验role中pid列表中的pid是否是字符串且个数为8位
+    """
+    try:
+        if all(isinstance(item, str) and len(item) == 8 for item in value):
+            return True
+    except Exception:
+        return False
