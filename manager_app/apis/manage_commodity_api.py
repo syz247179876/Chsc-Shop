@@ -109,6 +109,7 @@ class ManageCommodityGroupApiView(GenericAPIView):
             CommodityCategory.commodity_category_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
         return
 
+    @validate_url_data('commodity_group', 'pk')
     def put(self, request):
         """修改分组"""
         serializer = self.get_serializer(data=request.data)

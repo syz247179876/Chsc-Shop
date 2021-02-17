@@ -81,10 +81,21 @@ class CommodityGroupSerializer(serializers.ModelSerializer):
         read_only_fields = ('pk', )
 
     def update_group(self):
-        self.Meta.model.commodity_group_.filter()
+        """修改商品分组"""
+        pk = self.validated_data.pop('pk')
+        credential = {
+            'name':self.validated_data.pop('name'),
+            'status':self.validated_data.pop('status')
+        }
+        self.Meta.model.commodity_group_.filter(pk=pk).update(**credential)
 
     def add_group(self):
-        self.Meta.model.commodity_group_.create(**self.validated_data)
+        """添加商品分组"""
+        credential = {
+            'name': self.validated_data.pop('name'),
+            'status': self.validated_data.pop('status')
+        }
+        self.Meta.model.commodity_group_.create(**credential)
 
 
 class CommodityGroupDeleteSerializer(serializers.Serializer):

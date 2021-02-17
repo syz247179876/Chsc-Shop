@@ -28,13 +28,13 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     def update_permission(self):
         """修改权限"""
+        pk = self.validated_data.pop('pk'),
         credential = {
-            'pk': self.validated_data.pop('pk'),
             'name': self.validated_data.pop('name'),
             'description': self.validated_data.pop('description'),
             'pid': self.validated_data.pop('pid')
         }
-        self.Meta.model.manager_permission_.update(**credential)
+        self.Meta.model.manager_permission_.filter(pk=pk).update(**credential)
 
 
 class PermissionDeleteSerializer(serializers.Serializer):
