@@ -264,6 +264,12 @@ MODIFY_ROLE_SUCCESS = 827
 # 修改角色
 ADD_ROLE_SUCCESS = 828
 
+# 添加权限
+ADD_PERMISSION_SUCCESS = 829
+
+# 添加类别
+ADD_COMMODITY_CATEGORY = 830
+
 
 class ResponseCode:
     result = {
@@ -720,6 +726,18 @@ class ResponseCode:
     def add_role_success(self):
         """添加角色"""
         self.result.update(dict(code=ADD_ROLE_SUCCESS, msg='add success', status='success'))
+        return self.result
+
+    @property
+    def add_permission_success(self):
+        """添加权限"""
+        self.result.update(dict(code=ADD_PERMISSION_SUCCESS, msg='add success', status='success'))
+        return self.result
+
+    @property
+    def add_commodity_category(self):
+        """添加商品类别"""
+        self.result.update(dict(code=ADD_COMMODITY_CATEGORY, msg='add success', status='success'))
         return self.result
 
 

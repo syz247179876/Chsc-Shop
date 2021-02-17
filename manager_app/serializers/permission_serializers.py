@@ -14,7 +14,7 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ManagerPermission
-        fields = ('name', 'description', 'pid')
+        fields = ('name', 'description', 'pid', 'pid_list')
 
     def create_permission(self):
         self.Meta.model.manager_permission_.create(**self.validated_data)
@@ -23,4 +23,5 @@ class PermissionSerializer(serializers.ModelSerializer):
         self.Meta.model.manager_permission_.update(**self.validated_data)
 
 
-
+class PermissionDeleteSerializer(serializers.Serializer):
+    pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
