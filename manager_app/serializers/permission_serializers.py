@@ -14,13 +14,28 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ManagerPermission
-        fields = ('name', 'description', 'pid')
+        fields = ('pk', 'name', 'description', 'pid')
+        read_only_fields = ('pk', )
 
     def create_permission(self):
-        self.Meta.model.manager_permission_.create(**self.validated_data)
+        """添加权限"""
+        credential = {
+            'name':self.validated_data.pop('name'),
+            'description': self.validated_data.pop('description'),
+            'pid':self.validated_data.pop('pid')
+        }
+        self.Meta.model.manager_permission_.create(**credential)
 
     def update_permission(self):
-        self.Meta.model.manager_permission_.update(**self.validated_data)
+        """修改权限"""
+        pk = self.validated_data.pop('pk'),
+        credential = {
+            'name': self.validated_data.pop('name'),
+            'description': self.validated_data.pop('description'),
+            'pid': self.validated_data.pop('pid')
+        }
+        self.Meta.model.manager_permission_.filter(pk=pk).update(**credential)
 
 
-
+class PermissionDeleteSerializer(serializers.Serializer):
+    pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)

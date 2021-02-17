@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
+from django.utils.translation import ugettext as _
 
 from Emall.exceptions import UserNotExists
 from Emall.response_code import response_code
@@ -33,6 +34,7 @@ class ManagerLoginApiView(GenericAPIView):
         user = User.objects.check_manager_login(**serializer.validated_data)
         if user:
             payload = generate_payload(user)
+            print(payload)
             token = jwt_encode_handler(payload)  # 生成token
             return Response({
                 'token':token
