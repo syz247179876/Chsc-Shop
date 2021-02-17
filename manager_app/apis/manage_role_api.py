@@ -50,10 +50,10 @@ class ManageRoleApiView(GenericAPIView):
     def delete(self, request):
         """删除角色"""
         serializer = self.serializer_delete_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
         # 如果url中带有many=true查询参数时,删除全部
         if self.request.query_params.get('many', None) == 'true':
             self.get_queryset().delete()
         else:
+            serializer.is_valid(raise_exception=True)
             self.serializer_class.Meta.model.role_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
         return response_code.delete_role_success

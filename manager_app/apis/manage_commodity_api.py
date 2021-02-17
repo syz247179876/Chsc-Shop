@@ -43,10 +43,10 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
     def delete(self, request):
         """删除类别"""
         serializer = self.serializer_delete_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
         if self.request.query_params.get('many', None) == 'true':
             self.serializer_class.Meta.model.role_.all().delete()
         else:
+            serializer.is_valid(raise_exception=True)
             CommodityCategory.commodity_category_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
         return
 
@@ -102,10 +102,10 @@ class ManageCommodityGroupApiView(GenericAPIView):
     def delete(self, request):
         """删除分组记录"""
         serializer = self.serializer_delete_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
         if request.query_params.get('many', None) == 'true':
             self.get_queryset().delete()
         else:
+            serializer.is_valid(raise_exception=True)
             CommodityCategory.commodity_category_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
         return
 

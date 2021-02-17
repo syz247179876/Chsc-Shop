@@ -56,7 +56,7 @@ def get_permission(request):
 
 def get_pid(request):
     """从请求头中获取权限pid"""
-    return request.Meta.get('HTTP_PERMISSION', None)
+    return request.META.get('HTTP_PERMISSION', None)
 
 
 class ManagerPermissionValidation(BasePermission):
@@ -80,5 +80,5 @@ class ManagerPermissionValidation(BasePermission):
         return self.judge_header_permission(request, permissions)
 
     def judge_header_permission(self, request, permissions):
-        permission_number = request.Meta.get('HTTP_PERMISSION_NUM')
+        permission_number = request.META.get('HTTP_PERMISSION_NUMBER', None)
         return permission_number in permissions
