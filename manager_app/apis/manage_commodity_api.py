@@ -15,12 +15,6 @@ from manager_app.serializers.commodity_serializers import SellerCommoditySeriali
 from shop_app.models.commodity_models import CommodityCategory, CommodityGroup
 
 
-class ManageCommodityApiView(GenericAPIView):
-    """商家管理商品操作"""
-
-    serializer_class = SellerCommoditySerializer
-
-
 class ManagerCommodityCategoryApiView(GenericAPIView):
     """商家管理商品分类操作API"""
     serializer_create_class = CommodityCategoryCreateSerializer
@@ -43,7 +37,7 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
     def delete(self, request):
         """删除类别"""
         serializer = self.serializer_delete_class(data=request.data)
-        if self.request.query_params.get('many', None) == 'true':
+        if self.request.query_params.get('all', None) == 'true':
             self.serializer_class.Meta.model.role_.all().delete()
         else:
             serializer.is_valid(raise_exception=True)
@@ -102,7 +96,7 @@ class ManageCommodityGroupApiView(GenericAPIView):
     def delete(self, request):
         """删除分组记录"""
         serializer = self.serializer_delete_class(data=request.data)
-        if request.query_params.get('many', None) == 'true':
+        if request.query_params.get('all', None) == 'true':
             self.get_queryset().delete()
         else:
             serializer.is_valid(raise_exception=True)
