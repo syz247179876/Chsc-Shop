@@ -19,7 +19,7 @@ def generate_payload(user):
         'user_id': user.pk,
         'mid': user.manager.pk,
         'username': user.is_super_manager,
-        'role': user.manager.role,
+        'role': user.manager.role_id,
         'exp': datetime.utcnow() + api_settings.JWT_EXPIRATION_DELTA,
     }
 

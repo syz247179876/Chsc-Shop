@@ -22,7 +22,7 @@ class ManagerLoginSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ManagerPermission
-        fields = ('name', 'pid')
+        fields = ('name', 'pid', 'username', 'password')
         read_only_fields = ('name', 'pid')
 
 

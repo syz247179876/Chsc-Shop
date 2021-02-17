@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.fields import JSONField
 
 from Emall.exceptions import DataFormatError
-from shop_app.models.commodity_models import CommodityCategory
+from shop_app.models.commodity_models import CommodityCategory, CommodityGroup
 
 
 class SellerCommoditySerializer(serializers.ModelSerializer):
@@ -74,3 +74,18 @@ class CommodityCategorySerializer(serializers.ModelSerializer):
         self.Meta.model.commodity_category_.filter(pk=self.validated_data.pop('pk')).update(**self.validated_data)
 
 
+class CommodityGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommodityGroup
+        fields = ('pk', 'name', 'status')
+        read_only_fields = ('pk', )
+
+    def update_group(self):
+        self.Meta.model.commodity_group_.filter()
+
+    def add_group(self):
+        self.Meta.model.commodity_group_.create(**self.validated_data)
+
+
+class CommodityGroupDeleteSerializer(serializers.Serializer):
+    pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)

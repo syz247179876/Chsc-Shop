@@ -45,7 +45,10 @@ class ManagePermissionApiView(GenericAPIView):
         """删除权限"""
         serializer = self.serializer_delete_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.serializer_class.Meta.model.manager_permission_.filter(pk__in=serializer.validated_data.get('pk_list'))
+        if self.request.query_params.get('many', None) == 'true':
+            self.get_queryset().delete()
+        else:
+            self.serializer_class.Meta.model.manager_permission_.filter(pk__in=serializer.validated_data.get('pk_list'))
         return Response(response_code.add_commodity_category)
 
     def put(self, request):

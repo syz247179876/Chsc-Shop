@@ -11,12 +11,13 @@ from rest_framework_jwt.settings import api_settings
 from Emall.exceptions import UserForbiddenError, AuthenticationError, UserNotExists
 from manager_app.models import Managers
 from django.utils.translation import gettext_lazy as _
+
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
 
 def get_permission_token(request):
     """从请求头获取权限token"""
-    token = request.Meta.get('HTTP_ROLE_PERMISSION', b'')
+    token = request.META.get('HTTP_ROLE_PERMISSION', b'')
     if not token:
         raise UserForbiddenError()
     if isinstance(token, str):
@@ -39,7 +40,9 @@ def get_permission(request):
         msg = _('Incorrect authentication credentials')
         raise AuthenticationError(msg)
 
-    mid = payload.get('mid')  # manager的id
+    mid = payload.get('mid', None)  # manager的id
+    if not mid:
+        raise UserForbiddenError()
     try:
         manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
         # 如果当前管理者没有对应任何角色 或者  如果管理者对应某个角色,但是该角色没有任何权限
@@ -68,7 +71,10 @@ class ManagerPermissionValidation(BasePermission):
         """
 
         payload = request.jwt_payload
-        mid = payload.get('mid')
+        print(payload)
+        mid = payload.get('mid', None)
+        if not mid:
+            raise UserForbiddenError('用户无请求权限')
         manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
         permissions = manager.role.permission.values_list('pid', flat=True)
         return self.judge_header_permission(request, permissions)
