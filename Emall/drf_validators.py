@@ -65,3 +65,10 @@ def validate_category_pk(value):
     商品类别id允许上限5位数
     """
     return True if re.match('^[1-9]\d{0,5}$', value) else False
+
+def validate_commodity_group_pk(value):
+    """
+    检验url中的关于商品分组的pk字段
+    商品类别id允许上限4位数
+    """
+    return True if re.match('^[1-9]\d{0,4}$', value) else False

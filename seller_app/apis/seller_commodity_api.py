@@ -6,8 +6,10 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
+from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
-from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer
+from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
+    SkuPropSerializer, SkuPropsDeleteSerializer
 
 
 class ManageCommodityApiView(GenericAPIView):
@@ -52,3 +54,39 @@ class ManageCommodityApiView(GenericAPIView):
             serializer.is_valid(raise_exception=True)
             serializer.delete_commodity()
         return
+
+
+
+class SkuPropApiView(BackendGenericApiView):
+    """商品属性规格和值操作"""
+
+    serializer_class = SkuPropSerializer
+
+    serializer_delete_class = SkuPropsDeleteSerializer
+
+    def get_queryset(self):
+        return self.serializer_class.Meta.model.objects.select_related('values').all()
+
+    @validate_url_data('sku_props','pk',null=True)
+    def get(self, request):
+        """获取商品属性规格和值单个或多个"""
+        super().get(request)
+
+    def post(self, request):
+        """添加商品属性规格和值"""
+        super().post(request)
+        return
+
+    def put(self, request):
+        """修改商品属性规格和值"""
+        super().post(request)
+        return
+
+    def delete(self,request):
+        """删除商品属性规格和值"""
+        super().delete(request)
+        return
+
+
+
+

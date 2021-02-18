@@ -3,11 +3,12 @@
 # @Author : 司云中
 # @File : commodity_serializers.py
 # @Software: Pycharm
-
+from django.db import DatabaseError
 from rest_framework import serializers
 
-from Emall.exceptions import DataFormatError
-from shop_app.models.commodity_models import Commodity, CommodityCategory, CommodityGroup, Freight
+from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist
+from shop_app.models.commodity_models import Commodity, CommodityCategory, CommodityGroup, Freight, SkuProps, SkuValues
+from django.db.transaction import atomic
 
 
 class SellerCommoditySerializer(serializers.ModelSerializer):
@@ -65,3 +66,64 @@ class SellerCommodityDeleteSerializer(serializers.Serializer):
     def delete_commodity(self):
         """商家删除商品"""
         self.Meta.model.commodity_.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+
+
+class SkuPropSerializer(serializers.ModelSerializer):
+    """sku 属性:[属性值,]序列化器"""
+
+    sku_values = serializers.ListField(child=serializers.CharField(max_length=20), allow_empty=False)
+
+    class Meta:
+        model = SkuProps
+        values_model = SkuValues
+        fields = ('pk', 'name', 'sku_values')
+        read_only_fields = ('pk', )
+
+
+    def add(self):
+        """添加sku属性规格和值"""
+        credential = {
+            'name': self.validated_data.pop('name'),
+            'sku_values': self.validated_data.pop('sku_values')
+        }
+        try:
+            with atomic(): # 开启事务
+                prop = self.Meta.model.objects.create(name=credential.pop('name'))
+                self.Meta.values_model.objects.bulk_create([
+                    self.Meta.values_model.objects.create(value=value, prop=prop) for value in credential.pop('sku_values')
+                ])
+        except DatabaseError():
+            raise SqlServerError()
+
+    def modify(self):
+        """修改商品属性规格和值"""
+        credential = {
+            'name':self.validated_data.pop('name'),
+            'sku_values': self.validated_data.pop('sku_values')
+        }
+        try:
+            with atomic():
+                # 先全部删除,然后重新添加
+                prop = self.Meta.model.objects.get(name=credential.pop('name'))
+                self.Meta.values_model.objects.filter(prop=prop).delete()
+                self.Meta.values_model.objects.bulk_create([
+                    self.Meta.values_model.objects.create(value=value, prop=prop) for value in
+                    credential.pop('sku_values')
+                ])
+        except DatabaseError():
+            raise SqlServerError()
+
+        except self.Meta.model.DoesNotExist:
+            raise DataNotExist()
+
+
+class SkuPropsDeleteSerializer(serializers.Serializer):
+    pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
+
+    class Meta:
+        model = SkuProps
+
+    def delete(self):
+        """删除商品属性规格和值"""
+        self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+
