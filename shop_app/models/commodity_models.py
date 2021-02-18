@@ -22,13 +22,15 @@ class CommodityCategory(models.Model):
     intro = models.CharField(verbose_name=_('简要介绍'), max_length=100)
 
     # 缩略图
-    thumbnail = models.CharField(verbose_name=_('列表缩略图'), max_length=50)
+    thumbnail = models.CharField(verbose_name=_('列表缩略图'), max_length=50, null=True)
 
     # 分数值排序
-    sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'))
+    sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'), default=0)
 
     # 上一级分类的id
     pre = models.ForeignKey('self', on_delete=models.CASCADE)
+
+    commodity_category_ = Manager()
 
 
     class Meta:
@@ -42,8 +44,12 @@ class CommodityGroup(models.Model):
     """商品分组表"""
 
     name = models.CharField(verbose_name=_('分组名称'), max_length=15)
+    status = models.BooleanField(verbose_name=_('分组状态'))
+
+    commodity_group_ = Manager()
     class Meta:
-        db_table = '商品分组表'
+        db_table = 'commodity_group'
+        ordering = ('status', )
 
 
 class Freight(models.Model):
@@ -60,7 +66,9 @@ class Freight(models.Model):
         ('2', '按体积')
     )
 
-    change_type = models.CharField(max_length=1, verbose_name=_('收费方式'), null=True)
+    charge_type = models.CharField(max_length=1, verbose_name=_('收费方式'), null=True)
+
+    freight_ = Manager()
 
 
     class Meta:
@@ -100,7 +108,10 @@ class FreightItemCity(models.Model):
 
     freight = models.ForeignKey(to=Freight, on_delete=models.CASCADE, verbose_name=_('运费表id'))
 
-    city = models.CharField(max_length=20, verbose_name=_('城市id'))
+    city = models.CharField(max_length=20, verbose_name=_('城市'))
+
+    class Meta:
+        db_table = 'freight_item_city'
 
 
 
@@ -184,28 +195,12 @@ class Commodity(models.Model):
     commodity_ = Manager()
 
     class Meta:
-        db_table = 'Commodity'
+        db_table = 'commodity'
         verbose_name = _('商品表')
         verbose_name_plural = _('商品表')
 
     def __str__(self):
         return 'commodity_name:{}'.format(self.commodity_name)
-
-    def colored_status(self):
-        """替换状态颜色"""
-        color_code = ''
-        if self.status == 'Unshelve':
-            color_code = '#E92B34'
-        elif self.status == 'Onshelve':
-            color_code = '#5DECA5'
-        # display_name = self.get_status_display()
-        return format_html(
-            '<span style="color:{};font-size:16px;font-weight:bolder;">{}</span>',
-            color_code,
-            self.status,
-        )
-
-    colored_status.short_description = '上架状态'
 
 
 class Carousel(models.Model):
@@ -232,25 +227,11 @@ class Carousel(models.Model):
     # 添加时间
     add_time = models.DateTimeField(auto_now=True)
 
-    carousel_ = Manager()
-
     class Meta:
-        db_table = "Carousel"
+        db_table = "carousel"
         verbose_name = _('首页轮播商品')
         verbose_name_plural = _('首页轮播商品')
         ordering = ('sort',)
-
-
-class GoodsType(models.Model):
-    """商品类型表"""
-    category = models.CharField(verbose_name=_('种类名称'), max_length=20)
-    logo = models.CharField(verbose_name=_('logo标识'), max_length=20)
-    image = models.ImageField(verbose_name=_('图片'), upload_to='category')
-
-    class Meta:
-        db_table = "Commodity_category"
-        verbose_name = _('商品类型')
-        verbose_name_plural = _('商品类型')
 
 
 class Promotion(models.Model):
@@ -291,10 +272,8 @@ class SeckKill(models.Model):
     # 是否过期
     is_expired = models.BooleanField(default=True)
 
-    seck_kill_ = Manager()
-
     class Meta:
-        db_table = "SeckKill"
+        db_table = "seckill"
         verbose_name = _('秒杀商品')
         verbose_name_plural = _('秒杀商品')
 
@@ -303,24 +282,59 @@ class Sku(models.Model):
     """
     sku表
 
-    对能够影响商品销量和库存的关键属性集合进行排列组合的迪卡尔积种类
+    对能够影响商品销量和库存的销售属性集合进行排列组合的迪卡尔积种类
     """
 
     # 关系为多对一,原因在于对sku中的关键属性进行排列组合,每一种情况都是一个sku,因此多个sku对应一个商品
     commodity = models.ForeignKey(Commodity, on_delete=models.CASCADE, verbose_name=_('商品'), related_name='sku')
 
+    # 库存
     stock = models.PositiveIntegerField(verbose_name=_('sku的库存'), default=0)
 
+    # 原价
     price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的价格'),
                                 validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
                                             MinValueValidator(0, message=_('商品价格必须为正数'))])
 
-    # sku分类, 3.1使用允许使用JsonField字段
-    category = models.TextField()
+    # 优惠价格
+    favourable = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的优惠价格'),
+                                validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
+                                            MinValueValidator(0, message=_('商品价格必须为正数'))])
+
+    # sku销售属性JSON字符串, 3.1使用允许使用JsonField字段
+    properties = models.TextField()
+
+    # 修改时间
+    update_time = models.DateTimeField(auto_now=True)
+
+    # sku的图片
+    image = models.CharField(verbose_name=_('主图片'), help_text=_('sku主图片'), max_length=256)
+
+    # sku名称
+    name = models.CharField(verbose_name=_('sku名称'), max_length=50)
+
+    # 商家是否上下架
+    status = models.BooleanField(verbose_name=_('sku状态'))
+
+    class Meta:
+        db_table = 'sku'
 
 
 class SkuProps(models.Model):
     """
-    Sku的规格
+    Sku的规格属性表
     """
-    pass
+    name = models.CharField(verbose_name=_('属性名称'), max_length=20)
+
+    class Meta:
+        db_table = 'sku_props'
+
+
+class SkuValues(models.Model):
+    """sku的规格属性值表"""
+
+    props = models.ForeignKey(to=SkuProps, on_delete=models.CASCADE, related_name='values')
+
+    class Meta:
+        db_table = 'sku_values'
+
