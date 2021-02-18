@@ -8,8 +8,9 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from Emall.decorator import validate_url_data
-from Emall.response_code import response_code
-from manager_app.serializers.commodity_serializers import SellerCommoditySerializer, CommodityCategoryCreateSerializer, \
+from Emall.response_code import response_code, ADD_COMMODITY_CATEGORY, DELETE_COMMODITY_CATEGORY, \
+    MODIFY_COMMODITY_CATEGORY, ADD_COMMODITY_GROUP, DELETE_COMMODITY_GROUP, MODIFY_COMMODITY_GROUP
+from manager_app.serializers.commodity_serializers import CommodityCategoryCreateSerializer, \
     CommodityCategoryDeleteSerializer, CommodityCategorySerializer, CommodityGroupDeleteSerializer, \
     CommodityGroupSerializer
 from shop_app.models.commodity_models import CommodityCategory, CommodityGroup
@@ -32,7 +33,7 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.create_category()
-        return response_code.add_commodity_category
+        return Response(response_code.result(ADD_COMMODITY_CATEGORY, '添加成功'))
 
     def delete(self, request):
         """删除类别"""
@@ -42,13 +43,14 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
         else:
             serializer.is_valid(raise_exception=True)
             CommodityCategory.commodity_category_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
-        return
+        return Response(response_code.result(DELETE_COMMODITY_CATEGORY, '删除成功'))
 
     def put(self, request):
         """修改类别"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update_category()
+        return Response(response_code.result(MODIFY_COMMODITY_CATEGORY, '修改成功'))
 
     @validate_url_data('category', 'pk', null=True)
     def get(self, request):
@@ -91,7 +93,7 @@ class ManageCommodityGroupApiView(GenericAPIView):
         serializer = self.get_serializer(datat=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.add_group()
-        return Response()
+        return Response(response_code.result(ADD_COMMODITY_GROUP, '添加成功'))
 
     def delete(self, request):
         """删除分组记录"""
@@ -101,7 +103,7 @@ class ManageCommodityGroupApiView(GenericAPIView):
         else:
             serializer.is_valid(raise_exception=True)
             CommodityCategory.commodity_category_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
-        return
+        return Response(response_code.result(DELETE_COMMODITY_GROUP, '删除成功'))
 
     @validate_url_data('commodity_group', 'pk')
     def put(self, request):
@@ -109,6 +111,6 @@ class ManageCommodityGroupApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update_group()
-        return
+        return Response(response_code.result(MODIFY_COMMODITY_GROUP, '修改成功'))
 
 

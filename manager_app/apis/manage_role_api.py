@@ -8,8 +8,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from Emall.decorator import validate_url_data
-from Emall.response_code import response_code
+from Emall.response_code import response_code, ADD_ROLE_SUCCESS, MODIFY_ROLE_SUCCESS, DELETE_ROLE_SUCCESS
 from manager_app.serializers.role_serializers import RoleSerializer, RoleDeleteSerializer
 from manager_app.utils.permission import ManagerPermissionValidation
 
@@ -30,7 +29,7 @@ class ManageRoleApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.add_role()
-        return response_code.add_role_success
+        return Response(response_code.result(ADD_ROLE_SUCCESS, '添加成功'))
 
 
     def get(self, request):
@@ -45,7 +44,7 @@ class ManageRoleApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.modify_role()
-        return response_code.modify_role_success
+        return Response(response_code.result(MODIFY_ROLE_SUCCESS, '修改成功'))
 
     def delete(self, request):
         """删除角色"""
@@ -56,4 +55,4 @@ class ManageRoleApiView(GenericAPIView):
         else:
             serializer.is_valid(raise_exception=True)
             self.serializer_class.Meta.model.role_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
-        return response_code.delete_role_success
+        return Response(response_code.result(DELETE_ROLE_SUCCESS, '删除成功'))

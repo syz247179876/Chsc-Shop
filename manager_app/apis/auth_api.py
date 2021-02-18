@@ -37,7 +37,8 @@ class ManagerLoginApiView(GenericAPIView):
             print(payload)
             token = jwt_encode_handler(payload)  # 生成token
             return Response({
-                'token':token
+                'message': 'ok',
+                'token': token
             })
         msg = _('用户不存在或密码不正确')
         raise UserNotExists(msg)
@@ -61,10 +62,3 @@ class ManagerRegisterApiView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.create_manager()
         return response_code.register_success
-
-
-
-
-
-
-
