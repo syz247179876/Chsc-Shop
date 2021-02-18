@@ -22,7 +22,7 @@ class ManageRoleApiView(GenericAPIView):
     permission_classes = [IsAuthenticated, ManagerPermissionValidation]
 
     def get_queryset(self):
-        return self.serializer_class.Meta.model.role_.all()
+        return self.serializer_class.Meta.model.objects.all()
 
     def post(self, request):
         """添加角色"""
@@ -54,5 +54,5 @@ class ManageRoleApiView(GenericAPIView):
             self.get_queryset().delete()
         else:
             serializer.is_valid(raise_exception=True)
-            self.serializer_class.Meta.model.role_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
+            self.serializer_class.Meta.model.objects.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
         return Response(response_code.result(DELETE_ROLE_SUCCESS, '删除成功'))

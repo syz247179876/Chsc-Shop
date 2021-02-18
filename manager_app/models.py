@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 
-class ManagerPermission(models.Model):
+class Permission(models.Model):
     """
     管理员权限表
     """
@@ -22,19 +22,13 @@ class ManagerPermission(models.Model):
 
     description = models.CharField(verbose_name=_('权限描述'), max_length=128)
 
-    manager_permission_ = Manager()
+    objects = Manager()
 
     class Meta:
-        db_table = 'manager_permission'
+        db_table = 'permission'
 
 
-class RoleManager(models.Manager):
-    """
-    角色管理
-    """
-
-
-class ManagerRole(models.Model):
+class Role(models.Model):
     """
     角色模型
     """
@@ -43,14 +37,14 @@ class ManagerRole(models.Model):
 
     description = models.CharField(verbose_name=_('角色描述'),max_length=128)
 
-    permission = models.ManyToManyField(to=ManagerPermission, related_name='role')
+    permission = models.ManyToManyField(to=Permission, related_name='role')
 
     rid = models.CharField(verbose_name=_('角色代码'), max_length=8, unique=True)
 
-    role_ = RoleManager()
+    objects = Manager()
 
     class Meta:
-        db_table = 'manager_role'
+        db_table = 'role'
 
 
 class Managers(models.Model):
@@ -63,9 +57,9 @@ class Managers(models.Model):
         on_delete=models.CASCADE,
         related_name='manager',
     )
-    role = models.ForeignKey(to=ManagerRole, on_delete=models.SET_NULL, related_name='manager', null=True)
+    role = models.ForeignKey(to=Role, on_delete=models.SET_NULL, related_name='manager', null=True)
 
-    manager_ = Manager()
+    objects = Manager()
 
     class Meta:
         db_table = 'managers'

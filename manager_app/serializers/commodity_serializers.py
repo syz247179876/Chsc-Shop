@@ -51,7 +51,7 @@ class CommodityCategoryCreateSerializer(serializers.Serializer):
         """创建种类"""
         category = self.validated_data.get('category')
         try:
-            CommodityCategory.commodity_category_.bulk_create(
+            CommodityCategory.objects.bulk_create(
                 [CommodityCategory(**item) for item in category]
             )
         except DataError:
@@ -71,7 +71,7 @@ class CommodityCategorySerializer(serializers.ModelSerializer):
 
     def update_category(self):
         """更新商品类别"""
-        self.Meta.model.commodity_category_.filter(pk=self.validated_data.pop('pk')).update(**self.validated_data)
+        self.Meta.model.objects.filter(pk=self.validated_data.pop('pk')).update(**self.validated_data)
 
 
 class CommodityGroupSerializer(serializers.ModelSerializer):

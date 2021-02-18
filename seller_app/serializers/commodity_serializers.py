@@ -11,13 +11,40 @@ from shop_app.models.commodity_models import Commodity, CommodityCategory, Commo
 from django.db.transaction import atomic
 
 
+class CommodityCategorySerializer(serializers.ModelSerializer):
+    """商品类别序列化器"""
+
+    subs = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CommodityCategory
+        fields = '__all__'
+
+    def get_subs(self, obj):
+        if obj.pre:
+            return CommodityCategorySerializer(obj.pre, many=True).data
+        else:
+            return None
+
+
+
 class SellerCommoditySerializer(serializers.ModelSerializer):
+    """商家操作商品模型序列化器"""
+
+    category_list = serializers.SerializerMethodField()
+
     class Meta:
         model = Commodity
+        category_model = CommodityCategory
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'details', 'intro', 'category_id', 'group_id',
-                  'status', 'onshelve_time', 'unshelve_time', 'sell_counts', 'stock', 'big_image', 'little_image',
-                  'freight_id')
-        read_only_fields = ('pk', )
+                  'status', 'onshelve_time', 'unshelve_time', 'stock', 'big_image', 'little_image',
+                  'freight_id', 'category_list')
+        read_only_fields = ('pk', 'category_list')
+
+    def get_category_list(self, obj):
+        """获取全部的序列化器"""
+        category = self.Meta.category_model.objects.all()
+        return CommodityCategorySerializer(category, many=True).data
 
     def add_commodity(self):
         """商家添加商品"""
@@ -33,7 +60,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     @property
     def get_credential(self):
         try:
-            category = CommodityCategory.commodity_category_.get(pk=self.validated_data.pop('category_id'))
+            category = CommodityCategory.objects.get(pk=self.validated_data.pop('category_id'))
             group = CommodityGroup.commodity_group_.get(pk=self.validated_data.pop('group_id'))
             freight = Freight.freight_.get(pk=self.validated_data.pop('freight_id'))
         except CommodityCategory.DoesNotExist:
@@ -52,6 +79,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
                 'favourable_price': self.validated_data.pop('favourable_price'),
                 'details': self.validated_data.pop('details'),
                 'intro': self.validated_data.pop('category_id'),
+                'status':self.validated_data.pop('status')
             }
 
 

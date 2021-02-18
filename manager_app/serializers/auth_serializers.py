@@ -8,7 +8,7 @@ from django.db import transaction, DataError
 from rest_framework import serializers
 
 from Emall.exceptions import DataFormatError, SqlServerError
-from manager_app.models import Managers, ManagerPermission
+from manager_app.models import Managers, Permission
 
 User = get_user_model()
 class ManagerLoginSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class ManagerLoginSerializer(serializers.ModelSerializer):
 
 
     class Meta:
-        model = ManagerPermission
+        model = Permission
         fields = ('name', 'pid', 'username', 'password')
         read_only_fields = ('name', 'pid')
 
@@ -62,7 +62,7 @@ class ManagerRegisterSerializer(serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 user = User.objects.create(**credential) # 创建user对象
-                Managers.manager_.create(user=user, role_id=rid)
+                Managers.objects.create(user=user, role_id=rid)
         except DataError:
             raise SqlServerError()
 

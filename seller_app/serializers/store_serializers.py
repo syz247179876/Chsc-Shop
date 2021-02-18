@@ -3,30 +3,37 @@
 # @Author : 司云中
 # @File : store_serializers.py
 # @Software: Pycharm
-
+from django.db import DatabaseError
 from rest_framework import serializers
 
-from Emall.exceptions import DataFormatError
-from seller_app.models import Store
+from Emall.exceptions import DataFormatError, SqlServerError
+from manager_app.models import Role
+from seller_app.models import Store, Seller
 
 
 class SellerStoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
+        seller_model = Seller
+        role_model = Role
         fields = ('id', 'name', 'intro')
-        read_only_fields = ('id')
+        read_only_fields = ('id',)
         extra_kwargs = {
-            'intro': {'require': False}
+            'intro': {'required': False}
         }
 
-    def add(self):
+    def create_store(self):
         """创建店铺"""
-        intro =  self.validated_data.pop('intro', None)
+        intro = self.validated_data.pop('intro', None)
         if not intro or len(intro) > 128:
             raise DataFormatError()
         credential = {
             'name': self.validated_data.pop('name'),
             'intro': intro
         }
-        self.Meta.model.objects.create(**credential)
-
+        try:
+            role = self.Meta.role_model.objects.get(role_name="商家角色")
+            store = self.Meta.model.objects.create(**credential)  # 创建店铺
+            self.Meta.seller_model.objects.create(user=self.context.get('request').user, store=store, role=role)  # 创建商家
+        except DatabaseError():
+            raise SqlServerError()

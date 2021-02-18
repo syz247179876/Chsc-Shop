@@ -28,12 +28,12 @@ class ManagePermissionApiView(GenericAPIView):
     def get_obj(self, pk):
         """获取权限记录"""
         try:
-            return self.serializer_class.Meta.model.manager_permission_.get(pk=pk)
+            return self.serializer_class.Meta.model.objects.get(pk=pk)
         except self.serializer_class.Meta.model.DoesNotExist:
             raise SqlServerError()
 
     def get_queryset(self):
-        return self.serializer_class.Meta.model.manager_permission_.all()
+        return self.serializer_class.Meta.model.objects.all()
 
     def post(self, request):
         """增加权限"""

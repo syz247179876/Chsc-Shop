@@ -1,30 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Manager
+from django.utils.translation import gettext_lazy as _
 
-
-class Seller(models.Model):
-
-    User = get_user_model()
-    user = models.OneToOneField(to=User, verbose_name=_('商家'), related_name='seller', on_delete=models.CASCADE)
-
-    store = models.OneToOneField(to=User, verbose_name=_('店铺'), related_name='seller', on_delete=models.CASCADE,
-                                 null=True)
-
-    safety = models.PositiveIntegerField(
-        _('安全分数'),
-        help_text=_('您的信息安全分数'),
-        default=60,
-    )
-
-    integral = models.PositiveIntegerField(
-        _('积分值'),
-        default=0
-    )
-
-    objects = Manager()
-    class Meta:
-        db_table = 'seller'
+from manager_app.models import Role
 
 
 class Store(models.Model):
@@ -35,8 +14,12 @@ class Store(models.Model):
     # 店铺简介
     intro = models.CharField(verbose_name=_('店铺简介'), max_length=128)
 
+    TYPE = (
+        ('1', '个人店(免费入驻)'),
+        ('2', '企业店')
+    )
     # 开店类型
-    type = models.CharField(verbose_name=_('开店类型'), default='个人店(免费入驻)')
+    type = models.CharField(choices=TYPE, verbose_name=_('开店类型'), default='个人店(免费入驻)', max_length=1)
 
     RANK_SORT = (
         (0, '先锋'),
@@ -62,3 +45,26 @@ class Store(models.Model):
     class Meta:
         db_table = 'store'
 
+class Seller(models.Model):
+
+    User = get_user_model()
+    user = models.OneToOneField(to=User, verbose_name=_('商家'), related_name='seller', on_delete=models.CASCADE)
+
+    store = models.OneToOneField(to=Store, verbose_name=_('店铺'), related_name='seller', on_delete=models.CASCADE)
+
+    safety = models.PositiveIntegerField(
+        _('安全分数'),
+        help_text=_('您的信息安全分数'),
+        default=60,
+    )
+
+    integral = models.PositiveIntegerField(
+        _('积分值'),
+        default=0
+    )
+
+    role = models.ForeignKey(to=Role, on_delete=models.SET_NULL, related_name='seller', null=True)
+
+    objects = Manager()
+    class Meta:
+        db_table = 'seller'

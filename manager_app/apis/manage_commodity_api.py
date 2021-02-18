@@ -25,7 +25,7 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
     serializer_class = CommodityCategorySerializer
 
     def get_queryset(self):
-        return CommodityCategory.commodity_category_.all()
+        return CommodityCategory.objects.all()
 
     def post(self, request):
         """添加类别"""
@@ -39,10 +39,10 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
         """删除类别"""
         serializer = self.serializer_delete_class(data=request.data)
         if self.request.query_params.get('all', None) == 'true':
-            self.serializer_class.Meta.model.role_.all().delete()
+            self.serializer_class.Meta.model.objects.all().delete()
         else:
             serializer.is_valid(raise_exception=True)
-            CommodityCategory.commodity_category_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
+            CommodityCategory.objects.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
         return Response(response_code.result(DELETE_COMMODITY_CATEGORY, '删除成功'))
 
     def put(self, request):
@@ -102,7 +102,7 @@ class ManageCommodityGroupApiView(GenericAPIView):
             self.get_queryset().delete()
         else:
             serializer.is_valid(raise_exception=True)
-            CommodityCategory.commodity_category_.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
+            CommodityCategory.objects.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
         return Response(response_code.result(DELETE_COMMODITY_GROUP, '删除成功'))
 
     @validate_url_data('commodity_group', 'pk')

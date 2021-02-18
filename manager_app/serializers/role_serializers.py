@@ -7,7 +7,7 @@ import time
 import uuid
 
 from rest_framework import serializers
-from manager_app.models import ManagerRole
+from manager_app.models import Role
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -16,7 +16,7 @@ class RoleSerializer(serializers.ModelSerializer):
     permission = serializers.ListField(child=serializers.CharField(max_length=8), allow_empty=True, write_only=True)
 
     class Meta:
-        model = ManagerRole
+        model = Role
         fields = ('pk', 'role_name', 'description', 'pid', 'permission')
         read_only_fields = ('pk', )
 
@@ -24,7 +24,7 @@ class RoleSerializer(serializers.ModelSerializer):
         """添加角色信息"""
         credential = self.get_credential
         permission_list = self.validated_data.pop('permission')
-        role = self.Meta.model.role_.create(**credential)
+        role = self.Meta.model.objects.create(**credential)
         role.add(*permission_list)
 
     def modify_role(self):
@@ -32,7 +32,7 @@ class RoleSerializer(serializers.ModelSerializer):
         credential = self.get_credential
         pk = self.validated_data.pop('pk')
         permission_list = self.validated_data.pop('permission')
-        role = self.Meta.model.role_.filter(pk=pk).update(**credential)
+        role = self.Meta.model.objects.filter(pk=pk).update(**credential)
         role.set(permission_list)
 
     @property

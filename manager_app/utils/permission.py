@@ -44,7 +44,7 @@ def get_permission(request):
     if not mid:
         raise UserForbiddenError()
     try:
-        manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
+        manager = Managers.objects.select_related('role').prefetch_related('role__permission').get(pk=mid)
         # 如果当前管理者没有对应任何角色 或者  如果管理者对应某个角色,但是该角色没有任何权限
         if not manager.role or not manager.role.permission:
             raise UserForbiddenError()
@@ -74,7 +74,7 @@ class ManagerPermissionValidation(BasePermission):
         mid = payload.get('mid', None)
         if not mid:
             raise UserForbiddenError('用户无请求权限')
-        manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
+        manager = Managers.objects.select_related('role').prefetch_related('role__permission').get(pk=mid)
         permissions = manager.role.permission.values_list('pid', flat=True)
         return self.judge_header_permission(request, permissions)
 
