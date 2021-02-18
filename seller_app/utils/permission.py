@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
-# @Time  : 2021/2/15 上午11:53
+# @Time  : 2021/2/18 下午5:26
 # @Author : 司云中
 # @File : permission.py
 # @Software: Pycharm
+
 import jwt
+from django.conf import settings
 from rest_framework import HTTP_HEADER_ENCODING
 from rest_framework.permissions import BasePermission
 from rest_framework_jwt.settings import api_settings
-from django.conf import settings
+
 from Emall.exceptions import UserForbiddenError, AuthenticationError, UserNotExists
 from manager_app.models import Managers
 from django.utils.translation import gettext_lazy as _
+
+from seller_app.models import Seller
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
 
 def get_permission_token(request):
     """从请求头获取权限token"""
-    token = request.META.get(settings.HEADERS_TOKEN_KEY.get('manager-permission'), b'')
+    token = request.META.get(settings.HEADERS_TOKEN_KEY.get('seller-permission'), b'')
     if not token:
         raise UserForbiddenError()
     if isinstance(token, str):
@@ -44,11 +48,11 @@ def get_permission(request):
     if not mid:
         raise UserForbiddenError()
     try:
-        manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
-        # 如果当前管理者没有对应任何角色 或者  如果管理者对应某个角色,但是该角色没有任何权限
-        if not manager.role or not manager.role.permission:
+        seller = Seller.objects.select_related('role').prefetch_related('role__permission').get(pk=mid)
+        # 如果当前商家没有对应任何角色 或者  如果商家对应某个角色,但是该角色没有任何权限
+        if not seller.role or not seller.role.permission:
             raise UserForbiddenError()
-        allow_permission = manager.role.permission.all()  # 返回字段的值,只返回单个字段
+        allow_permission = seller.role.permission.all()  # 返回字段的值,只返回单个字段
         return allow_permission
     except Managers.DoesNotExist:
         raise UserNotExists()
@@ -56,11 +60,12 @@ def get_permission(request):
 
 def get_pid(request):
     """从请求头中获取权限pid"""
+
     return request.META.get(settings.HEADERS_TOKEN_KEY.get('backend-request-permission'), None)
 
 
-class ManagerPermissionValidation(BasePermission):
-    """校验管理员的request请求权限"""
+class SellerPermissionValidation(BasePermission):
+    """校验商家每个request请求的权限是否满足"""
 
     def has_permission(self, request, view):
         """
@@ -71,11 +76,11 @@ class ManagerPermissionValidation(BasePermission):
         """
 
         payload = request.jwt_payload
-        mid = payload.get('mid', None)
-        if not mid:
+        sid = payload.get('sid', None)
+        if not sid:
             raise UserForbiddenError('用户无请求权限')
-        manager = Managers.manager_.select_related('role').prefetch_related('role__permission').get(pk=mid)
-        permissions = manager.role.permission.values_list('pid', flat=True)
+        seller = Seller.objects.select_related('role').prefetch_related('role__permission').get(pk=sid)
+        permissions = seller.role.permission.values_list('pid', flat=True)
         return self.judge_header_permission(request, permissions)
 
     def judge_header_permission(self, request, permissions):

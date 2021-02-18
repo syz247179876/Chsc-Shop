@@ -178,8 +178,8 @@ class Commodity(models.Model):
     freight = models.ForeignKey(to=Freight, verbose_name=_('运费模板id'),
                                           help_text=_('该商品是否有运费'), on_delete=models.PROTECT)
 
-    # 商品主图片
-    big_image = models.CharField(verbose_name=_('主图片'), help_text=_('商品主图片'), max_length=256)
+    # 商品轮播主图片
+    big_image = models.TextField(verbose_name=_('主图片'), help_text=_('商品轮播主图片'))
 
     # 商品小图片
     little_image = models.CharField(verbose_name=_('小图片'), help_text=_('商品小图片'), max_length=256)
@@ -191,6 +191,9 @@ class Commodity(models.Model):
 
     # 分数值排序
     sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'), default=0)
+
+    # 商品关键属性spu
+    spu = models.TextField(verbose_name=_('商品spu'), null=True)
 
     commodity_ = Manager()
 
@@ -348,4 +351,8 @@ class SkuValues(models.Model):
 
     class Meta:
         db_table = 'sku_values'
+
+
+
+
 

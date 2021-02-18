@@ -4,12 +4,14 @@
 # @File : seller_commodity_api.py
 # @Software: Pycharm
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
     SkuPropSerializer, SkuPropsDeleteSerializer
+from seller_app.utils.permission import SellerPermissionValidation
 
 
 class ManageCommodityApiView(GenericAPIView):
@@ -18,6 +20,8 @@ class ManageCommodityApiView(GenericAPIView):
     serializer_class = SellerCommoditySerializer
 
     serializer_delete_class = SellerCommodityDeleteSerializer
+
+    permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     def post(self, request):
         """商家添加商品"""
@@ -63,6 +67,8 @@ class SkuPropApiView(BackendGenericApiView):
     serializer_class = SkuPropSerializer
 
     serializer_delete_class = SkuPropsDeleteSerializer
+
+    permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.select_related('values').all()

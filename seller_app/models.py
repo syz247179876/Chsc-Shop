@@ -30,10 +30,13 @@ class Seller(models.Model):
 class Store(models.Model):
 
     # 店铺名
-    name = models.CharField(verbose_name=_('店铺名'), max_length=30)
+    name = models.CharField(verbose_name=_('店铺名'), max_length=30, unique=True)
 
     # 店铺简介
     intro = models.CharField(verbose_name=_('店铺简介'), max_length=128)
+
+    # 开店类型
+    type = models.CharField(verbose_name=_('开店类型'), default='个人店(免费入驻)')
 
     RANK_SORT = (
         (0, '先锋'),
@@ -49,7 +52,10 @@ class Store(models.Model):
     rank = models.CharField(verbose_name=_('店铺等级'), max_length=4, default='先锋')
 
     # 店铺积分
-    integral = models.PositiveIntegerField(verbose_name=_('店铺积分'))
+    integral = models.PositiveIntegerField(verbose_name=_('店铺积分'), default=0)
+
+    # 是否通过审核
+    is_checked = models.BooleanField(default=True, verbose_name=_('是否通过管理员的审核'))
 
     objects = Manager()
 
