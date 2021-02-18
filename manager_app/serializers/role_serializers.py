@@ -17,19 +17,31 @@ class RoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ManagerRole
-        fields = ('role_name', 'description', 'pid', 'permission')
+        fields = ('pk', 'role_name', 'description', 'pid', 'permission')
+        read_only_fields = ('pk', )
 
     def add_role(self):
         """添加角色信息"""
+        credential = self.get_credential
         permission_list = self.validated_data.pop('permission')
-        role = self.Meta.model.role_.create(**self.validated_data)
+        role = self.Meta.model.role_.create(**credential)
         role.add(*permission_list)
 
     def modify_role(self):
         """修改角色信息"""
+        credential = self.get_credential
+        pk = self.validated_data.pop('pk')
         permission_list = self.validated_data.pop('permission')
-        role = self.Meta.model.role_.update(**self.validated_data)
+        role = self.Meta.model.role_.filter(pk=pk).update(**credential)
         role.set(permission_list)
+
+    @property
+    def get_credential(self):
+        return {
+            'role_name': self.validated_data.pop('role_name'),
+            'description': self.validated_data.pop('description'),
+            'pid': self.validated_data.pop('pid')
+        }
 
 
 class RoleDeleteSerializer(serializers.ModelSerializer):

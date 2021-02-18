@@ -19,23 +19,30 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     def create_permission(self):
         """添加权限"""
-        credential = {
-            'name':self.validated_data.pop('name'),
-            'description': self.validated_data.pop('description'),
-            'pid':self.validated_data.pop('pid')
-        }
+        credential = self.get_credential
         self.Meta.model.manager_permission_.create(**credential)
 
     def update_permission(self):
         """修改权限"""
         pk = self.validated_data.pop('pk'),
-        credential = {
+        credential = self.get_credential
+        self.Meta.model.manager_permission_.filter(pk=pk).update(**credential)
+
+    @property
+    def get_credential(self):
+        return {
             'name': self.validated_data.pop('name'),
             'description': self.validated_data.pop('description'),
             'pid': self.validated_data.pop('pid')
         }
-        self.Meta.model.manager_permission_.filter(pk=pk).update(**credential)
 
 
 class PermissionDeleteSerializer(serializers.Serializer):
+
+    class Meta:
+        model = ManagerPermission
+
     pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
+
+    def delete_permission(self):
+        self.Meta.model.manager_permission_.filter(pk__in=self.validated_data.get('pk_list'))

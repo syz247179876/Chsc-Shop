@@ -7,6 +7,12 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 from django.utils.translation import gettext_lazy as _
 
+class DataNotExist(APIException):
+    """数据记录不存在"""
+    status_code = status.HTTP_200_OK
+    default_detail = _('数据不存在')
+    default_code = 'Data Not Exists'
+
 class ESConnectError(APIException):
     """ES连接出错"""
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE

@@ -8,11 +8,11 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-
 from Emall.decorator import validate_url_data
 from Emall.exceptions import SqlServerError
 from Emall.loggings import Logging
-from Emall.response_code import response_code
+from Emall.response_code import response_code, MODIFY_DEFAULT_SUCCESS, MODIFY_ADDRESS_SUCCESS, ADD_ADDRESS_SUCCESS, \
+    DELETE_ADDRESS_SUCCESS
 from user_app.models import Address
 from user_app.serializers.address_serializers import AddressSerializers
 
@@ -43,13 +43,11 @@ class AddressOperation(viewsets.ModelViewSet):
 
     def get_object(self):
         try:
-            return Address.address_.get(user=self.request.user,pk=self.kwargs[self.lookup_field])
+            return Address.address_.get(user=self.request.user, pk=self.kwargs[self.lookup_field])
         except Address.DoesNotExist:
             raise SqlServerError()
 
     # action中的detail用于标识为装饰的视图生成{view_name:url}的有序字典映射
-    # 将url和视图绑定
-    # @method_decorator(login_required(login_url='consumer/login/'))
 
     @action(methods=['put'], detail=True, url_path='default')
     def update_default_address(self, request, **kwargs):
@@ -58,7 +56,7 @@ class AddressOperation(viewsets.ModelViewSet):
         以字典形式传过来的
         """
         self.get_serializer_class().update_default_address(self.get_queryset(), self.get_pk(**kwargs))
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(response_code.result(MODIFY_DEFAULT_SUCCESS, '修改成功'))
 
     @validate_url_data('address', 'pk')
     def update(self, request, *args, **kwargs):
@@ -67,16 +65,15 @@ class AddressOperation(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update_address(self.get_queryset(), serializer.validated_data, pk)
-        return Response(response_code.modify_address_success, status=status.HTTP_200_OK)
+        return Response(response_code.result(MODIFY_ADDRESS_SUCCESS, '修改成功'))
 
     # 默认与post绑定，反射到post=>post映射到create
-    # @method_decorator(login_required(login_url='consumer/login/'))
     def create(self, request, *args, **kwargs):
         """单添加地址"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.add_or_edit_address(self.get_queryset(), request.user, serializer.validated_data)
-        return Response(response_code.address_add_success, status=status.HTTP_200_OK)
+        return Response(response_code.result(ADD_ADDRESS_SUCCESS, '添加成功'))
 
     # @method_decorator(login_required(login_url='consumer/login/'))
     @validate_url_data('address', 'pk')
@@ -84,7 +81,7 @@ class AddressOperation(viewsets.ModelViewSet):
         """单删除地址DELETE请求"""
         pk = kwargs.get('pk')
         self.get_serializer_class().delete_address(self.get_queryset(), pk)
-        return Response(response_code.delete_address_success, status=status.HTTP_200_OK)
+        return Response(response_code.result(DELETE_ADDRESS_SUCCESS, '删除成功'))
 
     def list(self, request, *args, **kwargs):
         """查看收货地址"""
@@ -95,6 +92,3 @@ class AddressOperation(viewsets.ModelViewSet):
     @validate_url_data('address', 'pk')
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-
-
-

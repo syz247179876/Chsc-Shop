@@ -15,8 +15,7 @@ from rest_framework_jwt.settings import api_settings
 
 from Emall.exceptions import UserExists, CodeError, UniversalServerError
 from Emall.loggings import Logging
-from Emall.response_code import response_code
-from oauth_app.serializers.oauth_serializer import jwt_response_payload_handler
+from Emall.response_code import response_code, REGISTER_VERIFICATION_SUCCESS
 from user_app.models import Consumer
 from user_app.redis.user_redis import RedisUserOperation
 from user_app.serializers.login_serializers import UserJwtLoginSerializer
@@ -65,7 +64,6 @@ class LoginAPIView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         response = serializer.object
         # 加密，如果配置中支持刷新，则更新token,将user调用中间件赋给request.user
-        response.pop('user')
         response_obj = Response(response)
         # self.remember_username(response_obj, response.get('is_remember'),
         #                        response.pop('user').get_username())  # 设置cookie，记住用户名
@@ -108,6 +106,7 @@ class RegisterAPIView(GenericAPIView):
                     phone=phone,
                     last_login=current_day
                 )
+                print(user)
                 Consumer.consumer_.create(
                     user=user
                 )
@@ -115,8 +114,7 @@ class RegisterAPIView(GenericAPIView):
         except Exception as e:
             consumer_logger.error('register_email_create_error:{}'.format(e))
             raise UniversalServerError()
-        else:
-            return Response(response_code.register_success)
+        return Response(response_code.result(REGISTER_VERIFICATION_SUCCESS,'注册成功'))
 
     def register_email(self, validated_data):
         """邮箱注册"""
@@ -147,8 +145,8 @@ class RegisterAPIView(GenericAPIView):
                 )
         except Exception as e:
             consumer_logger.error('register_email_create_error:{}'.format(e))
-            return UniversalServerError()
-        return Response(response_code.register_success)
+            raise UniversalServerError()
+        return Response(response_code.result(REGISTER_VERIFICATION_SUCCESS,'注册成功'))
 
     def factory(self, validated_data):
         """简单工厂管理用户不同注册方式"""

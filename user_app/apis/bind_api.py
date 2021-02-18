@@ -6,10 +6,11 @@
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from Emall.exceptions import SqlServerError, CodeError
 from Emall.loggings import Logging
-from Emall.response_code import response_code
+from Emall.response_code import response_code, BIND_SUCCESS
 from user_app.redis.user_redis import RedisUserOperation
 from user_app.serializers.bind_email_phone_serializers import BindPhoneOrEmailSerializer
 consumer_logger = Logging.logger('consumer_')
@@ -90,4 +91,4 @@ class BindEmailOrPhone(GenericAPIView):
         way = serializer.validated_data.get('way')
         self.factory(way, serializer.validated_data, request.user)
         # 改绑成功
-        return Response(response_code.bind_success, status=status.HTTP_200_OK)
+        return Response(response_code.result(BIND_SUCCESS,'绑定成功'))

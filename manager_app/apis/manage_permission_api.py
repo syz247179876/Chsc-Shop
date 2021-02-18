@@ -10,7 +10,8 @@ from rest_framework.response import Response
 
 from Emall.decorator import validate_url_data
 from Emall.exceptions import SqlServerError
-from Emall.response_code import response_code
+from Emall.response_code import response_code, ADD_PERMISSION_SUCCESS, DELETE_PERMISSION_SUCCESS, \
+    MODIFY_PERMISSION_SUCCESS
 from manager_app.serializers.permission_serializers import PermissionSerializer, PermissionDeleteSerializer
 from manager_app.utils.permission import ManagerPermissionValidation
 
@@ -39,17 +40,17 @@ class ManagePermissionApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.create_permission()
-        return response_code.add_permission_success
+        return Response(response_code.result(ADD_PERMISSION_SUCCESS, '添加成功'))
 
     def delete(self, request):
         """删除权限"""
         serializer = self.serializer_delete_class(data=request.data)
-        if self.request.query_params.get('many', None) == 'true':
+        if self.request.query_params.get('all', None) == 'true':
             self.get_queryset().delete()
         else:
             serializer.is_valid(raise_exception=True)
-            self.serializer_class.Meta.model.manager_permission_.filter(pk__in=serializer.validated_data.get('pk_list'))
-        return Response(response_code.add_commodity_category)
+            serializer.delete_permission()
+        return Response(response_code.result(DELETE_PERMISSION_SUCCESS, '删除成功'))
 
     @validate_url_data('permission', 'pk')
     def put(self, request):
@@ -57,7 +58,7 @@ class ManagePermissionApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update_permission()
-        return response_code.mo
+        return Response(response_code.result(MODIFY_PERMISSION_SUCCESS, '修改成功'))
 
     @validate_url_data('permission', 'pk', null=True)
     def get(self, request):
