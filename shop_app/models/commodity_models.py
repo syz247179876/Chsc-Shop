@@ -3,7 +3,6 @@ import datetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
-from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from shop_app.utils.validators import *
@@ -47,8 +46,9 @@ class CommodityGroup(models.Model):
     status = models.BooleanField(verbose_name=_('分组状态'))
 
     commodity_group_ = Manager()
+
     class Meta:
-        db_table = 'commodity_group'
+        db_table = 'commodity_groups'
         ordering = ('status', )
 
 
@@ -297,7 +297,7 @@ class Sku(models.Model):
                                             MinValueValidator(0, message=_('商品价格必须为正数'))])
 
     # 优惠价格
-    favourable = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的优惠价格'),
+    favourable_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的优惠价格'),
                                 validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
                                             MinValueValidator(0, message=_('商品价格必须为正数'))])
 
@@ -308,12 +308,12 @@ class Sku(models.Model):
     update_time = models.DateTimeField(auto_now=True)
 
     # sku的图片
-    image = models.CharField(verbose_name=_('主图片'), help_text=_('sku主图片'), max_length=256)
+    image = models.CharField(verbose_name=_('主图片'), help_text=_('sku主图片'), max_length=256, null=True)
 
     # sku名称
     name = models.CharField(verbose_name=_('sku名称'), max_length=50)
 
-    # 商家是否上下架
+    # sku是否上下架
     status = models.BooleanField(verbose_name=_('sku状态'))
 
     class Meta:
@@ -323,17 +323,28 @@ class Sku(models.Model):
 class SkuProps(models.Model):
     """
     Sku的规格属性表
+    保存常用属性
     """
-    name = models.CharField(verbose_name=_('属性名称'), max_length=20)
+
+    name = models.CharField(verbose_name=_('sku属性名称'), max_length=20)
+
+    objects = Manager()
 
     class Meta:
         db_table = 'sku_props'
 
 
 class SkuValues(models.Model):
-    """sku的规格属性值表"""
+    """
+    sku的规格属性值表
+    保存常用属性值
+    """
 
-    props = models.ForeignKey(to=SkuProps, on_delete=models.CASCADE, related_name='values')
+    prop = models.ForeignKey(to=SkuProps, on_delete=models.CASCADE, related_name='values')
+
+    value = models.CharField(verbose_name=_('sku属性值'), max_length=20)
+
+    objects = Manager()
 
     class Meta:
         db_table = 'sku_values'
