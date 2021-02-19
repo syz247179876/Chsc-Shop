@@ -71,7 +71,6 @@ class ManagerPermissionValidation(BasePermission):
         """
 
         payload = request.jwt_payload
-        print(payload)
         if payload.get('has_super_permission'):
             return True
         mid = payload.get('mid', None)

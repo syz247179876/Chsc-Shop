@@ -60,7 +60,6 @@ class SellerCommodityApiView(GenericAPIView):
         return
 
 
-
 class SkuPropApiView(BackendGenericApiView):
     """商品属性规格和值操作"""
 

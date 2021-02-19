@@ -68,7 +68,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     def get_credential(self):
         try:
             category = CommodityCategory.objects.get(pk=self.validated_data.pop('category_id'))
-            group = CommodityGroup.commodity_group_.get(pk=self.validated_data.pop('group_id'))
+            group = CommodityGroup.objects.get(pk=self.validated_data.pop('group_id'))
             freight = Freight.freight_.get(pk=self.validated_data.pop('freight_id'))
         except CommodityCategory.DoesNotExist:
             raise DataFormatError()
