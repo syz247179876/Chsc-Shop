@@ -83,6 +83,11 @@
           <option value="search_app.utils.elasticsearch.ElasticSearchOperation.*" />
           <option value="oauth_app.models.OauthQQ.*" />
           <option value="shop_app.models.commodity_models.Commodity.DoesNotExist" />
+          <option value="manager_app.models.Managers.DoesNotExist" />
+          <option value="shop_app.models.commodity_models.CommodityCategory.DoesNotExist" />
+          <option value="shop_app.models.commodity_models.CommodityGroup.*" />
+          <option value="shop_app.models.commodity_models.Freight.*" />
+          <option value="shop_app.models.commodity_models.SkuProps.*" />
         </list>
       </option>
     </inspection_tool>

@@ -92,9 +92,6 @@ class RegisterAPIView(GenericAPIView):
             # 验证码错误或者过期
             if not code_status:
                 raise CodeError()
-        except Exception as e:
-            consumer_logger.error('register_phone_error:{}'.format(e))
-            raise UniversalServerError()
 
         # 验证码正确，手机号尚未使用
         try:

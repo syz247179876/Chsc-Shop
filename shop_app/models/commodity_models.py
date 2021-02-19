@@ -1,12 +1,14 @@
 import datetime
 
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 
+from seller_app.models import Store
 from shop_app.utils.validators import *
-
+User = get_user_model()
 
 class CommodityCategory(models.Model):
     """商品类别表"""
@@ -27,9 +29,15 @@ class CommodityCategory(models.Model):
     sort = models.PositiveIntegerField(verbose_name=_('商品分数值'), help_text=_('用于商品间的排序'), default=0)
 
     # 上一级分类的id
-    pre = models.ForeignKey('self', on_delete=models.CASCADE)
+    pre = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
 
-    commodity_category_ = Manager()
+    # 是否有前驱结点
+    has_prev = models.BooleanField(verbose_name=_('是否有前驱'), default=False)
+
+    # 是否有后继结点
+    has_next = models.BooleanField(verbose_name=_('是否有后继'), default=False)
+
+    objects = Manager()
 
 
     class Meta:
@@ -117,6 +125,12 @@ class FreightItemCity(models.Model):
 
 class Commodity(models.Model):
     """商品表"""
+
+    # 商家
+    user = models.ForeignKey(to=User, verbose_name=_('商家'), related_name='commodity', on_delete=models.CASCADE)
+
+    # 店铺
+    store = models.ForeignKey(to=Store, verbose_name=_('店铺'), related_name='commodity', on_delete=models.CASCADE)
 
     # 商品名称
     commodity_name = models.CharField(verbose_name=_('商品名称'),

@@ -38,6 +38,7 @@ urlpatterns = [
     path('analysis/', include('analysis_app.urls', namespace='analysis')),
     path('universal/', include('universal_app.urls', namespace='universal')),
     path('manager/', include('manager_app.urls', namespace='manager')),
+    path('seller/', include('seller_app.urls', namespace='seller')),
     path('mdeditor/', include('mdeditor.urls')),
 ]
 

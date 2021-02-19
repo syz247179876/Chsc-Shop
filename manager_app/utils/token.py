@@ -34,4 +34,8 @@ def generate_payload(user):
     if api_settings.JWT_ISSUER is not None:
         payload['iss'] = api_settings.JWT_ISSUER
 
+    # 判断是否具备超级权限
+    if user.is_super_manager:
+        payload['has_super_permission'] = True
+
     return payload

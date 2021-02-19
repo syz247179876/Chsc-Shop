@@ -29,13 +29,10 @@ class Trolley(models.Model):
     # 该商品价格
     price = models.DecimalField(verbose_name=_('商品价格'), decimal_places=2, max_digits=11)
 
-    # 商品类型选择标签
-    label = models.TextField(verbose_name=_('标签'))
-
     trolley_ = Manager()
 
     class Meta:
-        db_table = 'Trolley'
+        db_table = 'trolley'
         verbose_name = _('购物车')
         verbose_name_plural = _('购物车')
-        ordering = ('-time',)
+        ordering = ('time',)

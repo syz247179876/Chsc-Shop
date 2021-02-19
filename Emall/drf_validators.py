@@ -31,7 +31,7 @@ def validate_address_pk(value):
     校验url中的关于address的pk字段
     一个用户只允许上限10个地址
     """
-    return True if re.match('^[1-9]{0,10}$', value) else False
+    return True if re.match('^[1-9]{0,10}$', str(value)) else False
 
 
 def validate_commodity_pk(value):
@@ -39,7 +39,7 @@ def validate_commodity_pk(value):
     校验url中的关于商品的pk字段
     商品id允许上限15位数
     """
-    return True if re.match('^[1-9]\d{0,15}$', value) else False
+    return True if re.match('^[1-9]\d{0,15}$', str(value)) else False
 
 
 def validate_role_pid(value):
@@ -57,18 +57,18 @@ def validate_permission_pk(value):
     校验url中的关于权限的pk字段
     权限id允许上限6位数
     """
-    return True if re.match('^[1-9]\d{0,6}$', value) else False
+    return True if re.match('^[1-9]\d{0,6}$', str(value)) else False
 
 def validate_category_pk(value):
     """
     校验url中的关于商品类别的pk字段
     商品类别id允许上限5位数
     """
-    return True if re.match('^[1-9]\d{0,5}$', value) else False
+    return True if re.match('^[1-9]\d{0,5}$', str(value)) else False
 
 def validate_commodity_group_pk(value):
     """
     检验url中的关于商品分组的pk字段
     商品类别id允许上限4位数
     """
-    return True if re.match('^[1-9]\d{0,4}$', value) else False
+    return True if re.match('^[1-9]\d{0,4}$', str(value)) else False
