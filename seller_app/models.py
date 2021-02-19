@@ -3,8 +3,9 @@ from django.db import models
 from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 
-from manager_app.models import Role
+from universal_app.models import Role
 
+User = get_user_model()
 
 class Store(models.Model):
 
@@ -46,8 +47,7 @@ class Store(models.Model):
         db_table = 'store'
 
 class Seller(models.Model):
-
-    User = get_user_model()
+    """商家表"""
     user = models.OneToOneField(to=User, verbose_name=_('商家'), related_name='seller', on_delete=models.CASCADE)
 
     store = models.OneToOneField(to=Store, verbose_name=_('店铺'), related_name='seller', on_delete=models.CASCADE)

@@ -46,11 +46,12 @@ class ManagePermissionApiView(GenericAPIView):
         """删除权限"""
         serializer = self.serializer_delete_class(data=request.data)
         if self.request.query_params.get('all', None) == 'true':
-            self.get_queryset().delete()
+            result_num, _ = self.get_queryset().delete()
         else:
             serializer.is_valid(raise_exception=True)
-            serializer.delete_permission()
-        return Response(response_code.result(DELETE_PERMISSION_SUCCESS, '删除成功'))
+            result_num = serializer.delete_permission()
+        return Response(response_code.result(DELETE_PERMISSION_SUCCESS, '删除成功')) \
+            if result_num else Response(response_code.result(DELETE_PERMISSION_SUCCESS, '无操作,无效数据'))
 
     @validate_url_data('permission', 'pk')
     def put(self, request):

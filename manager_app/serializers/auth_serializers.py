@@ -8,7 +8,8 @@ from django.db import transaction, DataError
 from rest_framework import serializers
 
 from Emall.exceptions import DataFormatError, SqlServerError
-from manager_app.models import Managers, Permission
+from manager_app.models import Managers
+from universal_app.models import Permission
 
 User = get_user_model()
 class ManagerLoginSerializer(serializers.ModelSerializer):

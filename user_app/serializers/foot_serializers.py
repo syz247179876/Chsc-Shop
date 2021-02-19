@@ -31,6 +31,6 @@ class FootSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Commodity
-        fields = ('id', 'timestamp', 'commodity_name', 'price', 'status', 'discounts', 'image', 'pk')
+        fields = ('id', 'timestamp', 'commodity_name', 'price', 'status', 'discounts', 'big_image', 'pk')
         read_only_fields = (
-            'id', 'commodity_name', 'price', 'status', 'discounts', 'image')
+            'id', 'commodity_name', 'price', 'status', 'discounts', 'big_image')

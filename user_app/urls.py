@@ -35,7 +35,7 @@ information_patterns = [
     path('detail/', InformationOperation.as_view()),
     path('binding/', BindEmailOrPhone.as_view()),
     path('identity/', VerifyIdCard.as_view()),
-    path('head-image/', HeadImageOperation.as_view()),
+    path('head-big_image/', HeadImageOperation.as_view()),
 ]
 
 urlpatterns = [

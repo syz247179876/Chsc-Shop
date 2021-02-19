@@ -51,8 +51,9 @@ class ManageRoleApiView(GenericAPIView):
         serializer = self.serializer_delete_class(data=request.data)
         # 如果url中带有many=true查询参数时,删除全部
         if self.request.query_params.get('all', None) == 'true':
-            self.get_queryset().delete()
+            result_num, _ = self.get_queryset().delete()
         else:
             serializer.is_valid(raise_exception=True)
-            self.serializer_class.Meta.model.objects.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
-        return Response(response_code.result(DELETE_ROLE_SUCCESS, '删除成功'))
+            result_num, _ =self.serializer_class.Meta.model.objects.filter(pk__in=serializer.validated_data.get('pk_list')).delete()
+        return Response(response_code.result(DELETE_ROLE_SUCCESS, '删除成功')) \
+            if result_num else Response(response_code.result(DELETE_ROLE_SUCCESS, '无操作,无效数据'))

@@ -11,7 +11,6 @@ from rest_framework_jwt.settings import api_settings
 
 from Emall.authentication import email_or_username, phone
 from Emall.exceptions import CodeError, UserForbiddenError, UserNotExists
-from rest_framework_jwt.utils import jwt_payload_handler
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
@@ -92,7 +91,6 @@ class UserJwtLoginSerializer(Serializer):
 
             return {
                 'token': jwt_encode_handler(payload),
-                'user': user,
                 'next': attrs.get('next') or settings.DEFAULT_REDIRECT_URI,
                 # validators.url_validate(attrs.get('next'))
                 'is_remember': attrs.get('is_remember'),

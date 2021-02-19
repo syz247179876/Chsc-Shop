@@ -21,7 +21,6 @@ def validate_url_data(model, field, null=None):
     def decorate(func):
         def inner(self, *args, **kwargs):
             value = self.request.query_params.get(field, None) or kwargs.get(field, None) or self.request.data.get(field, None)
-
             if not null and not value:
                 raise DataFormatError('缺少必要的数据')
 

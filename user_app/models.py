@@ -4,17 +4,14 @@
 # @File : models.py
 # @Software: PyCharm
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Manager
 from django.utils import timezone
-from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from shop_app.models.commodity_models import Commodity
+
 from user_app.utils.validators import RecipientsValidator, RegionValidator, PhoneValidator, AddressTagValidator, \
     ProvinceValidator
 
@@ -22,16 +19,14 @@ from user_app.utils.validators import RecipientsValidator, RegionValidator, Phon
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def _create_superuser(self, username, email, password, **extra_fields):
+    def _create_superuser(self, username, password, **extra_fields):
         """
         创建超级管理员，审核重要issue
         """
         if not username:
             raise ValueError('The given username must be set')
-        email = self.normalize_email(email)
         username = self.model.normalize_username(username)
-        user = self.model(username=username, email=email, **extra_fields)
-        password = make_password(password)
+        user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -62,27 +57,26 @@ class UserManager(BaseUserManager):
         password = make_password(password)
         return self._create_user(password=password, **extra_fields)
 
-    def create_superuser(self, username, email, password, **extra_fields):
+    def create_superuser(self, username, password, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_super_manager', True)
 
         if extra_fields.get('is_super_manager') is not True:
             raise ValueError('Superuser must have is_super_manager=True.')
 
-        return self._create_superuser(username, email, password, **extra_fields)
+        return self._create_superuser(username, password, **extra_fields)
 
     def check_user_existed(self, **extra_fields):
-        extra_fields['password'] = make_password(extra_fields.pop('password'))
+        extra_fields.pop('password')
         return self._check_user_existed(**extra_fields)
 
     def check_manager_login(self, **validated_fields):
-        validated_fields['password'] = make_password(validated_fields.pop('password'))
+        password = validated_fields.pop('password')
         try:
-            return self.select_related('mo').get(**validated_fields)
+            user = self.select_related('manager__role').get(**validated_fields)
+            return user if check_password(password, user.password) else None
         except self.model.DoesNotExist:
             return None
-
-
 
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
@@ -117,12 +111,19 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             'unique': _('A user with that phone already exists')
         })
 
+    is_seller = models.BooleanField(
+        _('商家'),
+        default=False,
+        help_text=_(
+            'Consumer upgrade to sellers by registering to open store'
+        )
+    )
+
     is_staff = models.BooleanField(
         _('普通管理员'),
         default=False,
         help_text=_(
-            'Consumer upgrade to sellers by registering to open store'
-            'who have access to the background'
+            'Common staff who has permission to manage this system'
         ),
     )
 
@@ -143,7 +144,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         help_text=_(
             'Manager of this system who possess the highest priority of the whole operation'
             ', whose duty is to keep system running well and take some extra essential operation '
-            'to publish message to all sellers!'
+            'to publish message to all staff!'
         )
     )
 
@@ -301,7 +302,7 @@ class Consumer(models.Model):
 
     @property
     def get_head_image(self):
-        """get head image for this User"""
+        """get head big_image for this User"""
         head_image = getattr(self, self.HEAD_IMAGE_FIELD)
         if not head_image:
             return ''
@@ -363,52 +364,3 @@ class Address(models.Model):
     def __str__(self):
         return self.recipient
 
-
-class Foot(models.Model):
-    """用户足迹表"""
-
-    # 用户
-    user = models.ForeignKey(User, related_name='foots', on_delete=True, verbose_name=_('用户'))
-
-    # 商品
-    commodity = models.ManyToManyField(Commodity, related_name='foots', verbose_name=_('商品'))
-
-    # 浏览次数
-    view_counts = models.PositiveIntegerField(default=0, verbose_name=_('浏览次数'))
-
-
-
-    class Meta:
-        db_table = 'Foot'
-        verbose_name = _('足迹')
-        verbose_name_plural = _('足迹')
-        ordering = ('view_counts',)
-
-    def __str__(self):
-        return '浏览商品id:{}'.format(self.commodity)
-
-
-class Collection(models.Model):
-    """收藏夹"""
-
-    # 用户
-    user = models.ForeignKey(User, related_name='collections', on_delete=True, verbose_name=_('用户'))
-
-    # 商品
-    commodity = models.ForeignKey(Commodity, related_name='collections', verbose_name=_('商品'), on_delete=True,
-                                  null=True)
-
-    # 浏览时间
-    collect_time = models.DateTimeField(auto_now_add=True, verbose_name=_('收藏时间'))
-
-    # 逻辑删除
-    fake_delete = models.BooleanField(default=False, verbose_name=_('逻辑删除'))
-
-
-    collection_ = Manager()
-
-    class Meta:
-        db_table = 'collection'
-        verbose_name = _('收藏夹')
-        verbose_name_plural = _('收藏夹')
-        ordering = ('collect_time',)

@@ -7,7 +7,7 @@ import time
 
 from rest_framework import serializers
 
-from manager_app.models import Permission
+from universal_app.models import Permission
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     def update_permission(self):
         """修改权限"""
-        pk = self.validated_data.pop('pk'),
+        pk = self.context.get('request').data.get('pk')
         credential = self.get_credential
         self.Meta.model.objects.filter(pk=pk).update(**credential)
 
@@ -45,4 +45,4 @@ class PermissionDeleteSerializer(serializers.Serializer):
     pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
 
     def delete_permission(self):
-        self.Meta.model.objects.filter(pk__in=self.validated_data.get('pk_list'))
+        return self.Meta.model.objects.filter(pk__in=self.validated_data.get('pk_list')).delete()[0]

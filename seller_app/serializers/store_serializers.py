@@ -3,7 +3,8 @@
 # @Author : 司云中
 # @File : store_serializers.py
 # @Software: Pycharm
-from django.db import DatabaseError
+from django.contrib.auth import get_user_model
+from django.db import DatabaseError, transaction
 from rest_framework import serializers
 
 from Emall.exceptions import DataFormatError, SqlServerError
@@ -12,6 +13,7 @@ from seller_app.models import Store, Seller
 
 
 class SellerStoreSerializer(serializers.ModelSerializer):
+    User = get_user_model()
     class Meta:
         model = Store
         seller_model = Seller
@@ -33,7 +35,11 @@ class SellerStoreSerializer(serializers.ModelSerializer):
         }
         try:
             role = self.Meta.role_model.objects.get(role_name="商家角色")
-            store = self.Meta.model.objects.create(**credential)  # 创建店铺
-            self.Meta.seller_model.objects.create(user=self.context.get('request').user, store=store, role=role)  # 创建商家
+            user = self.context.get('request').user
+            with transaction.atomic():
+                store = self.Meta.model.objects.create(**credential)  # 创建店铺
+                self.Meta.seller_model.objects.create(user=user, store=store, role=role)  # 创建商家
+                user.is_seller = True # 将该用户升级成商家,具备商家权限
+                user.save(force_update=True)
         except DatabaseError():
             raise SqlServerError()

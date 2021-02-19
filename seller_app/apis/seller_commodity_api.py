@@ -14,7 +14,7 @@ from seller_app.serializers.commodity_serializers import SellerCommoditySerializ
 from seller_app.utils.permission import SellerPermissionValidation
 
 
-class ManageCommodityApiView(GenericAPIView):
+class SellerCommodityApiView(GenericAPIView):
     """商家管理商品操作"""
 
     serializer_class = SellerCommoditySerializer

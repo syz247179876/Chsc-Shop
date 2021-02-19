@@ -136,3 +136,4 @@ class ChangePassword(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return self.modify_password(self.get_object(), serializer.validated_data)
+

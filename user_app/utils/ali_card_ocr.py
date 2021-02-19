@@ -9,6 +9,8 @@ import datetime
 
 import json
 import urllib
+
+from Emall.exceptions import IdentifyError
 from Emall.loggings import Logging
 from Emall import settings
 
@@ -24,7 +26,7 @@ class OcrIdCard:
     url = settings.ALI_OCR_URL
 
     params = {
-        'image': None,
+        'big_image': None,
         'configure': {},
     }
 
@@ -36,12 +38,13 @@ class OcrIdCard:
     def __init__(self, image, card_type):
         image = str(base64.b64encode(image.read()), encoding='utf-8')  # 对二进制进行base64编码
         configure = {"side": card_type}
-        self.params.update({'image': image, 'configure': configure})
+        self.params.update({'big_image': image, 'configure': configure})
         self.json_result = None  # 存储返回的结果
         self.card_type = card_type  # 在face和back中选择
 
     def get_posturl_result(self):
         """从接口中获取识别结果"""
+
         try:
             params = json.dumps(self.params).encode(encoding='utf-8')  # 原生--->JSON字符串
             req = urllib.request.Request(self.url, params, self.headers)  # 构建请求
@@ -50,7 +53,7 @@ class OcrIdCard:
             self.json_result = json.loads(result)  # JSON字符串--->原生
             r.close()  # 关闭请求
         except Exception as e:
-            consumer_logger.error(e)
+           raise IdentifyError()
 
     @property
     def address(self):

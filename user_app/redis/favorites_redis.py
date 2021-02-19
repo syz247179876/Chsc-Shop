@@ -9,7 +9,7 @@ import time
 from django.core import serializers
 
 from user_app import signals
-from user_app.models import Collection
+from user_app.model.collection_models import Collection
 from Emall.base_redis import BaseRedis, manage_redis
 from Emall.json_serializer import JsonCustomEncoder
 from Emall.loggings import Logging

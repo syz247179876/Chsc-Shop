@@ -24,7 +24,7 @@ class SellerStoreApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        serializer.create_store(request)
+        serializer.create_store()
         return Response(response_code.result(CREATE_STORE, '创建成功'))
 
     def put(self, request):
