@@ -15,12 +15,10 @@ from user_app.redis.favorites_redis import RedisFavoritesOperation
 def client_key(func):
     """获取client的key装饰器"""
 
-    def decorate(self, sender, request, **kwargs):
+    def decorate(self, sender, request, keyword, **kwargs):
         if sender is None:  # 如果用户未登录
             sender = BaseRedis.get_client_ip(request=request)  # 获取客户端IP
-            kwargs.update({'request': request})
-            return func(self, sender, **kwargs)
-
+        return func(self, sender, keyword, **kwargs)
     return decorate
 
 
@@ -36,7 +34,8 @@ class HistoryRedisOperation(BaseRedis):
         signals.del_search_single.connect(self.delete_single_search, sender=None)
         signals.del_search_all.connect(self.delete_all_search, sender=None)
         signals.retrieve_record.connect(self.retrieve_record, sender=None)
-        signals.retrieve_heat_keyword.connect(self.get_heat_keyword, sender=None)
+        signals.retrieve_heat_keyword.connect(self.get_cur_heat_keyword, sender=None)  # 获取当天热搜
+        signals.retrieve_heat_keyword.connect(self.get_prev_heat_keyword, sender=None)  # 获取前天热度
 
     @property
     def score(self):
@@ -60,9 +59,7 @@ class HistoryRedisOperation(BaseRedis):
             # 为每个用户维护一个搜索有序集合
             # 为所有关键词维护一个有序集合,用于分析
             with redis.pipeline() as pipe:
-                pipe.zadd(self.user_key(sender), {key: self.score})
-                # 60*60*24*30 = 25920000 30天存活
-                pipe.expire(self.user_key(sender), 25920000)
+                pipe.zadd(self.user_key(sender), {key: self.score})  # 时间复杂度O(log(N))
                 pipe.zincrby(self.heat_key(datetime.datetime.today()), 1, key)  # 将该关键字添加到热搜有序集合中,如果存在key,则+1,不存在设置为1
                 pipe.execute()
 
@@ -100,15 +97,23 @@ class HistoryRedisOperation(BaseRedis):
             result = redis.zrevrange(self.user_key(sender), (page - 1) * limit, page * limit)  # 返回分数从高到低的前十个(时间最近的前十个)
             return result
 
-    def get_heat_keyword(self, sender, **kwargs):
+    def get_cur_heat_keyword(self, sender, **kwargs):
         """
         每日热搜
-        动态更新每日的前十位热度搜索关键字
+        动态获取每日的前十位热度搜索关键词
         """
         with manage_redis(self.DB, type(self)) as redis:
             date = datetime.datetime.today()
-            result = redis.zrevrange(self.heat_key(date), 0, 10)  # 前十大热搜
-            return result
+            return redis.zrevrange(self.heat_key(date), 0, 10)  # 前十大热搜
+
+
+    def get_prev_heat_keyword(self, sender, **kwargs):
+        """
+        动态获取前一天的前十位热度搜索关键词
+        """
+        with manage_redis(self.DB, type(self)) as redis:
+            date = datetime.datetime.today() - datetime.timedelta(1)
+            return redis.zrevrange(self.heat_key(date), 0, 10)
 
 
 history_redis = HistoryRedisOperation.choice_redis_db('search')
