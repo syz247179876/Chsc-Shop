@@ -48,7 +48,7 @@
 🐲2020年6月5日-----2020年8月20
 
 
-💃开发使用到的技术栈：Django+DRF+Vue+Jquery+Redis+Celery+Rabbitmq+Elasticsearch+Websocket+Mysql+Fastdfs+JWT
+💃开发使用到的技术栈：Django+DRF+Vue+Jquery+Redis+Celery+Elasticsearch+Websocket+Mysql+oss+JWT
 
 
 🕺部署服务器用到的技术栈：nginx+uwsgi+channels
@@ -98,11 +98,9 @@ feature:成员共同开发分支（目前尚无该分支）
 
 3. django自带的模板语言====>前端使用vue前端框架👀
 
-4. 由原来的redis作为消息队列====>增加消息队列rabbitmq👀
+4. django默认的Storage本地存储=====>oss存储
 
-5. django默认的Storage本地存储=====>分布式fastdfs存储
-
-6. django默认的传统session认证=====>JWT算法认证
+5. django默认的传统session认证=====>JWT算法认证
 
 ---
 ## **🥶目前已完成的功能🥶：**
