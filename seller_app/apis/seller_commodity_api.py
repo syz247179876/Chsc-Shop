@@ -9,6 +9,8 @@ from rest_framework.response import Response
 
 from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
+from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_COMMODITY_PROPERTY, \
+    DELETE_COMMODITY_PROPERTY
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
     SkuPropSerializer, SkuPropsDeleteSerializer
 from seller_app.utils.permission import SellerPermissionValidation
@@ -69,28 +71,28 @@ class SkuPropApiView(BackendGenericApiView):
 
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
-    def get_queryset(self):
-        return self.serializer_class.Meta.model.objects.select_related('values').all()
-
-    @validate_url_data('sku_props','pk',null=True)
+    @validate_url_data('sku_props','pk', null=True)
     def get(self, request):
         """获取商品属性规格和值单个或多个"""
-        super().get(request)
+        return super().get(request)
 
     def post(self, request):
         """添加商品属性规格和值"""
         super().post(request)
-        return
+        return Response(response_code.result(ADD_COMMODITY_PROPERTY, "添加成功"))
 
+    @validate_url_data('sku_props', 'pk')
     def put(self, request):
         """修改商品属性规格和值"""
-        super().post(request)
-        return
+        super().put(request)
+        return Response(response_code.result(MODIFY_COMMODITY_PROPERTY, "修改成功"))
 
     def delete(self,request):
         """删除商品属性规格和值"""
-        super().delete(request)
-        return
+        result_num = super().delete(request)
+        print(result_num)
+        return Response(response_code.result(DELETE_COMMODITY_PROPERTY, '删除成功')) \
+            if result_num else Response(response_code.result(DELETE_COMMODITY_PROPERTY, '无操作,无效数据'))
 
 
 

@@ -3,17 +3,23 @@
 # @Author : 司云中
 # @File : login_serializers.py
 # @Software: Pycharm
+from calendar import timegm
+from datetime import datetime
+
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
-from rest_framework_jwt.compat import PasswordField, get_username_field, Serializer
+from rest_framework_jwt.compat import PasswordField, get_username_field, Serializer, get_username
 from rest_framework_jwt.settings import api_settings
 
 from Emall.authentication import email_or_username, phone
 from Emall.exceptions import CodeError, UserForbiddenError, UserNotExists
+from seller_app.models import Seller
+
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+
 
 
 class UserJwtLoginSerializer(Serializer):
@@ -27,6 +33,10 @@ class UserJwtLoginSerializer(Serializer):
         ('email', 'email'),
         ('phone', 'phone'),
     )
+
+    class Meta:
+        seller_model = Seller
+
 
     def __init__(self, *args, **kwargs):
         """
@@ -87,7 +97,7 @@ class UserJwtLoginSerializer(Serializer):
         if user:
             if not user.is_active:
                 raise UserForbiddenError()
-            payload = jwt_payload_handler(user)
+            payload = self.jwt_payload_handler(user)
 
             return {
                 'token': jwt_encode_handler(payload),
@@ -98,6 +108,40 @@ class UserJwtLoginSerializer(Serializer):
         else:
             msg = _('用户不存在或密码不正确')
             raise UserNotExists(msg)
+
+    def jwt_payload_handler(self, user):
+        username = get_username(user)
+
+        payload = {
+            'user_id': user.pk,
+            'username': username,
+            'exp': datetime.utcnow() + api_settings.JWT_EXPIRATION_DELTA
+        }
+        if hasattr(user, 'email'):
+            payload['email'] = user.email
+
+        # add seller info
+        if hasattr(user, 'is_seller'):
+            payload['is_seller'] = True
+            seller = self.Meta.seller_model.objects.get(user=user)
+            payload['sid'] = seller.pk
+            payload['role'] = seller.role_id
+
+        # Include original issued at time for a brand new token,
+        # to allow token refresh
+        if api_settings.JWT_ALLOW_REFRESH:
+            payload['orig_iat'] = timegm(
+                datetime.utcnow().utctimetuple()
+            )
+
+        if api_settings.JWT_AUDIENCE is not None:
+            payload['aud'] = api_settings.JWT_AUDIENCE
+
+        if api_settings.JWT_ISSUER is not None:
+            payload['iss'] = api_settings.JWT_ISSUER
+        print(payload)
+
+        return payload
 
     @property
     def redis(self):

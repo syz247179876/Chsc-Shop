@@ -10,6 +10,8 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
+
+from Emall.exceptions import SqlServerError
 from Emall.response_code import response_code
 
 
@@ -28,6 +30,14 @@ class BackendGenericApiView(GenericAPIView):
 
     serializer_delete_class = None
 
+    def get_queryset(self):
+        return self.serializer_class.Meta.model.objects.all()
+
+    def get_obj(self, pk):
+        try:
+            return self.serializer_class.Meta.model.objects.get(pk=pk)
+        except self.serializer_class.Meta.model.DoesNotExist:
+            raise SqlServerError('数据不存在')
 
     def post(self, request):
         """添加"""
@@ -37,10 +47,10 @@ class BackendGenericApiView(GenericAPIView):
 
     def get(self, request):
         """获取单个/多个记录"""
-        pk = request.query_params.get('pk', None)
-        if request.query_params.get('pk', None):
-            instance = self.get_queryset().get(pk=pk)
-            serializer = self.get_serializer(instance=instance)
+        pk = request.query_params.get(self.lookup_field, None)
+        if pk:
+            obj = self.get_obj(pk)
+            serializer = self.get_serializer(instance=obj)
         else:
             instance = self.get_queryset()
             serializer = self.get_serializer(instance=instance, many=True)
@@ -56,7 +66,8 @@ class BackendGenericApiView(GenericAPIView):
         """删除"""
         serializer = self.serializer_delete_class(data=request.data)
         if self.request.query_params.get('all', None) == 'true':
-            serializer.delete()
+            result_num, _ = self.get_queryset().delete()
         else:
             serializer.is_valid(raise_exception=True)
-            serializer.delete()
+            result_num, _ = serializer.delete()
+        return result_num

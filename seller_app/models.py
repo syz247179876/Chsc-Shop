@@ -20,7 +20,7 @@ class Store(models.Model):
         ('2', '企业店')
     )
     # 开店类型
-    type = models.CharField(choices=TYPE, verbose_name=_('开店类型'), default='个人店(免费入驻)', max_length=1)
+    type = models.CharField(choices=TYPE, verbose_name=_('开店类型'), default='1', max_length=1)
 
     RANK_SORT = (
         (0, '先锋'),

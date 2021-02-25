@@ -80,9 +80,12 @@ class SellerPermissionValidation(BasePermission):
         if not sid:
             raise UserForbiddenError('用户无请求权限')
         seller = Seller.objects.select_related('role').prefetch_related('role__permission').get(pk=sid)
+        if not seller.role or not seller.role.permission.exists():
+            raise UserForbiddenError('用户无访问权限')
         permissions = seller.role.permission.values_list('pid', flat=True)
         return self.judge_header_permission(request, permissions)
 
     def judge_header_permission(self, request, permissions):
+        """判断请求的权限是否在权限集中"""
         permission_number = get_pid(request)
         return permission_number in permissions
