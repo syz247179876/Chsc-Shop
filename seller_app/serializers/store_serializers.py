@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db import DatabaseError, transaction
 from rest_framework import serializers
 
-from Emall.exceptions import DataFormatError, SqlServerError
+from Emall.exceptions import DataFormatError, SqlServerError, DataExisted, DataNotExist
 from manager_app.models import Role
 from seller_app.models import Store, Seller
 
@@ -36,10 +36,15 @@ class SellerStoreSerializer(serializers.ModelSerializer):
         try:
             role = self.Meta.role_model.objects.get(role_name="商家角色")
             user = self.context.get('request').user
+            # 判断该用户是否已经开店
+            if self.Meta.seller_model.objects.filter(user=user).exists():
+                raise DataExisted()
             with transaction.atomic():
                 store = self.Meta.model.objects.create(**credential)  # 创建店铺
                 self.Meta.seller_model.objects.create(user=user, store=store, role=role)  # 创建商家
                 user.is_seller = True # 将该用户升级成商家,具备商家权限
                 user.save(force_update=True)
-        except DatabaseError():
+        except self.Meta.role_model.DoesNotExist:
+            raise DataNotExist()
+        except DatabaseError:
             raise SqlServerError()

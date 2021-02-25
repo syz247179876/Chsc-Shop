@@ -239,3 +239,10 @@ class TypeTransformError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _('类型错误')
     default_code = 'Type Error'
+
+
+class DataExisted(APIException):
+    """数据已经存在"""
+    status_code = status.HTTP_200_OK
+    default_detail = _('数据已经存在')
+    default_code = 'Data Existed'

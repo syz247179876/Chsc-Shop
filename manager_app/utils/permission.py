@@ -12,17 +12,19 @@ from Emall.exceptions import UserForbiddenError, AuthenticationError, UserNotExi
 from manager_app.models import Managers
 from django.utils.translation import gettext_lazy as _
 
+from universal_app.models import Permission
+
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
 
 def get_permission_token(request):
     """从请求头获取权限token"""
-    token = request.META.get(settings.HEADERS_TOKEN_KEY.get('manager-permission'), b'')
+    token = request.META.get(settings.HEADERS_TOKEN_KEY.get('base-permission'), b'')
     if not token:
         raise UserForbiddenError()
     if isinstance(token, str):
         token = token.encode(HTTP_HEADER_ENCODING)
-    return token
+    return token.split()[1]
 
 
 def get_permission(request):
@@ -40,6 +42,9 @@ def get_permission(request):
         msg = _('Incorrect authentication credentials')
         raise AuthenticationError(msg)
 
+    if payload.get('has_super_permission'): # 如果是超级管理员,显示所有权限
+        return Permission.objects.all()
+
     mid = payload.get('mid', None)  # manager的id
     if not mid:
         raise UserForbiddenError()
@@ -48,8 +53,7 @@ def get_permission(request):
         # 如果当前管理者没有对应任何角色 或者  如果管理者对应某个角色,但是该角色没有任何权限
         if not manager.role or not manager.role.permission:
             raise UserForbiddenError()
-        allow_permission = manager.role.permission.all()  # 返回字段的值,只返回单个字段
-        return allow_permission
+        return manager.role.permission.all()  # 返回字段的值,只返回单个字段
     except Managers.DoesNotExist:
         raise UserNotExists()
 
@@ -77,6 +81,8 @@ class ManagerPermissionValidation(BasePermission):
         if not mid:
             raise UserForbiddenError('用户无请求权限')
         manager = Managers.objects.select_related('role').prefetch_related('role__permission').get(pk=mid)
+        if not manager.role or not manager.role.permission:
+            raise UserForbiddenError('用户无访问权限')
         permissions = manager.role.permission.values_list('pid', flat=True)
         return self.judge_header_permission(request, permissions)
 

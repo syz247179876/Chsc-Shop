@@ -72,3 +72,18 @@ def validate_commodity_group_pk(value):
     商品类别id允许上限4位数
     """
     return True if re.match('^[1-9]\d{0,4}$', str(value)) else False
+
+def validate_role_pk(value):
+    """
+    检验url中的关于商品分组的pk字段
+    商品类别id允许上限4位数
+    """
+
+    return True if re.match('^[1-9]\d{0,4}$', str(value)) else False
+
+def validate_sku_props_pk(value):
+    """
+    检验url中的关于商品属性的pk字段
+    商品属性id允许上限8位数
+    """
+    return True if re.match('^[1-9]\d{0,8}$', str(value)) else False

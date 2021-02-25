@@ -10,11 +10,18 @@ from seller_app.models import Store
 from shop_app.utils.validators import *
 User = get_user_model()
 
+
+class CategoryManager(Manager):
+
+    def first_create(self, **data):
+        """创建商品总类别"""
+        self.create(pre=None, has_prev=False, has_next=True, **data)
+
 class CommodityCategory(models.Model):
     """商品类别表"""
 
     # 种类名
-    name = models.CharField(verbose_name=_('种类名'), max_length=50)
+    name = models.CharField(verbose_name=_('种类名'), max_length=50, unique=True)
 
     # 添加时间
     add_time = models.DateTimeField(verbose_name=_('添加种类时间'), auto_now_add=True)
@@ -37,7 +44,7 @@ class CommodityCategory(models.Model):
     # 是否有后继结点
     has_next = models.BooleanField(verbose_name=_('是否有后继'), default=False)
 
-    objects = Manager()
+    objects = CategoryManager()
 
 
     class Meta:
@@ -53,7 +60,7 @@ class CommodityGroup(models.Model):
     name = models.CharField(verbose_name=_('分组名称'), max_length=15)
     status = models.BooleanField(verbose_name=_('分组状态'))
 
-    commodity_group_ = Manager()
+    objects = Manager()
 
     class Meta:
         db_table = 'commodity_groups'
