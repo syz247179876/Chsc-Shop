@@ -3,12 +3,13 @@
 # @Author : 司云中
 # @File : commodity_serializers.py
 # @Software: Pycharm
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 from rest_framework import serializers
 
 from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist
 from seller_app.models import Store, Seller
-from shop_app.models.commodity_models import Commodity, CommodityCategory, CommodityGroup, Freight, SkuProps, SkuValues
+from shop_app.models.commodity_models import Commodity, CommodityCategory, CommodityGroup, Freight, SkuProps, SkuValues, \
+    FreightItem, FreightItemCity
 from django.db.transaction import atomic
 
 
@@ -39,13 +40,20 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
 
     category_list = serializers.SerializerMethodField()
 
+    # 分组列表,读
+    group_list = serializers.SerializerMethodField()
+
+    # 分组列表,写
+    groups = serializers.ListField(child=serializers.CharField(max_length=10), write_only=True, allow_empty=True)
+
+
     class Meta:
         model = Commodity
         category_model = CommodityCategory
         seller_model = Seller
-        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'details', 'intro', 'category_id', 'group_id',
-                  'status', 'onshelve_time', 'unshelve_time', 'stock', 'big_image', 'little_image',
-                  'freight_id', 'category_list')
+        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'category_id', 'groups',
+                  'status', 'onshelve_time', 'unshelve_time', 'stock', 'category',
+                  'freight', 'category_list', 'group_list')
         read_only_fields = ('pk', 'category_list')
 
     def get_category_list(self, obj):
@@ -56,7 +64,13 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     def add_commodity(self):
         """商家添加商品"""
         credential = self.get_credential
-        self.Meta.model.commodity_.create(**credential)
+        try:
+            with transaction.atomic():
+                commodity = self.Meta.model(**credential)
+                commodity.group.add(*self.validated_data.pop('groups'))
+                commodity.save()
+        except DatabaseError:
+            raise SqlServerError()
 
     def update_commodity(self):
         """商家修改商品"""
@@ -66,32 +80,21 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
 
     @property
     def get_credential(self):
-        try:
-            category = CommodityCategory.objects.get(pk=self.validated_data.pop('category_id'))
-            group = CommodityGroup.objects.get(pk=self.validated_data.pop('group_id'))
-            freight = Freight.freight_.get(pk=self.validated_data.pop('freight_id'))
-        except CommodityCategory.DoesNotExist:
-            raise DataFormatError()
-        except CommodityGroup.DoesNotExist:
-            raise DataFormatError()
-        except Freight.DoestNotExist:
-            raise DataFormatError()
-        else:
-            user = self.context.get('request').user,
-            seller = Seller.objects.select_related('store').get(user=user)
-            return {
-                'user': user,
-                'store': seller.store,
-                'category': category,
-                'group': group,
-                'freight': freight,
-                'commodity_name': self.validated_data.pop('commodity_name'),
-                'price': self.validated_data.pop('price'),
-                'favourable_price': self.validated_data.pop('favourable_price'),
-                'details': self.validated_data.pop('details'),
-                'intro': self.validated_data.pop('category_id'),
-                'status': self.validated_data.pop('status')
-            }
+
+        user = self.context.get('request').user,
+        seller = Seller.objects.select_related('store').get(user=user)
+        return {
+            'user': user,
+            'store': seller.store,
+            'category': self.validated_data.pop('category'),
+            'freight': self.validated_data.pop('freight'),
+            'commodity_name': self.validated_data.pop('commodity_name'),
+            'price': self.validated_data.pop('price'),
+            'favourable_price': self.validated_data.pop('favourable_price'),
+            'details': self.validated_data.pop('details'),
+            'intro': self.validated_data.pop('category_id'),
+            'status': self.validated_data.pop('status')
+        }
 
 
 class SellerCommodityDeleteSerializer(serializers.Serializer):
@@ -106,7 +109,6 @@ class SellerCommodityDeleteSerializer(serializers.Serializer):
 
 
 class SkuValueSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SkuValues
         fields = ('pk', 'value')
@@ -117,7 +119,7 @@ class SkuPropSerializer(serializers.ModelSerializer):
 
     sku_values = serializers.ListField(child=serializers.CharField(max_length=20), allow_empty=False, write_only=True)
 
-    values = serializers.SerializerMethodField() # 显示属性对应的值数组
+    values = serializers.SerializerMethodField()  # 显示属性对应的值数组
 
     class Meta:
         model = SkuProps
@@ -177,3 +179,56 @@ class SkuPropsDeleteSerializer(serializers.Serializer):
     def delete(self):
         """删除商品属性规格和值"""
         return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+
+
+class FreightSerializer(serializers.ModelSerializer):
+
+    freight_item = serializers.DictField(allow_empty=False) # 运费项
+
+    class Meta:
+        model = Freight
+        item_model = FreightItem
+        city_model = FreightItemCity
+        fields = ('pk', 'name' ,'is_free', 'charge_type', 'freight_item')
+        read_only_fields = ('pk')
+
+    def add(self):
+        """添加新的运费模板"""
+        credential = {
+            'name':self.validated_data.pop('name'),
+            'is_free':self.validated_data.pop('is_free'),
+            'charge_type':self.validated_data.pop('charge_type')
+        }
+        freight = self.Meta.model.objects.create(**credential)
+
+        # 双层嵌套
+        freight_items = [self.Meta.item_model(**item) for item in self.validated_data.pop('freight_item')]
+        freight_city = [self.Meta.city_model(**city) for item in self.validated_data.pop('freight_item') for city in item]
+        self.Meta.item_model.objects.bulk_create(freight_items)
+        self.Meta.city_model.objects.bulk_create(freight_city)
+
+    def modify(self):
+        """修改运费模板"""
+        credential = {
+            'name': self.validated_data.pop('name'),
+            'is_free':self.validated_data.pop('is_free'),
+            'charge_type':self.validated_data.pop('charge_type'),
+        }
+
+    def validate_freight_item(self, value):
+        """
+        校验运费项字典
+        :param value: value
+        :return: Bool
+        """
+        if self.context['request'].method.lower() == 'put' and 'pk' in value:
+            raise DataFormatError('数据过多')
+        elif self.context['request'].method.lower() == 'post' and ('pk' not in value or 'name' not in value):
+            raise DataFormatError('缺少必要数据')
+        return value
+
+
+
+
+class FreightDeleteSerializer(serializers.Serializer):
+    pass
