@@ -3,13 +3,17 @@
 # @Author : 司云中
 # @File : commodity_serializers.py
 # @Software: Pycharm
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
+from django.db.transaction import atomic
 from rest_framework import serializers
 
 from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist
-from seller_app.models import Store, Seller
-from shop_app.models.commodity_models import Commodity, CommodityCategory, CommodityGroup, Freight, SkuProps, SkuValues
-from django.db.transaction import atomic
+from Emall.loggings import Logging
+from seller_app.models import Seller
+from shop_app.models.commodity_models import Commodity, CommodityCategory, Freight, SkuProps, SkuValues, \
+    FreightItem, FreightItemCity
+
+commodity_logger = Logging.logger('commodity_')
 
 
 class CommodityCategorySerializer(serializers.ModelSerializer):
@@ -39,13 +43,19 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
 
     category_list = serializers.SerializerMethodField()
 
+    # 分组列表,读
+    group_list = serializers.SerializerMethodField()
+
+    # 分组列表,写
+    groups = serializers.ListField(child=serializers.CharField(max_length=10), write_only=True, allow_empty=True)
+
     class Meta:
         model = Commodity
         category_model = CommodityCategory
         seller_model = Seller
-        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'details', 'intro', 'category_id', 'group_id',
-                  'status', 'onshelve_time', 'unshelve_time', 'stock', 'big_image', 'little_image',
-                  'freight_id', 'category_list')
+        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'category_id', 'groups',
+                  'status', 'onshelve_time', 'unshelve_time', 'stock', 'category',
+                  'freight', 'category_list', 'group_list')
         read_only_fields = ('pk', 'category_list')
 
     def get_category_list(self, obj):
@@ -56,7 +66,13 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     def add_commodity(self):
         """商家添加商品"""
         credential = self.get_credential
-        self.Meta.model.commodity_.create(**credential)
+        try:
+            with transaction.atomic():
+                commodity = self.Meta.model(**credential)
+                commodity.group.add(*self.validated_data.pop('groups'))
+                commodity.save()
+        except DatabaseError:
+            raise SqlServerError()
 
     def update_commodity(self):
         """商家修改商品"""
@@ -66,32 +82,21 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
 
     @property
     def get_credential(self):
-        try:
-            category = CommodityCategory.objects.get(pk=self.validated_data.pop('category_id'))
-            group = CommodityGroup.objects.get(pk=self.validated_data.pop('group_id'))
-            freight = Freight.freight_.get(pk=self.validated_data.pop('freight_id'))
-        except CommodityCategory.DoesNotExist:
-            raise DataFormatError()
-        except CommodityGroup.DoesNotExist:
-            raise DataFormatError()
-        except Freight.DoestNotExist:
-            raise DataFormatError()
-        else:
-            user = self.context.get('request').user,
-            seller = Seller.objects.select_related('store').get(user=user)
-            return {
-                'user': user,
-                'store': seller.store,
-                'category': category,
-                'group': group,
-                'freight': freight,
-                'commodity_name': self.validated_data.pop('commodity_name'),
-                'price': self.validated_data.pop('price'),
-                'favourable_price': self.validated_data.pop('favourable_price'),
-                'details': self.validated_data.pop('details'),
-                'intro': self.validated_data.pop('category_id'),
-                'status': self.validated_data.pop('status')
-            }
+
+        user = self.context.get('request').user,
+        seller = Seller.objects.select_related('store').get(user=user)
+        return {
+            'user': user,
+            'store': seller.store,
+            'category': self.validated_data.pop('category'),
+            'freight': self.validated_data.pop('freight'),
+            'commodity_name': self.validated_data.pop('commodity_name'),
+            'price': self.validated_data.pop('price'),
+            'favourable_price': self.validated_data.pop('favourable_price'),
+            'details': self.validated_data.pop('details'),
+            'intro': self.validated_data.pop('category_id'),
+            'status': self.validated_data.pop('status')
+        }
 
 
 class SellerCommodityDeleteSerializer(serializers.Serializer):
@@ -106,7 +111,6 @@ class SellerCommodityDeleteSerializer(serializers.Serializer):
 
 
 class SkuValueSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SkuValues
         fields = ('pk', 'value')
@@ -117,7 +121,7 @@ class SkuPropSerializer(serializers.ModelSerializer):
 
     sku_values = serializers.ListField(child=serializers.CharField(max_length=20), allow_empty=False, write_only=True)
 
-    values = serializers.SerializerMethodField() # 显示属性对应的值数组
+    values = serializers.SerializerMethodField()  # 显示属性对应的值数组
 
     class Meta:
         model = SkuProps
@@ -177,3 +181,109 @@ class SkuPropsDeleteSerializer(serializers.Serializer):
     def delete(self):
         """删除商品属性规格和值"""
         return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+
+
+class FreightSerializer(serializers.ModelSerializer):
+    freight_item = serializers.DictField(allow_empty=False)  # 运费项
+
+    class Meta:
+        model = Freight
+        item_model = FreightItem
+        city_model = FreightItemCity
+        fields = ('pk', 'name', 'is_free', 'charge_type', 'freight_item')
+        read_only_fields = ('pk')
+
+    def add(self):
+        """添加新的运费模板"""
+        credential = {
+            'name': self.validated_data.pop('name'),
+            'is_free': self.validated_data.pop('is_free'),
+            'charge_type': self.validated_data.pop('charge_type')
+        }
+
+        try:
+            with transaction.atomic():
+                freight = self.Meta.model.objects.create(**credential)  # 创建运费模板
+                freight_item_data = self.validated_data.pop('freight_item')
+                # 双层嵌套,批量创建运费项和运费城市项， 创建运费项， 创建运费城市项
+                freight_items = [self.Meta.item_model(freight=freight, **item) for item in freight_item_data]
+                print(type(freight_items[0]))  # 检查类型
+                self.Meta.item_model.objects.bulk_create(freight_items)
+                freight_city = [self.Meta.city_model(freight=freight, freight_items=freight_items[i], **city) for i in
+                                range(len(freight_item_data)) for city in freight_item_data[i].pop('city')]
+                self.Meta.city_model.objects.bulk_create(freight_city)
+        except DatabaseError as e:
+            commodity_logger.error(e)
+            raise SqlServerError()
+
+    def modify(self):
+        """
+        修改运费模板
+        数据结构清晰，优化查询条件
+        """
+        credential = {
+            'pk': self.validated_data.pop('pk'),
+            'name': self.validated_data.pop('name'),
+            'is_free': self.validated_data.pop('is_free'),
+            'charge_type': self.validated_data.pop('charge_type'),
+        }
+
+        try:
+            queryset = self.Meta.model.objects.filter(pk=credential.pop('pk'))
+            rows = queryset.count()
+            # 数据不存在
+            if rows == 0:
+                raise DataNotExist()
+            freight_item_data = self.validated_data.pop('freight_item')
+            # 临时存放对象
+            temp_objs_item = []
+            temp_objs_city = []
+            # 更新运费项记录
+            for item in freight_item_data:
+                # 遍历list，元素为item字典
+                item_obj = self.Meta.item_model.objects.get(pk=item.pop('pk'), freight=queryset.first())  # 获取item对象
+                item_obj.first_piece = item.pop('first_piece')
+                item_obj.continue_piece = item.pop('continue_piece')
+                item_obj.first_price = item.pop('first_price')
+                item_obj.continue_price = item.pop('continue_price')
+                temp_objs_item.append(item_obj)  # 追加进去，批量更新
+
+                city_data = item.pop('city')
+                city_obj = self.Meta.city_model.objects.get(pk=city_data, freight=queryset.first(),
+                                                            freight_item=item_obj)
+                temp_objs_city.append(city_obj)
+
+            # 开启事务
+            with transaction.atomic():
+                queryset.update(**credential)  # 更新运费模板记录
+                # 批量处理
+                self.Meta.item_model.objects.bulk_update(temp_objs_item,
+                                                         ['first_piece', 'continue_piece', 'first_price',
+                                                          'continue_price'])
+                self.Meta.city_model.objects.bulk_update(temp_objs_city, ['city'])
+                del temp_objs_item
+                del temp_objs_city
+        except self.Meta.item_model.DoesNotExist:
+            raise DataNotExist()
+        except self.Meta.city_model.DoesNotExist:
+            raise DataNotExist()
+        except DatabaseError as e:
+            # 其他数据库更新错误
+            commodity_logger.error(e)
+            raise SqlServerError()
+
+    def validate_freight_item(self, value):
+        """
+        校验运费项字典
+        :param value: value
+        :return: Bool
+        """
+        if self.context['request'].method.lower() == 'put' and 'pk' in value:
+            raise DataFormatError('数据过多')
+        elif self.context['request'].method.lower() == 'post' and ('pk' not in value or 'name' not in value):
+            raise DataFormatError('缺少必要数据')
+        return value
+
+
+class FreightDeleteSerializer(serializers.Serializer):
+    pass

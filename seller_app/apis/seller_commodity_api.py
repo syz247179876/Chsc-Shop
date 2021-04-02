@@ -12,7 +12,7 @@ from Emall.decorator import validate_url_data
 from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_COMMODITY_PROPERTY, \
     DELETE_COMMODITY_PROPERTY
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
-    SkuPropSerializer, SkuPropsDeleteSerializer
+    SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer
 from seller_app.utils.permission import SellerPermissionValidation
 
 
@@ -90,10 +90,36 @@ class SkuPropApiView(BackendGenericApiView):
     def delete(self,request):
         """删除商品属性规格和值"""
         result_num = super().delete(request)
-        print(result_num)
         return Response(response_code.result(DELETE_COMMODITY_PROPERTY, '删除成功')) \
             if result_num else Response(response_code.result(DELETE_COMMODITY_PROPERTY, '无操作,无效数据'))
 
 
+class FreightApiView(BackendGenericApiView):
+    """运费模板视图类"""
 
+    serializer_class = FreightSerializer
+
+    serializer_delete_class = FreightDeleteSerializer
+
+    @validate_url_data('freight', 'pk', null=True)
+    def get(self, request):
+        """获取单个运费详情或所有运费模板"""
+        return super().get(request)
+
+    def post(self, request):
+        """增加新的运费模板"""
+        super().post(request)
+        return Response(response_code.result(ADD_COMMODITY_PROPERTY, "添加成功"))
+
+    @validate_url_data('freight', 'pk')
+    def put(self, request):
+        """修改已有运费模板"""
+        super().put(request)
+        return Response(response_code.result(MODIFY_COMMODITY_PROPERTY,"修改成功"))
+
+
+    def delete(self, request):
+        """删除已有运费模板"""
+        super().delete(request)
+        return Response(response_code.result(DELETE_COMMODITY_PROPERTY, "删除成功"))
 
