@@ -95,7 +95,7 @@ class SkuPropApiView(BackendGenericApiView):
 
 
 class FreightApiView(BackendGenericApiView):
-    """运费模板ApiView"""
+    """运费模板视图类"""
 
     serializer_class = FreightSerializer
 
@@ -109,10 +109,17 @@ class FreightApiView(BackendGenericApiView):
     def post(self, request):
         """增加新的运费模板"""
         super().post(request)
+        return Response(response_code.result(ADD_COMMODITY_PROPERTY, "添加成功"))
 
+    @validate_url_data('freight', 'pk')
     def put(self, request):
-        pass
+        """修改已有运费模板"""
+        super().put(request)
+        return Response(response_code.result(MODIFY_COMMODITY_PROPERTY,"修改成功"))
+
 
     def delete(self, request):
-        pass
+        """删除已有运费模板"""
+        super().delete(request)
+        return Response(response_code.result(DELETE_COMMODITY_PROPERTY, "删除成功"))
 

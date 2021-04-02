@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from seller_app.models import Store
 from shop_app.utils.validators import *
+
 User = get_user_model()
 
 
@@ -16,6 +17,7 @@ class CategoryManager(Manager):
     def first_create(self, **data):
         """创建商品总类别"""
         self.create(pre=None, has_prev=False, has_next=True, **data)
+
 
 class CommodityCategory(models.Model):
     """商品类别表"""
@@ -46,7 +48,6 @@ class CommodityCategory(models.Model):
 
     objects = CategoryManager()
 
-
     class Meta:
         db_table = 'commodity_category'
         ordering = ('add_time',)
@@ -64,7 +65,7 @@ class CommodityGroup(models.Model):
 
     class Meta:
         db_table = 'commodity_groups'
-        ordering = ('status', )
+        ordering = ('status',)
 
 
 class Freight(models.Model):
@@ -81,10 +82,9 @@ class Freight(models.Model):
         ('2', '按体积')
     )
 
-    charge_type = models.CharField(max_length=1, verbose_name=_('收费方式'), null=True)
+    charge_type = models.CharField(max_length=1, choices=CHARGE_TYPE, verbose_name=_('收费方式'), null=True)
 
-    freight_ = Manager()
-
+    objects = Manager()
 
     class Meta:
         db_table = 'freight'
@@ -112,6 +112,8 @@ class FreightItem(models.Model):
     # 续件对应的运费价格
     continue_price = models.PositiveIntegerField(verbose_name=_('续件运费'))
 
+    objects = Manager()
+
     class Meta:
         db_table = "freight_item"
 
@@ -123,11 +125,15 @@ class FreightItemCity(models.Model):
 
     freight = models.ForeignKey(to=Freight, on_delete=models.CASCADE, verbose_name=_('运费表id'))
 
-    city = models.CharField(max_length=20, verbose_name=_('城市'))
+    # city = models.CharField(max_length=20, verbose_name=_('城市'))
+
+    # city_id = models.CharField(max_length=10, verbose_name=_('城市编号'))
+    city = models.TextField() # 存储key-value格式的 城市编号：城市键值对格式的字符串
+
+    objects = Manager()
 
     class Meta:
         db_table = 'freight_item_city'
-
 
 
 class Commodity(models.Model):
@@ -146,17 +152,23 @@ class Commodity(models.Model):
                                       validators=[CommodityValidator(), ]
                                       )
     # 商品价格,正整数
-    price = models.PositiveIntegerField(verbose_name=_('价格'),
-                                        help_text=_('商品原价'),
-                                        validators=[MaxValueValidator(9999999, message=_('商品最高价格不能高于9999999'))]
-                                        )
+    price = models.DecimalField(verbose_name=_('价格'),
+                                help_text=_('商品原价'),
+                                max_digits=9, decimal_places=2,
+                                validators=[MaxValueValidator(9999999.99,
+                                                              message=_('商品的最高单价不能超过9999999.99人民币')),
+                                            MinValueValidator(0, message=_('商品价格必须为正数'))]
+                                )
 
     # 商品优惠价格
-    favourable_price = models.PositiveIntegerField(verbose_name=_('优惠价格'),
-                                                   help_text=_('优惠后的商品价格'),
-                                                   validators=[
-                                                       MaxValueValidator(9999999, message=_('商品最高价格不能高于9999999'))]
-                                                   )
+    favourable_price = models.DecimalField(verbose_name=_('优惠价格'),
+                                           max_digits=9, decimal_places=2,
+                                           help_text=_('优惠后的商品价格'),
+                                           validators=[
+                                               MaxValueValidator(9999999.99,
+                                                                 message=_('商品的最高单价不能超过9999999.99人民币')),
+                                               MinValueValidator(0, message=_('商品价格必须为正数'))]
+                                           )
 
     # 商品详细描述
     details = models.TextField(verbose_name=_('商品的详细描述'),
@@ -170,7 +182,7 @@ class Commodity(models.Model):
                              )
 
     # 商品分类
-    category = models.ForeignKey(to=CommodityCategory, verbose_name=_('商品类别'), on_delete=models.SET_NULL , null=True)
+    category = models.ForeignKey(to=CommodityCategory, verbose_name=_('商品类别'), on_delete=models.CASCADE)
 
     # 商品分组,多对多
     group = models.ManyToManyField(to=CommodityGroup, verbose_name=_('商品分组'))
@@ -193,11 +205,11 @@ class Commodity(models.Model):
 
     # 销售量
     sell_counts = models.PositiveIntegerField(verbose_name=_('销售量'),
-                                              default=0, )
+                                              default=0, editable=False)
 
     # 运费模板, 在删除该运费模板时,若已被使用抛出ProtectedError异常
     freight = models.ForeignKey(to=Freight, verbose_name=_('运费模板id'),
-                                          help_text=_('该商品是否有运费'), on_delete=models.PROTECT)
+                                help_text=_('该商品是否有运费'), on_delete=models.PROTECT)
 
     # 商品轮播主图片
     big_image = models.TextField(verbose_name=_('主图片'), help_text=_('商品轮播主图片'))
@@ -322,8 +334,9 @@ class Sku(models.Model):
 
     # 优惠价格
     favourable_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('sku的优惠价格'),
-                                validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
-                                            MinValueValidator(0, message=_('商品价格必须为正数'))])
+                                           validators=[
+                                               MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
+                                               MinValueValidator(0, message=_('商品价格必须为正数'))])
 
     # sku销售属性JSON字符串, 3.1使用允许使用JsonField字段
     properties = models.TextField()
@@ -372,8 +385,3 @@ class SkuValues(models.Model):
 
     class Meta:
         db_table = 'sku_values'
-
-
-
-
-
