@@ -73,3 +73,4 @@ class ManagePermissionApiView(GenericAPIView):
             instances = self.get_queryset()
             serializer = self.get_serializer(instance=instances, many=True)
         return Response(serializer.data)
+

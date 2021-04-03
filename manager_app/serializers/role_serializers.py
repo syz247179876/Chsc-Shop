@@ -6,12 +6,13 @@
 from django.db import transaction, IntegrityError, DatabaseError
 from rest_framework import serializers
 
-from Emall.exceptions import DataFormatError
+from Emall.exceptions import DataFormatError, DataNotExist
+from seller_app.models import Seller
 from universal_app.models import Role
 
 
 class RoleSerializer(serializers.ModelSerializer):
-    """角色序列化器"""
+    """管理员管理所有角色序列化器"""
 
     pid_list = serializers.ListField(child=serializers.CharField(max_length=8), allow_empty=True, write_only=True)
 
@@ -47,8 +48,6 @@ class RoleSerializer(serializers.ModelSerializer):
         except DatabaseError:
             raise DataFormatError('数据非法')
 
-
-
     @property
     def get_credential(self):
         return {
@@ -59,4 +58,46 @@ class RoleSerializer(serializers.ModelSerializer):
 
 
 class RoleDeleteSerializer(serializers.Serializer):
+    """权限管理中删除权限"""
     pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
+
+
+class MRoleSerializer(serializers.ModelSerializer):
+    """管理员管理商家所属的角色"""
+
+    sid = serializers.IntegerField()  # 用户id
+    rid = serializers.CharField(max_length=8)  # 角色id
+
+    class Meta:
+        s_model = Seller
+        r_model = Role
+
+    def validate_uid(self, value):
+        """校验sid对应的商家是否存在"""
+        try:
+            return self.Meta.s_model.objects.get(pk=value)
+        except self.Meta.s_model.DoesNotExist:
+            raise DataNotExist()
+
+    def validate_rid(self, value):
+        """校验rid对应的角色是否存在"""
+        try:
+            return self.Meta.r_model.objects.get(pk=value)
+        except self.Meta.r_model.DoesNotExist:
+            raise DataNotExist()
+
+    def validate(self, attrs):
+        return {
+            'seller':attrs.pop('sid'),
+            'role':attrs.pop('rid')
+        }
+
+    def modify(self):
+        """修改某个用户的角色"""
+        seller = self.validated_data.pop('seller')
+        seller.role = self.validated_data.pop('role')
+        seller.save()
+
+
+
+
