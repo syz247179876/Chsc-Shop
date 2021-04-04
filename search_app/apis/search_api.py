@@ -50,21 +50,22 @@ class CommoditySearchOperation(GenericAPIView):
     def get(self, request):
         """请求关键字商品"""
         try:
-            queryset = self.get_queryset()
-            page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-            serializer = self.get_serializer(queryset, many=True)
+            # queryset = self.get_queryset()
+            # page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
+            # if page is not None:
+            #     serializer = self.get_serializer(page, many=True)
+            #     return self.get_paginated_response(serializer.data)
+            # serializer = self.get_serializer(queryset, many=True)
             self.send_record_signal(request)  # 异步任务发送信号,记录用户搜索记录
 
         except ConnectionError:
             # ES服务连接超时
             raise ESConnectError()
-        return Response(serializer.data)
+        # return Response(serializer.data)
+        return Response("ok")
 
     @identity
     def send_record_signal(self, request, unique_identity):
         """发送记录历史搜索记录信号"""
-        record_search.send(sender=unique_identity, request=request, keyword=self.request.query_params.copy().get('text'))
+        record_search.send(sender=unique_identity, request=request, keyword=self.request.query_params.get('text'))
 

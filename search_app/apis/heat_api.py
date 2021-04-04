@@ -21,7 +21,6 @@ class HeatSearchOperation(GenericAPIView):
 
         """
         result = signals.retrieve_heat_keyword.send(sender=None)
-
         cur_heat = result[0][1]  # 当天热搜词
         prev_heat = result[1][1]  # 前天热搜词
 
