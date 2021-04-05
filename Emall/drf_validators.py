@@ -7,6 +7,8 @@ import re
 
 from rest_framework import serializers
 
+from Emall.exceptions import DataNotExist
+
 
 class DRFBaseValidator:
     """基验证器"""
@@ -24,6 +26,24 @@ class DRFBaseValidator:
         )
         if not isinstance(value, self.type) or not getattr(re, self.re_method)(self.regex, value):
             raise serializers.ValidationError(self.message)
+
+
+class ModelIdExist:
+    """校验器：根据id搜索某数据是否存在"""
+    def __init__(self, queryset, base):
+        """
+        初始化实例
+        :param queryset: 初始查询集
+        :param base: 数据所属model
+        """
+        self.queryset = queryset
+        self.base = base
+
+    def __call__(self, value):
+        try:
+            self.queryset.get(pk=value)
+        except self.base.DoesNotExist:
+            raise DataNotExist()
 
 
 def validate_address_pk(value):
