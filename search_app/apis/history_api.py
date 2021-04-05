@@ -3,14 +3,18 @@
 # @Author : 司云中
 # @File : history_api.py
 # @Software: Pycharm
+import logging
+
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from Emall.exceptions import DataFormatError
-from Emall.response_code import response_code
+from Emall.response_code import response_code, DELETE_FOOT_SUCCESS
 from search_app import signals
 from search_app.utils.common import identity
+
+common_ = logging.getLogger('django')
 
 
 class HistoryOperation(GenericAPIView):
@@ -37,8 +41,7 @@ class HistoryOperation(GenericAPIView):
         else:
             result = signals.del_search_single.send(sender=unique_identity, request=request,
                                                     key=request.query_params.get('key', ''))
-        return response_code.delete_history_success if result[0][1] else {"Do Nothing"}
-
+        return response_code.result(DELETE_FOOT_SUCCESS, '删除成功') if result[0][1] else "什么事也没发生"
 
     @identity
     def get(self, request, unique_identity=None, **kwargs):
@@ -47,4 +50,3 @@ class HistoryOperation(GenericAPIView):
         limit = self.request.query_params.get('limit', 10)
         result = signals.retrieve_record.send(sender=unique_identity, request=request, **kwargs)[0][1]  # 获取回调函数的结果
         return Response({'page': page, 'limit': limit, 'data': result})
-

@@ -7,6 +7,12 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 from django.utils.translation import gettext_lazy as _
 
+class NoOperation(APIException):
+    """无操作"""
+    status_code = status.HTTP_204_NO_CONTENT
+    default_detail = _('无操作')
+    default_code = 'No Operation'
+
 class DataNotExist(APIException):
     """数据记录不存在"""
     status_code = status.HTTP_200_OK

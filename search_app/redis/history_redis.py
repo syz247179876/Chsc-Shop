@@ -15,10 +15,11 @@ from user_app.redis.favorites_redis import RedisFavoritesOperation
 def client_key(func):
     """获取client的key装饰器"""
 
-    def decorate(self, sender, request, keyword, **kwargs):
+    def decorate(self, sender, request, **kwargs):
         if sender is None:  # 如果用户未登录
             sender = BaseRedis.get_client_ip(request=request)  # 获取客户端IP
-        return func(self, sender, keyword, **kwargs)
+        kwargs['request'] = request
+        return func(self, sender, **kwargs)
     return decorate
 
 
@@ -50,26 +51,27 @@ class HistoryRedisOperation(BaseRedis):
         return f'heat-{date.strftime("%Y-%m-%d")}'
 
     @client_key
-    def save_search(self, sender, key, **kwargs):
+    def save_search(self, sender, **kwargs):
         """
         记录某用户的浏览记录
         有效时间1个月
         """
+        keyword = kwargs.pop('keyword')
         with manage_redis(self.DB, type(self)) as redis:
             # 为每个用户维护一个搜索有序集合
             # 为所有关键词维护一个有序集合,用于分析
             with redis.pipeline() as pipe:
-                pipe.zadd(self.user_key(sender), {key: self.score})  # 时间复杂度O(log(N))
-                pipe.zincrby(self.heat_key(datetime.datetime.today()), 1, key)  # 将该关键字添加到热搜有序集合中,如果存在key,则+1,不存在设置为1
+                pipe.zadd(self.user_key(sender), {keyword: self.score})  # 时间复杂度O(log(N))
+                pipe.zincrby(self.heat_key(datetime.datetime.today()), 1, keyword)  # 将该关键字添加到热搜有序集合中,如果存在key,则+1,不存在设置为1
                 pipe.execute()
 
     @client_key
-    def delete_single_search(self, sender, key, **kwargs):
+    def delete_single_search(self, sender, **kwargs):
         """
         单删某条搜索历史记录
         """
         with manage_redis(self.DB, type(self)) as redis:
-            return redis.zrem(self.user_key(sender), key)
+            return redis.zrem(self.user_key(sender), kwargs.pop('keyword'))
 
     @client_key
     def delete_all_search(self, sender, **kwargs):
@@ -85,7 +87,6 @@ class HistoryRedisOperation(BaseRedis):
         根据分页获取最新的搜索记录
         默认为10条
         """
-
         # with 生存周期持续到函数结束
         with manage_redis(self.DB, type(self)) as redis:
             request = kwargs.pop('request')
@@ -104,7 +105,7 @@ class HistoryRedisOperation(BaseRedis):
         """
         with manage_redis(self.DB, type(self)) as redis:
             date = datetime.datetime.today()
-            return redis.zrevrange(self.heat_key(date), 0, 10)  # 前十大热搜
+            return redis.zrevrange(self.heat_key(date), 0, 9)  # 前十大热搜
 
 
     def get_prev_heat_keyword(self, sender, **kwargs):
@@ -113,7 +114,7 @@ class HistoryRedisOperation(BaseRedis):
         """
         with manage_redis(self.DB, type(self)) as redis:
             date = datetime.datetime.today() - datetime.timedelta(1)
-            return redis.zrevrange(self.heat_key(date), 0, 10)
+            return redis.zrevrange(self.heat_key(date), 0, 9)
 
 
 history_redis = HistoryRedisOperation.choice_redis_db('search')

@@ -16,11 +16,10 @@ from manager_app.serializers.commodity_serializers import CommodityCategoryCreat
     CommodityCategoryDeleteSerializer, CommodityCategorySerializer, CommodityGroupDeleteSerializer, \
     CommodityGroupSerializer
 from manager_app.utils.permission import ManagerPermissionValidation
-from shop_app.models.commodity_models import CommodityGroup
 
 
 class ManagerCommodityCategoryApiView(GenericAPIView):
-    """商家管理商品分类操作API"""
+    """管理者管理商品分类操作API"""
     serializer_create_class = CommodityCategoryCreateSerializer
 
     serializer_delete_class = CommodityCategoryDeleteSerializer

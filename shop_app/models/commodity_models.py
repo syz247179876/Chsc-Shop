@@ -100,6 +100,9 @@ class FreightItem(models.Model):
 
     freight = models.ForeignKey(to=Freight, verbose_name=_('运费id'), on_delete=models.CASCADE)
 
+    # 启用状态
+    status = models.BooleanField(default=True, verbose_name=_('是否启用'))
+
     # 不同首件个数不同优惠幅度
     first_piece = models.PositiveIntegerField(verbose_name=_('首件数量'))
 
@@ -112,28 +115,13 @@ class FreightItem(models.Model):
     # 续件对应的运费价格
     continue_price = models.PositiveIntegerField(verbose_name=_('续件运费'))
 
+    # 存储key-value格式的 城市编号：城市键值对格式的字符串
+    city = models.TextField()
+
     objects = Manager()
 
     class Meta:
         db_table = "freight_item"
-
-
-class FreightItemCity(models.Model):
-    """运费项城市表"""
-
-    freight_item = models.ForeignKey(to=FreightItem, on_delete=models.CASCADE, verbose_name=_('运费项id'))
-
-    freight = models.ForeignKey(to=Freight, on_delete=models.CASCADE, verbose_name=_('运费表id'))
-
-    # city = models.CharField(max_length=20, verbose_name=_('城市'))
-
-    # city_id = models.CharField(max_length=10, verbose_name=_('城市编号'))
-    city = models.TextField() # 存储key-value格式的 城市编号：城市键值对格式的字符串
-
-    objects = Manager()
-
-    class Meta:
-        db_table = 'freight_item_city'
 
 
 class Commodity(models.Model):
@@ -195,12 +183,10 @@ class Commodity(models.Model):
 
     # 上架时间,自动设置
     onshelve_time = models.DateTimeField(auto_now=True,
-                                         verbose_name=_('上架时间'),
-                                         )
+                                         verbose_name=_('上架时间'))
 
     # 下架时间
-    unshelve_time = models.DateTimeField(default=datetime.timezone,
-                                         null=True,
+    unshelve_time = models.DateTimeField(null=True,
                                          verbose_name=_('下架时间'))
 
     # 销售量
