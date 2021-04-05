@@ -62,7 +62,7 @@ class RoleDeleteSerializer(serializers.Serializer):
     pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
 
 
-class MRoleSerializer(serializers.ModelSerializer):
+class MRoleSerializer(serializers.Serializer):
     """管理员管理商家所属的角色"""
 
     sid = serializers.IntegerField(required=False)  # 用户id
@@ -97,7 +97,7 @@ class MRoleSerializer(serializers.ModelSerializer):
         # 返回
         if attrs.get('is_all', False):
             data['is_all'] = attrs.pop('is_all')
-        elif attrs.get('sid', None):
+        elif not attrs.get('sid', None):
             raise DataFormatError('缺少数据')
         else:
             data['seller'] = attrs.pop('sid')
@@ -107,9 +107,9 @@ class MRoleSerializer(serializers.ModelSerializer):
     def modify(self):
         """修改某个用户的角色"""
         if self.validated_data.pop('is_all'):
-            self.modify_all()
+            return self.modify_all()
         else:
-            self.modify_aim()
+            return self.modify_aim()
 
     def modify_all(self):
         """修改所有商家的角色"""
@@ -120,4 +120,5 @@ class MRoleSerializer(serializers.ModelSerializer):
         seller = self.validated_data.pop('seller')
         seller.role = self.validated_data.pop('role')
         seller.save()
+        return 1
 

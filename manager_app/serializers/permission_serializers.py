@@ -88,15 +88,15 @@ class MPermSerializer(serializers.Serializer):
         data = {
             'permission': attrs.pop('pid')
         }
-        attrs['role'] = attrs.pop('sid').role if attrs.get('sid', None) else attrs.pop('rid', None)
-        if not attrs['role']:
+        data['role'] = attrs.pop('sid').role if attrs.get('sid', None) else attrs.pop('rid', None)
+        if not data['role']:
             raise DataFormatError('缺少数据')
         return data
 
     def modify(self):
         """修改商家所属的角色的权限"""
         role = self.validated_data.pop('role')
-        role.permission.set(self.validated_data.pop('permission'))  # 设置新的权限集
+        result = role.permission.set(self.validated_data.pop('permission'))  # 设置新的权限集
 
     def add(self):
         """增加商家所属的角色的权限"""
