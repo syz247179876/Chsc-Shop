@@ -7,11 +7,11 @@ from django.db import DatabaseError, transaction
 from django.db.transaction import atomic
 from rest_framework import serializers
 
-from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist, NoOperation
+from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist
 from Emall.loggings import Logging
 from seller_app.models import Seller
 from shop_app.models.commodity_models import Commodity, CommodityCategory, Freight, SkuProps, SkuValues, \
-    FreightItem, FreightItemCity
+    FreightItem
 
 commodity_logger = Logging.logger('commodity_')
 
@@ -184,13 +184,14 @@ class SkuPropsDeleteSerializer(serializers.Serializer):
 
 
 class FreightSerializer(serializers.ModelSerializer):
-    freight_item = serializers.DictField(allow_empty=False)  # 运费项
+    freight_item = serializers.ListField(child=serializers.DictField(allow_empty=False), allow_empty=False,
+                                         write_only=True)  # 运费项
+    pk = serializers.IntegerField(min_value=1)  # 解决找不到pk问题
 
     class Meta:
         model = Freight
         item_model = FreightItem
         fields = ('pk', 'name', 'is_free', 'charge_type', 'freight_item')
-        read_only_fields = ('pk',)
 
     def add(self):
         """添加新的运费模板"""
@@ -264,10 +265,12 @@ class FreightSerializer(serializers.ModelSerializer):
         :param value: value
         :return: Bool
         """
-        if self.context['request'].method.lower() == 'put' and 'pk' in value:
+        if self.context['request'].method.lower() == 'put':
+            for item in value:
+                if 'pk' not in item:
+                    raise DataFormatError('数据缺失')
+        elif self.context['request'].method.lower() == 'post' and 'pk' in value:
             raise DataFormatError('数据过多')
-        elif self.context['request'].method.lower() == 'post' and ('pk' not in value or 'name' not in value):
-            raise DataFormatError('缺少必要数据')
         return value
 
 
@@ -283,12 +286,3 @@ class FreightDeleteSerializer(serializers.Serializer):
 
     def delete(self):
         return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
-
-
-
-
-
-
-
-
-
