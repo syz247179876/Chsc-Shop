@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
 from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_COMMODITY_PROPERTY, \
-    DELETE_COMMODITY_PROPERTY
+    DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
     SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer
 from seller_app.utils.permission import SellerPermissionValidation
@@ -30,7 +30,7 @@ class SellerCommodityApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.add_commodity()
-        return
+        return Response(response_code.result(ADD_COMMODITY, '添加成功'))
 
     @validate_url_data('commodity', 'pk', null=True)
     def get(self, request):
@@ -49,7 +49,7 @@ class SellerCommodityApiView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
         serializer.update_commodity()
-        return
+        return Response(response_code.result(MODIFY_COMMODITY, '修改成功'))
 
     def delete(self, request):
         """商家删除商品"""

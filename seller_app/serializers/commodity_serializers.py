@@ -49,14 +49,20 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     # 分组列表,写
     groups = serializers.ListField(child=serializers.CharField(max_length=10), write_only=True, allow_empty=True)
 
+    # 种类id
+    category_id = serializers.IntegerField(min_value=1)
+
+    # 模板id
+    freight_id = serializers.IntegerField(min_value=1)
+
     class Meta:
         model = Commodity
         category_model = CommodityCategory
         seller_model = Seller
-        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'category_id', 'groups',
-                  'status', 'onshelve_time', 'unshelve_time', 'stock', 'category',
-                  'freight', 'category_list', 'group_list')
-        read_only_fields = ('pk', 'category_list')
+        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'groups',
+                  'status', 'stock', 'category_id',
+                  'freight_id', 'category_list', 'group_list')
+        read_only_fields = ('pk', 'category_list', 'group_list')
 
     def get_category_list(self, obj):
         """获取全部的序列化器"""
@@ -65,12 +71,11 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
 
     def add_commodity(self):
         """商家添加商品"""
-        credential = self.get_credential
         try:
             with transaction.atomic():
-                commodity = self.Meta.model(**credential)
-                commodity.group.add(*self.validated_data.pop('groups'))
+                commodity = self.Meta.model(**self.get_credential)
                 commodity.save()
+                commodity.group.add(*self.validated_data.pop('groups'))
         except DatabaseError:
             raise SqlServerError()
 
@@ -82,19 +87,19 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
 
     @property
     def get_credential(self):
-
-        user = self.context.get('request').user,
-        seller = Seller.objects.select_related('store').get(user=user)
+        """获取需要的数据集"""
+        user = self.context.get('request').user
+        seller = self.Meta.seller_model.objects.select_related('store').get(user=user)
         return {
             'user': user,
             'store': seller.store,
-            'category': self.validated_data.pop('category'),
-            'freight': self.validated_data.pop('freight'),
+            'category_id': self.validated_data.pop('category_id'),
+            'freight_id': self.validated_data.pop('freight_id'),
             'commodity_name': self.validated_data.pop('commodity_name'),
             'price': self.validated_data.pop('price'),
             'favourable_price': self.validated_data.pop('favourable_price'),
-            'details': self.validated_data.pop('details'),
-            'intro': self.validated_data.pop('category_id'),
+            'details': self.validated_data.pop('details', ''),
+            'intro': self.validated_data.pop('intro'),
             'status': self.validated_data.pop('status')
         }
 

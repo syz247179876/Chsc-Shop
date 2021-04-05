@@ -183,12 +183,10 @@ class Commodity(models.Model):
 
     # 上架时间,自动设置
     onshelve_time = models.DateTimeField(auto_now=True,
-                                         verbose_name=_('上架时间'),
-                                         )
+                                         verbose_name=_('上架时间'))
 
     # 下架时间
-    unshelve_time = models.DateTimeField(default=datetime.timezone,
-                                         null=True,
+    unshelve_time = models.DateTimeField(null=True,
                                          verbose_name=_('下架时间'))
 
     # 销售量
