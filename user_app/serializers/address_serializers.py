@@ -18,7 +18,7 @@ class AddressSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Address
-        fields = ['pk', 'recipient', 'address', 'address_tags', 'phone', 'default_address', 'province']
+        fields = ['pk', 'recipient', 'region', 'address_tags', 'phone', 'default_address', 'province']
 
     def add_or_edit_address(self, queryset, instance, validated_data):
         """
@@ -32,8 +32,8 @@ class AddressSerializers(serializers.ModelSerializer):
             address = self.Meta.model.address_.create(
                 user=instance,
                 default_address=default_address,
-                recipients=validated_data['recipient'],
-                region=validated_data['address'],
+                recipient=validated_data['recipient'],
+                region=validated_data['region'],
                 address_tags=validated_data['address_tags'],
                 phone=validated_data['phone'],
                 province=validated_data['province']

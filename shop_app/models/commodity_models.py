@@ -232,7 +232,7 @@ class Carousel(models.Model):
     picture = models.CharField(verbose_name=_('轮播图片地址'), max_length=128)
 
     # 轮播图链接
-    url = models.URLField(verbose_name=_('轮播图链接'), max_length=20)
+    url = models.URLField(verbose_name=_('轮播图跳转链接'), max_length=128)
 
     # 排序
     sort = models.IntegerField(verbose_name=_('顺序'), default=0)
@@ -248,6 +248,8 @@ class Carousel(models.Model):
 
     # 添加时间
     add_time = models.DateTimeField(auto_now=True)
+
+    objects = Manager()
 
     class Meta:
         db_table = "carousel"
