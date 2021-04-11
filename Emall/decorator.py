@@ -26,8 +26,8 @@ def validate_url_data(model, field, null=None):
 
             validate_func_name = f'validate_{model}_{field}'
             validate_func = getattr(drf_validators, validate_func_name, None)  # 找到目标校验方法
-            if not func:
-                raise ImportError('无匹配的校验方法')
+            if not validate_func:
+                raise ImportError('位于drf_validators中无匹配的校验方法')
 
             if value and not validate_func(value):
                 raise DataFormatError()
