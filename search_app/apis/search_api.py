@@ -10,7 +10,7 @@ from Emall.exceptions import ESConnectError
 from Emall.loggings import Logging
 from search_app.serailaizers.shop_search_serializers import CommoditySerializer
 from search_app.signals import record_search
-from search_app.utils.elasticsearch import ElasticSearchOperation
+from search_app.utils.es import ElasticSearchOperation
 from search_app.utils.pagination import CommodityResultsSetPagination
 from shop_app.models.commodity_models import Commodity
 from search_app.utils.common import identity

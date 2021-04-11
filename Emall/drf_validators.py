@@ -106,4 +106,13 @@ def validate_sku_props_pk(value):
     检验url中的关于商品属性的pk字段
     商品属性id允许上限8位数
     """
-    return True if re.match('^[1-9]\d{0,8}$', str(value)) else False
+    return True if re.match('^[1-9]\d{0,7}$', str(value)) else False
+
+def validate_freight_pk(value):
+    """
+    检验url中关于运费模板的pk字段
+    运费模板id允许上线8位数
+    :param value:
+    :return:
+    """
+    return True if re.match('^[1-9]\d{0,7}', str(value)) else False
