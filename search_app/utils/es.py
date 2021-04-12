@@ -7,12 +7,15 @@ import elasticsearch
 import requests
 
 from Emall.loggings import Logging
+from search_app.utils.exceptions import ESConnectionError, ESConflict, ESNotFound, ESRequest
 from shop_app.models.commodity_models import Commodity
 from elasticsearch import Elasticsearch
 from django.conf import settings
+from search_app import signals
 
 common_logger = Logging.logger('django')
 search_logger = Logging.logger('search_')
+
 
 class ElasticSearchOperation:
     """直接对es的请求封装(已经抛弃)"""
@@ -40,7 +43,7 @@ class ElasticSearchOperation:
             return self.url
         query = self.request.query_params.copy()
         # 生成访问es的url
-        credential = {'text':query.get('text')}
+        credential = {'text': query.get('text')}
         url = self.BASE_URL + self.INDEX_DB + '/' + self.FUNC + '?' + '&'.join(
             ['q=' + key + ':' + value for key, value in credential.items()])
         setattr(self, 'url', url)
@@ -65,7 +68,6 @@ class ElasticSearchOperation:
         return self.Model.commodity_.filter(pk__in=pk_list).extra(select={"ordering": ordering}, order_by=("ordering",))
 
 
-
 def error_handler(func):
     """es异常处理装饰器"""
 
@@ -74,11 +76,13 @@ def error_handler(func):
             return func(*args, **kwargs)
         except elasticsearch.ConnectionError as e:
             search_logger.error(e)
-            return 503, "ES服务器连接异常"
+            raise ESConnectionError()
         except elasticsearch.ConflictError:
-            return 409, "ES搜索数据冲突"
+            raise ESConflict()
         except elasticsearch.NotFoundError:
-            return 404, "ES找不到指定数据"
+            raise ESNotFound()
+        except elasticsearch.RequestError:
+            raise ESRequest()
 
     return wrap
 
@@ -109,6 +113,7 @@ class ChoiceConf(object):
     def cluster(self):
         """获取配置文件中的集群配置"""
         return self.ES_SETTINGS.get('cluster')
+
 
 choice_conf = ChoiceConf()
 
@@ -154,6 +159,7 @@ class BaseESOperation(object):
         :param ignore_code: 忽略的状态码
         :return: code, result
         """
+        kwargs.pop('signal')
         self.es.indices.create(index=name, *args, **kwargs)
         return 200, "创建成功"
 
@@ -168,11 +174,12 @@ class BaseESOperation(object):
         :param kwargs: 其余参数
         :return: code, result
         """
+        print(index, id, body, args, kwargs)
         self.es.create(index, id, body, *args, **kwargs)
         return 200, "创建成功"
 
     @error_handler
-    def count(self, body, index, *args, **kwargs):
+    def count_doc(self, body, index, *args, **kwargs):
         """
         返回匹配到的documents的个数
         :param body: 查询DSL
@@ -185,7 +192,7 @@ class BaseESOperation(object):
         return 200, res['count']
 
     @error_handler
-    def search(self, body, index, *args, **kwargs):
+    def search_doc(self, index, body, *args, **kwargs):
         """
         返回搜索的具体信息
         :param body: 查询DSL
@@ -197,7 +204,7 @@ class BaseESOperation(object):
         return 200, self.es.search(body, index, *args, **kwargs)
 
     @error_handler
-    def delete(self, index, id, *args, **kwargs):
+    def delete_doc(self, index, id, *args, **kwargs):
         """
         从指定的索引库中删除指定id的索引项
         :param index: 索引库名
@@ -208,9 +215,8 @@ class BaseESOperation(object):
         """
         return 200, self.es.delete(index, id, *args, **kwargs)
 
-
     @error_handler
-    def update(self, index, id, body, *args, **kwargs):
+    def update_doc(self, index, id, body, *args, **kwargs):
         """
         更新指定document的数据项
         :param index: 索引库名
@@ -223,4 +229,69 @@ class BaseESOperation(object):
         self.es.update(index, id, body, *args, **kwargs)
 
 
-es = BaseESOperation()
+class CommodityESSearch(BaseESOperation):
+    """商品相关信息搜索"""
+
+    def __init__(self):
+        super().__init__()
+        self.connect()
+
+    def connect(self):
+        """注册信号"""
+        signals.add_to_es.connect(self.add_to_es, sender=None)
+        signals.delete_from_es.connect(self.delete_from_es, sender=None)
+        signals.update_to_es.connect(self.update_to_es, sender=None)
+        signals.retrieve_from_es.connect(self.retrieve_from_es, sender=None)
+
+    def add_to_es(self, sender, id, body, *args, **kwargs):
+        """
+        向es的索引库中添加新的记录
+        :param sender: index索引库名
+        :param id: doc的id
+        :param body: DSL表达式
+        :param args: 额外参数
+        :param kwargs: 额外参数
+        :return: code, result
+        """
+        kwargs.pop('signal')
+        return self.create_doc(sender, id, body, *args, **kwargs)
+
+    def delete_from_es(self, sender, id, *args, **kwargs):
+        """
+        从es的索引库删除指定id的记录
+        :param sender: index索引库名
+        :param id:doc的id
+        :param args: 额外参数
+        :param kwargs: 额外参数
+        :return: code, result
+        """
+        kwargs.pop('signal')
+        return self.delete_doc(sender, id, *args, **kwargs)
+
+    def update_to_es(self, sender, id, body, *args, **kwargs):
+        """
+        在es的索引库中更新指定id的记录
+        :param sender: index索引库名
+        :param id: doc的id
+        :param body: DSL表达式
+        :param kwargs: 额外参数
+        :return: code, result
+        """
+        kwargs.pop('signal')
+        print(sender, id, body)
+        return self.update_doc(sender, id, body, *args, **kwargs)
+
+    def retrieve_from_es(self, sender, body, *args, **kwargs):
+        """
+        从es的索引库中搜索出满足DSL表达式的记录
+        :param sender: index索引库名
+        :param body: doc的id
+        :param args: DSL表达式
+        :param kwargs: 额外参数
+        :return: code, result
+        """
+        kwargs.pop('signal')
+        return self.search_doc(sender, body, *args, **kwargs)
+
+
+commodity_es = CommodityESSearch()

@@ -44,12 +44,14 @@ class SellerCommodityApiView(GenericAPIView):
             serializer = self.get_serializer(instance=instance, many=True)
         return Response(serializer.data)
 
+    @validate_url_data('commodity', 'pk')
     def put(self, request):
         """商家修改商品信息"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid()
-        serializer.update_commodity()
-        return Response(response_code.result(MODIFY_COMMODITY, '修改成功'))
+        res = serializer.update_commodity()
+        return Response(
+            response_code.result(MODIFY_COMMODITY, '修改成功') if res else response_code.result(MODIFY_COMMODITY, '无数据改动'))
 
     def delete(self, request):
         """商家删除商品"""

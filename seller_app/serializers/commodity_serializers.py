@@ -9,9 +9,11 @@ from rest_framework import serializers
 
 from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist
 from Emall.loggings import Logging
+from search_app.signals import add_to_es, update_to_es
 from seller_app.models import Seller
 from shop_app.models.commodity_models import Commodity, CommodityCategory, Freight, SkuProps, SkuValues, \
     FreightItem
+from django.conf import settings
 
 commodity_logger = Logging.logger('commodity_')
 
@@ -69,6 +71,39 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
         category = self.Meta.category_model.objects.all()
         return CommodityCategorySerializer(category, many=True).data
 
+    def add_update_dsl(self, id, index=None, **kwargs):
+        """
+        添加商品的dsl表达式
+        :param id: 商品id
+        :param index: 索引库名，可自定义/从配置文件读
+        :param kwargs: 其他body参数
+        :return:
+        """
+        return dict(sender=index or settings.ES_INDICES.get('default'), id=id, body=kwargs)
+
+    def search_body(self, commodity):
+        """
+        构造/修改es搜索的关键字体
+        索引体中存放商品名，商品简介，商品类别
+        :param commodity: 商品instance
+        :return: dict
+        """
+        return {
+            'commodity_name': commodity.commodity_name,
+            'intro': commodity.intro,
+            'category': commodity.category.name  # 这里要优化，防止再次hit数据库
+        }
+
+    def update_script(self, commodity):
+        """使用script来对document进行更新"""
+        return {
+            "doc":{
+                'commodity_name': commodity.commodity_name,
+                'intro': commodity.intro,
+                'category': commodity.category.name  # 这里要优化，防止再次hit数据库
+            }
+        }
+
     def add_commodity(self):
         """商家添加商品"""
         try:
@@ -78,12 +113,25 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
                 commodity.group.add(*self.validated_data.pop('groups'))
         except DatabaseError:
             raise SqlServerError()
+        else:
+            # 发送信号,添加document到索引库
+            res = add_to_es.send(**self.add_update_dsl(commodity.pk, **self.search_body(commodity)))
+            print(res)
 
     def update_commodity(self):
         """商家修改商品"""
-        pk = self.validated_data.pop('pk')
+        pk = self.context.get('request').query_params.get('pk', None)
+        if not pk:
+            raise DataFormatError("缺少必要的数据")
         credential = self.get_credential
-        self.Meta.model.commodity_.filter(pk=pk).update(**credential)
+        queryset = self.Meta.model.commodity_.filter(pk=pk)
+        updated_rows = queryset.update(**credential)
+        print(updated_rows)
+        # 发送信号，如果作用记录>0, 更新索引库中id对应的document
+        if updated_rows:
+            update_to_es.send(**self.add_update_dsl(queryset.first().pk, **self.update_script(queryset.first())))
+            return updated_rows
+        return 0
 
     @property
     def get_credential(self):
