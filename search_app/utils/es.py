@@ -7,7 +7,7 @@ import elasticsearch
 import requests
 
 from Emall.loggings import Logging
-from search_app.utils.exceptions import ESConnectionError, ESConflict, ESNotFound
+from search_app.utils.exceptions import ESConnectionError, ESConflict, ESNotFound, ESRequest
 from shop_app.models.commodity_models import Commodity
 from elasticsearch import Elasticsearch
 from django.conf import settings
@@ -81,6 +81,8 @@ def error_handler(func):
             raise ESConflict()
         except elasticsearch.NotFoundError:
             raise ESNotFound()
+        except elasticsearch.RequestError:
+            raise ESRequest()
 
     return wrap
 
@@ -276,6 +278,7 @@ class CommodityESSearch(BaseESOperation):
         :return: code, result
         """
         kwargs.pop('signal')
+        print(sender, id, body)
         return self.update_doc(sender, id, body, *args, **kwargs)
 
     def retrieve_from_es(self, sender, body, *args, **kwargs):

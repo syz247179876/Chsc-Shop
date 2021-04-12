@@ -94,6 +94,16 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             'category': commodity.category.name  # 这里要优化，防止再次hit数据库
         }
 
+    def update_script(self, commodity):
+        """使用script来对document进行更新"""
+        return {
+            "doc":{
+                'commodity_name': commodity.commodity_name,
+                'intro': commodity.intro,
+                'category': commodity.category.name  # 这里要优化，防止再次hit数据库
+            }
+        }
+
     def add_commodity(self):
         """商家添加商品"""
         try:
@@ -105,18 +115,23 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             raise SqlServerError()
         else:
             # 发送信号,添加document到索引库
-            add_to_es.send(**self.add_update_dsl(commodity.pk, **self.search_body(commodity)))
-
+            res = add_to_es.send(**self.add_update_dsl(commodity.pk, **self.search_body(commodity)))
+            print(res)
 
     def update_commodity(self):
         """商家修改商品"""
-        pk = self.validated_data.pop('pk')
+        pk = self.context.get('request').query_params.get('pk', None)
+        if not pk:
+            raise DataFormatError("缺少必要的数据")
         credential = self.get_credential
         queryset = self.Meta.model.commodity_.filter(pk=pk)
         updated_rows = queryset.update(**credential)
+        print(updated_rows)
         # 发送信号，如果作用记录>0, 更新索引库中id对应的document
         if updated_rows:
-            update_to_es.send(**self.add_update_dsl(queryset.first().pk, **self.search_body(queryset.first())))
+            update_to_es.send(**self.add_update_dsl(queryset.first().pk, **self.update_script(queryset.first())))
+            return updated_rows
+        return 0
 
     @property
     def get_credential(self):
