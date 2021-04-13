@@ -1292,7 +1292,7 @@ feature:成员共同开发分支（目前尚无该分支）
 ---
 ## **POSTMAN文档接口地址**
 
-[PostMan](https://documenter.getpostman.com/view/10963682/T1LFnpyV3)
+[PostMan](https://documenter.getpostman.com/view/10963682/T1LFnpyV#a35a303b-b6e0-48a5-b71c-a2b8c063fde6)
 
 ---
 ## **SwaggerUI接口地址**
