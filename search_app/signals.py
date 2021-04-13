@@ -32,3 +32,6 @@ update_to_es = Signal(providing_args=["id", "body"])
 
 # 根据DSL，从索引库获取数据
 retrieve_from_es = Signal(providing_args=["body"])
+
+# 解析es返回的数据中的hits
+parse_hits = Signal(providing_args=["result"])
