@@ -304,6 +304,6 @@ class CommodityESSearch(BaseESOperation):
         :return: tuple
         """
         hits = result.pop('hits')
-        return (int(item.get('_id')) for item in hits.get('hits'))
+        return [int(item.get('_id')) for item in hits.get('hits')]
 
 commodity_es = CommodityESSearch()

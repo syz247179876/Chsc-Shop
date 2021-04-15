@@ -15,7 +15,7 @@ from shop_app.apis.display_api import CommodityDisplay
 app_name = 'search_app'
 
 urlpatterns = [
-    path(f'{settings.URL_PREFIX}/search/', CommoditySearchOperation.as_view(), name='search'),
+    # path(f'{settings.URL_PREFIX}/search/', CommoditySearchOperation.as_view(), name='search'),
     path(f'{settings.URL_PREFIX}/history/', HistoryOperation.as_view(), name='history_search'),
     path(f'{settings.URL_PREFIX}/heat/', HeatSearchOperation.as_view(), name='heat')
 ]

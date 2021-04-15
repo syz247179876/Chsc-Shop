@@ -9,7 +9,6 @@ from time import time
 from Emall.base_redis import BaseRedis, manage_redis
 from Emall.exceptions import TypeTransformError
 from search_app import signals
-from user_app.redis.favorites_redis import RedisFavoritesOperation
 
 
 def client_key(func):
