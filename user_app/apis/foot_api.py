@@ -13,7 +13,7 @@ from Emall.decorator import validate_url_data
 from Emall.exceptions import UniversalServerError
 from Emall.loggings import Logging
 from shop_app.models.commodity_models import Commodity
-from user_app.redis.foot_redis import FootRedisOperation
+from user_app.redis.foot_redis import foot_redis
 from user_app.serializers.foot_serializers import FootSerializer
 from user_app.utils.pagination import FootResultsSetPagination
 
@@ -25,7 +25,7 @@ class FootOperation(GenericViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    redis = FootRedisOperation.choice_redis_db('redis')
+    redis = foot_redis
 
     pagination_class = FootResultsSetPagination
 
