@@ -104,7 +104,7 @@ class RedisFavoritesOperation(BaseRedis):
                 return list_result_format
 
             # 未命中缓存
-            queryset = Collection.collection_.select_related('commodity').filter(user=user)[
+            queryset = Collection.objects.select_related('commodity').filter(user=user)[
                        (page - 1) * page_size: page * page_size]
 
             pipe_two = redis.pipeline()  # 建立管道
