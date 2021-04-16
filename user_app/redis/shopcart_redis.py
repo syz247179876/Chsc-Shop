@@ -24,6 +24,7 @@ class ShopCartRedisOperation(BaseRedis):
     def connect(self):
         """注册信号"""
         signals.retrieve_bought.connect(self.retrieve_bought, sender=None)
+        signals.bought_add_type.connect(self.bought_add_type, sender=None)
 
     def zset_key_recommend(self, user_pk):
         """用户购买的商品类型，将其用于商品推荐zset的key键"""
@@ -38,6 +39,17 @@ class ShopCartRedisOperation(BaseRedis):
         with manage_redis(self.db) as redis:
             zset_key = self.zset_key_recommend(sender)
             return redis.zrevrange(zset_key, 0, -1, withscores=True)
+
+    def bought_add_type(self, sender, commodity_type, **kwargs):
+        """
+        当用户购买商品时，记录用户购买的商品的类型和次数
+        :param sender: 标识用户的唯一身份id
+        :param commodity_type:  商品类型
+        :param kwargs: 额外参数
+        """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zincrby(zset_key, 1, commodity_type)
 
     def get_shop_cart_id_and_page(self, user_id, **data):
         """

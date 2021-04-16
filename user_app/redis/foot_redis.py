@@ -63,12 +63,15 @@ class FootRedisOperation(BaseRedis):
 
     def foot_add_type(self, sender, commodity_type, **kwargs):
         """
-
-        :param sender:
-        :param commodity_type:
-        :param kwargs:
-        :return:
+        当用户浏览商品产生足迹时，记录商品类型及出现次数
+        :param sender: 标识用户的唯一身份id
+        :param commodity_type: 商品类型
+        :param kwargs: 额外参数
         """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zincrby(zset_key, 1, commodity_type)
+
 
     @property
     def score(self):
