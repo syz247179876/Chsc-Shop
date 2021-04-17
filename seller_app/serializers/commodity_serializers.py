@@ -3,7 +3,7 @@
 # @Author : 司云中
 # @File : commodity_serializers.py
 # @Software: Pycharm
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError, transaction, DataError
 from django.db.transaction import atomic
 from rest_framework import serializers
 
@@ -213,15 +213,14 @@ class SkuPropSerializer(serializers.ModelSerializer):
         try:
             with atomic():
                 # 先全部删除,然后重新添加
-                prop = self.Meta.model.objects.get(pk=self.context.get('request').data.get('pk'))
+                prop = self.Meta.model.objects.get(pk=self.context.get('request').data.get('pk'))  # 存在一个BUG
                 self.Meta.values_model.objects.filter(prop=prop).delete()
                 self.Meta.values_model.objects.bulk_create([
                     self.Meta.values_model(value=value, prop=prop) for value in
                     credential.pop('sku_values')
                 ])
-        except DatabaseError():
+        except DataError:
             raise SqlServerError()
-
         except self.Meta.model.DoesNotExist:
             raise DataNotExist()
 

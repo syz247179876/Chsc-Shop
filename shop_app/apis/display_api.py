@@ -159,7 +159,7 @@ class CommodityDetailDisplay(GenericViewSet):
     def get_instance(self, pk):
         """根据pk获取商品对象"""
         try:
-            return self.model.commodity_.get(pk=pk)
+            return self.model.commodity_.prefetch_related('sku').get(pk=pk)
         except self.model.DoesNotExist:
             raise DataNotExist()
 
