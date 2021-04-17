@@ -42,16 +42,18 @@ class FavoritesSerializer(serializers.ModelSerializer):
 
     status = serializers.BooleanField(source='commodity.status', read_only=True)
 
-    price = serializers.BooleanField(source='commodity.price', read_only=True)
+    price = serializers.DecimalField(max_digits=9, decimal_places=2, source='commodity.price', read_only=True)
 
-    favourable_price = serializers.BooleanField(source='commodity.favourable_price', read_only=True)
+    favourable_price = serializers.DecimalField(max_digits=9, decimal_places=2, source='commodity.favourable_price',
+                                                read_only=True)
 
     class Meta:
         model = Collection
         commodity_model = Commodity
         # fields = ('pk', 'commodity_pk', 'commodity')
-        fields = ('pk', 'cid', 'commodity_pk', 'commodity_name', 'onshelve_time', 'unshelve_time', 'intro', 'status', 'price',
-                  'favourable_price')
+        fields = (
+        'pk', 'cid', 'commodity_pk', 'commodity_name', 'onshelve_time', 'unshelve_time', 'intro', 'status', 'price',
+        'favourable_price')
         read_only_fields = ('pk',)
 
     def validate_commodity_pk(self, value):
@@ -65,9 +67,9 @@ class FavoritesSerializer(serializers.ModelSerializer):
     def add(self, request):
         """添加商品到收藏夹"""
         commodity = self.validated_data.pop('commodity_pk')
+        # 如果用户已经收藏过该商品
+        if self.Meta.model.objects.filter(user=request.user, commodity=commodity).exists():
+            return None
         # 创建新的收藏记录
-        self.Meta.model.objects.create(user=request.user, commodity=commodity,
-                                       collect_time=datetime.datetime.now())
-
-
-
+        return self.Meta.model.objects.create(user=request.user, commodity=commodity,
+                                              collect_time=datetime.datetime.now())

@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : shopcart_models.py
 # @Software: Pycharm
+from seller_app.models import Store
 from user_app.models import User
 from django.db import models
 from django.db.models import Manager
@@ -28,6 +29,9 @@ class Trolley(models.Model):
 
     # 该商品价格
     price = models.DecimalField(verbose_name=_('商品价格'), decimal_places=2, max_digits=11)
+
+    # 店铺
+    store = models.ForeignKey(Store, verbose_name=_('店铺'), on_delete=True, related_name='trolley')
 
     trolley_ = Manager()
 

@@ -89,7 +89,7 @@ class FootOperation(GenericViewSet):
         self.redis.delete_foot_commodity_id(user.pk, commodity_id=pk)
         return Response({"OK"}, status=status.HTTP_204_NO_CONTENT)  # 删完前端刷新就行了
 
-    @action(methods=['delete'], detail=False)
+    @action(methods=['delete'], detail=False, url_path='destroy-all')
     def destroy_all(self, request):
         """删除全部记录"""
         user = request.user

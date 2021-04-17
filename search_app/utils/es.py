@@ -306,4 +306,5 @@ class CommodityESSearch(BaseESOperation):
         hits = result.pop('hits')
         return [int(item.get('_id')) for item in hits.get('hits')]
 
+
 commodity_es = CommodityESSearch()

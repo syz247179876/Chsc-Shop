@@ -7,9 +7,17 @@
 
 from rest_framework import serializers
 from shop_app.models.commodity_models import Commodity
-class  CommodityDisplaySerializer(serializers.ModelSerializer):
-    """商品显示序列化器"""
+class  CommodityCardSerializer(serializers.ModelSerializer):
+    """商品卡片显示序列化器"""
 
     class Meta:
         model = Commodity
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'details', 'intro', 'little_image')
+
+
+class CommodityDetailSerializer(serializers.ModelSerializer):
+    """商品详情页信息"""
+
+    class Meta:
+        model = Commodity
+        fields = '__all__'

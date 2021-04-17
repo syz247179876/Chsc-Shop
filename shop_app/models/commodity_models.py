@@ -164,7 +164,7 @@ class Commodity(models.Model):
                                )
 
     # 商品简单描述
-    intro = models.TextField(verbose_name=_('商品的简要描述'),
+    intro = models.CharField(verbose_name=_('商品的简要描述'),
                              help_text=_('商品简单描述'),
                              max_length=80,
                              )
@@ -350,6 +350,9 @@ class SkuProps(models.Model):
     Sku的规格属性表
     保存常用属性
     """
+
+    # sku属性属于哪一个商品
+    commodity = models.ForeignKey(Commodity, on_delete=True, verbose_name=_('商品'), related_name='commodity')
 
     name = models.CharField(verbose_name=_('sku属性名称'), max_length=20)
 

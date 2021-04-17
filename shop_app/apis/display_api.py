@@ -11,17 +11,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from Emall.exceptions import DataFormatError
-from search_app.signals import retrieve_from_es, parse_hits, record_search, retrieve_heat_keyword
+from Emall.decorator import validate_url_data
+from Emall.exceptions import DataFormatError, DataNotExist
+from search_app.signals import retrieve_from_es, parse_hits, record_search, retrieve_heat_keyword, retrieve_record
 from search_app.utils.common import identity
 from shop_app.models.commodity_models import Commodity
-from shop_app.serializers.diplay_serializers import CommodityDisplaySerializer
+from shop_app.serializers.diplay_serializers import CommodityCardSerializer, CommodityDetailSerializer
+from user_app.signals import retrieve_collect, retrieve_foot, retrieve_bought
 
 
-class CommodityDisplay(GenericViewSet):
+class CommodityCardDisplay(GenericViewSet):
     """用于商品的显示API"""
 
-    serializer_class = CommodityDisplaySerializer
+    serializer_class = CommodityCardSerializer
 
     def dsl_body(self, q):
         """
@@ -90,6 +92,7 @@ class CommodityDisplay(GenericViewSet):
         keyword = request.query_params.get('q')
         results = retrieve_from_es.send(**self.retrieve_dsl(**self.dsl_body(keyword)))[0] # 发送信号，搜索es，获取id列表
         code, res = results[1]
+        print(code, res)
         if code == 200:
             pk_list = parse_hits.send(sender=self.__class__.__name__, result=res)[0]  # 解析数据
             serializer = self.get_serializer(instance=self.get_keyword_queryset(pk_list[1]), many=True)
@@ -98,16 +101,23 @@ class CommodityDisplay(GenericViewSet):
         return Response([])
 
     @action(detail=False, methods=['GET'], url_path='recommend')
-    def recommend_list(self, request):
+    @identity
+    def recommend_list(self, request, unique_identity, *args, **kwargs):
         """
-        推荐商品，数据来源：
+        首页推荐商品，数据来源：
         1.用户的搜索关键字 -- weight=10
-        2.用户的收藏商品 -- weight=
-        3.用户的足迹商品
-        4.用户的购买商品
-        """
-        pass
+        2.用户的收藏商品 -- weight= 10
+        3.用户的足迹商品 -- weight=5
+        4.用户的购买商品 -- weight=15
 
+        采用zset，key为类型，score为类型出现的次数，作为推荐衡量
+
+        """
+
+        search_history = retrieve_record.send(sender=unique_identity, request=request)
+        collect = retrieve_collect.send(sender=unique_identity)
+        foot = retrieve_foot.send(sender=unique_identity)
+        bought = retrieve_bought.send(sender=unique_identity)
 
 
 
@@ -135,3 +145,28 @@ class CommodityDisplay(GenericViewSet):
             serializer = self.get_serializer(instance=self.get_keyword_queryset(pk_list[1]), many=True)
             return Response(serializer.data)
         return Response(cur_heat)
+
+
+
+class CommodityDetailDisplay(GenericViewSet):
+    """商品详情页API"""
+
+
+    serializer_class = CommodityDetailSerializer
+
+    model = Commodity
+
+    def get_instance(self, pk):
+        """根据pk获取商品对象"""
+        try:
+            return self.model.commodity_.get(pk=pk)
+        except self.model.DoesNotExist:
+            raise DataNotExist()
+
+    @action(detail=False, methods=['GET'], url_path='detail')
+    def detail_list(self, request, **kwargs):
+        """获取商品详情信息"""
+        pk = request.query_params.get('pk')
+        obj = self.get_instance(pk)
+        serializer = self.get_serializer(instance=obj)
+        return Response(serializer.data)

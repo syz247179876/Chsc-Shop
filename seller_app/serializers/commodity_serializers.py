@@ -179,7 +179,7 @@ class SkuPropSerializer(serializers.ModelSerializer):
     class Meta:
         model = SkuProps
         values_model = SkuValues
-        fields = ('pk', 'name', 'sku_values', 'values')
+        fields = ('pk', 'name', 'sku_values', 'values', 'commodity')
         read_only_fields = ('pk',)
 
     def get_values(self, obj):
@@ -190,12 +190,13 @@ class SkuPropSerializer(serializers.ModelSerializer):
         """添加sku属性规格和值"""
         credential = {
             'name': self.validated_data.pop('name'),
-            'sku_values': self.validated_data.pop('sku_values')
+            'sku_values': self.validated_data.pop('sku_values'),
+            'commodity': self.validated_data.pop('commodity')
         }
 
         try:
             with atomic():  # 开启事务
-                prop = self.Meta.model.objects.create(name=credential.pop('name'))
+                prop = self.Meta.model.objects.create(name=credential.pop('name'), commodity=credential.pop('commodity'))
                 self.Meta.values_model.objects.bulk_create([
                     self.Meta.values_model(value=value, prop=prop) for value in
                     credential.pop('sku_values')

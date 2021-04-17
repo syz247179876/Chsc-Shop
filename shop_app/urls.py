@@ -1,8 +1,9 @@
-from django.urls import path
-
 from django.conf import settings
+from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from shop_app.apis.carousel_api import CarouselApiView
+from shop_app.apis.display_api import CommodityCardDisplay, CommodityDetailDisplay
 
 app_name = 'shop_app'
 
@@ -13,8 +14,8 @@ urlpatterns = [
 ]
 
 
-
 # DRF视图集注册
-# router = routers.DefaultRouter()
-# router.register('api/shop-chsc-search', CommoditySearchOperation, base_name="shop_chsc_search")
-# urlpatterns += router.urls
+router = DefaultRouter()
+# router.register(f'{settings.URL_PREFIX}', CommodityCardDisplay, basename='commodity-card')  # 关键词搜索/商品卡片显示
+router.register(f'{settings.URL_PREFIX}', CommodityDetailDisplay, basename='commodity-detail')   # 商品详情显示
+urlpatterns += router.urls
