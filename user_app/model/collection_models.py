@@ -11,6 +11,7 @@ from shop_app.models.commodity_models import Commodity
 
 User = get_user_model()
 
+
 class Collection(models.Model):
     """收藏夹"""
 
@@ -18,8 +19,8 @@ class Collection(models.Model):
     user = models.ForeignKey(User, related_name='collections', on_delete=True, verbose_name=_('用户'))
 
     # 商品
-    commodity = models.ForeignKey(Commodity, related_name='collections', verbose_name=_('商品'), on_delete=True,
-                                  null=True)
+    commodity = models.ForeignKey(Commodity, related_name='collections', on_delete=True, verbose_name=_('商品'),
+                                       null=True)
 
     # 浏览时间
     collect_time = models.DateTimeField(auto_now_add=True, verbose_name=_('收藏时间'))
@@ -27,8 +28,7 @@ class Collection(models.Model):
     # 逻辑删除
     fake_delete = models.BooleanField(default=False, verbose_name=_('逻辑删除'))
 
-
-    collection_ = Manager()
+    objects = Manager()
 
     class Meta:
         db_table = 'collection'

@@ -77,11 +77,14 @@ def error_handler(func):
         except elasticsearch.ConnectionError as e:
             search_logger.error(e)
             raise ESConnectionError()
-        except elasticsearch.ConflictError:
+        except elasticsearch.ConflictError as e:
+            search_logger.error(e)
             raise ESConflict()
-        except elasticsearch.NotFoundError:
+        except elasticsearch.NotFoundError as e:
+            search_logger.error(e)
             raise ESNotFound()
-        except elasticsearch.RequestError:
+        except elasticsearch.RequestError as e:
+            search_logger.error(e)
             raise ESRequest()
 
     return wrap
@@ -242,6 +245,7 @@ class CommodityESSearch(BaseESOperation):
         signals.delete_from_es.connect(self.delete_from_es, sender=None)
         signals.update_to_es.connect(self.update_to_es, sender=None)
         signals.retrieve_from_es.connect(self.retrieve_from_es, sender=None)
+        signals.parse_hits.connect(self.parse, sender=None)
 
     def add_to_es(self, sender, id, body, *args, **kwargs):
         """
@@ -292,6 +296,15 @@ class CommodityESSearch(BaseESOperation):
         """
         kwargs.pop('signal')
         return self.search_doc(sender, body, *args, **kwargs)
+
+    def parse(self, sender, result, **kwargs):
+        """
+        根据es返回数据解析出其中的id值
+        :param sender: 响应数据
+        :return: tuple
+        """
+        hits = result.pop('hits')
+        return [int(item.get('_id')) for item in hits.get('hits')]
 
 
 commodity_es = CommodityESSearch()

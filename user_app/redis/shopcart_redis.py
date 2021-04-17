@@ -8,6 +8,7 @@ import math
 from shop_app.models.commodity_models import Commodity
 from Emall.base_redis import BaseRedis, manage_redis
 from Emall.loggings import Logging
+from user_app import signals
 
 common_logger = Logging.logger('django')
 
@@ -18,6 +19,37 @@ class ShopCartRedisOperation(BaseRedis):
 
     def __init__(self, db, redis):
         super().__init__(db, redis)
+        self.connect()
+
+    def connect(self):
+        """注册信号"""
+        signals.retrieve_bought.connect(self.retrieve_bought, sender=None)
+        signals.bought_add_type.connect(self.bought_add_type, sender=None)
+
+    def zset_key_recommend(self, user_pk):
+        """用户购买的商品类型，将其用于商品推荐zset的key键"""
+        return self.key('bought', user_pk, 'recommend')
+
+    def retrieve_bought(self, sender, **kwargs):
+        """
+        获取存储用户浏览商品产生足迹的{类型:次数}的zset
+        :param identity: 标识用户的唯一身份id
+        :return: [(key, score), (key, score)]
+        """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zrevrange(zset_key, 0, -1, withscores=True)
+
+    def bought_add_type(self, sender, commodity_type, **kwargs):
+        """
+        当用户购买商品时，记录用户购买的商品的类型和次数
+        :param sender: 标识用户的唯一身份id
+        :param commodity_type:  商品类型
+        :param kwargs: 额外参数
+        """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zincrby(zset_key, 1, commodity_type)
 
     def get_shop_cart_id_and_page(self, user_id, **data):
         """

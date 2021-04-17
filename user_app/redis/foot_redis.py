@@ -9,6 +9,7 @@ import time
 from Emall.base_redis import BaseRedis, manage_redis
 from Emall.exceptions import RedisOperationError
 from Emall.loggings import Logging
+from user_app import signals
 
 common_logger = Logging.logger('django')
 
@@ -20,6 +21,7 @@ class FootRedisOperation(BaseRedis):
 
     def __init__(self, db, redis):
         super().__init__(db, redis)
+        self.connect()
 
     '''
     def get_time_scope(self, limit, page):
@@ -39,6 +41,37 @@ class FootRedisOperation(BaseRedis):
         max_score_timestamp = int(time.mktime(time.strptime(max_score_str, "%Y-%m-%d %H:%M:%S")))
         return min_score_timestamp, max_score_timestamp
     '''
+
+    def connect(self):
+        """注册信号"""
+        signals.retrieve_foot.connect(self.retrieve_foot, sender=None)
+        signals.foot_add_type.connect(self.foot_add_type, sender=None)
+
+    def zset_key_recommend(self, user_pk):
+        """与足迹相关的商品的类型，用于商品推荐zset的key键"""
+        return self.key('foot', user_pk, 'recommend')
+
+    def retrieve_foot(self, sender, **kwargs):
+        """
+        获取存储用户浏览商品产生足迹的{类型:次数}的zset
+        :param identity: 标识用户的唯一身份id
+        :return: [(key, score), (key, score)]
+        """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zrevrange(zset_key, 0, -1, withscores=True)
+
+    def foot_add_type(self, sender, commodity_type, **kwargs):
+        """
+        当用户浏览商品产生足迹时，记录商品类型及出现次数
+        :param sender: 标识用户的唯一身份id
+        :param commodity_type: 商品类型
+        :param kwargs: 额外参数
+        """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zincrby(zset_key, 1, commodity_type)
+
 
     @property
     def score(self):
@@ -110,3 +143,6 @@ class FootRedisOperation(BaseRedis):
             except Exception as e:
                 consumer_logger.error(e)
                 raise RedisOperationError()
+
+
+foot_redis = FootRedisOperation.choice_redis_db('redis')

@@ -164,7 +164,7 @@ class Commodity(models.Model):
                                )
 
     # 商品简单描述
-    intro = models.TextField(verbose_name=_('商品的简要描述'),
+    intro = models.CharField(verbose_name=_('商品的简要描述'),
                              help_text=_('商品简单描述'),
                              max_length=80,
                              )
@@ -309,6 +309,8 @@ class Sku(models.Model):
     对能够影响商品销量和库存的销售属性集合进行排列组合的迪卡尔积种类
     """
 
+    sid = models.IntegerField(verbose_name=_('sku唯一标识'), unique=True)   # 标识唯一的sku，根据不同sku属性值组合而成
+
     # 关系为多对一,原因在于对sku中的关键属性进行排列组合,每一种情况都是一个sku,因此多个sku对应一个商品
     commodity = models.ForeignKey(Commodity, on_delete=models.CASCADE, verbose_name=_('商品'), related_name='sku')
 
@@ -351,6 +353,9 @@ class SkuProps(models.Model):
     保存常用属性
     """
 
+    # sku属性属于哪一个商品
+    commodity = models.ForeignKey(Commodity, on_delete=True, verbose_name=_('商品'), related_name='sku_props')
+
     name = models.CharField(verbose_name=_('sku属性名称'), max_length=20)
 
     objects = Manager()
@@ -365,7 +370,7 @@ class SkuValues(models.Model):
     保存常用属性值
     """
 
-    prop = models.ForeignKey(to=SkuProps, on_delete=models.CASCADE, related_name='values')
+    prop = models.ForeignKey(to=SkuProps, on_delete=models.CASCADE, related_name='sku_values')
 
     value = models.CharField(verbose_name=_('sku属性值'), max_length=20)
 

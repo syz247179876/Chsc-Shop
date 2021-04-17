@@ -5,6 +5,7 @@ from user_app.apis.address_api import AddressOperation
 from user_app.apis.auth_api import RegisterAPIView, LoginAPIView
 from user_app.apis.bind_api import BindEmailOrPhone
 from user_app.apis.cart_api import ShopCartOperation
+from user_app.apis.favourites_api import  FavoritesOperation
 from user_app.apis.foot_api import FootOperation
 from user_app.apis.head_image_api import HeadImageOperation
 from user_app.apis.information_api import InformationOperation
@@ -46,6 +47,6 @@ urlpatterns = [
 router = DefaultRouter()
 router.register(f'{settings.URL_PREFIX}/address', AddressOperation, basename='address')
 router.register(f'{settings.URL_PREFIX}/foot', FootOperation, basename='foot')
-# router.register(f'{settings.URL_PREFIX}/favorites', FavoriteOperation, basename='favorites')
+router.register(f'{settings.URL_PREFIX}/favorites', FavoritesOperation, basename='favorites')
 router.register(f'{settings.URL_PREFIX}/trolley', ShopCartOperation, basename='trolley')
 urlpatterns += router.urls

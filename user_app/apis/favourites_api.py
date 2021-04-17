@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2021/1/11 下午5:28
 # @Author : 司云中
-# @File : favourites.py
+# @File : favourites_api.py
 # @Software: Pycharm
-from django.db.models.query import QuerySet
-from django.http import Http404
-from django.utils.decorators import method_decorator
+from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from user_app.models import Collection
-from user_app.redis.favorites_redis import favorites_redis
-from user_app.serializers.favorites_serializers import FavoritesSerializer
-from user_app.utils.pagination import FavoritesPagination, FootResultsSetPagination
+from Emall.decorator import validate_url_data
+from Emall.response_code import response_code, DELETE_FAVORITES_SUCCESS, ADD_FAVORITES_SUCCESS
+from user_app.model.collection_models import Collection
 
 
 # class FavoriteOperation(GenericViewSet):
@@ -43,7 +41,7 @@ from user_app.utils.pagination import FavoritesPagination, FootResultsSetPaginat
 #         :return: Model
 #         """
 #         try:
-#             return Collection.collection_.get(user=self.request.user, pk=self.kwargs.get('pk'))
+#             return Collection.objects.get(user=self.request.user, pk=self.kwargs.get('pk'))
 #         except Collection.DoesNotExist:
 #             raise Http404
 #
@@ -52,7 +50,7 @@ from user_app.utils.pagination import FavoritesPagination, FootResultsSetPaginat
 #         欲删除指定用户的所有收藏目录
 #         :return:结果集合  QuerySet
 #         """
-#         return Collection.collection_.filter(user=self.request.user)
+#         return Collection.objects.filter(user=self.request.user)
 #
 #     @method_decorator(cache_page(10 * 1, cache='redis'))
 #     def list(self, request):
@@ -104,7 +102,7 @@ from user_app.utils.pagination import FavoritesPagination, FootResultsSetPaginat
 #             if queryset:
 #                 now = datetime.datetime.now()  # 生产时间戳
 #                 queryset_first = {type: queryset.first()}
-#                 instance = Collection.collection_.create(user=self.request.user, datetime=now, **queryset_first)
+#                 instance = Collection.objects.create(user=self.request.user, datetime=now, **queryset_first)
 #                 add_favorites.send(  # 发送信号，同步redis
 #                     sender=Collection,
 #                     instance=instance,
@@ -163,3 +161,45 @@ from user_app.utils.pagination import FavoritesPagination, FootResultsSetPaginat
 #             return Response(response_code.delete_favorites_success)
 #         else:
 #             return Response(status=status.HTTP_204_NO_CONTENT)  # 无响应内容，避免显示已删除
+from user_app.serializers.favorites_serializers import FavoritesSerializer
+
+
+class FavoritesOperation(GenericViewSet):
+    """收藏夹相关API"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = FavoritesSerializer
+
+    def get_queryset(self):
+        """返回用户的收藏夹信息"""
+        return Collection.objects.select_related('commodity').filter(user=self.request.user)
+
+    def list(self, request):
+        """
+        获取用户收藏的商品
+        """
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(instance=queryset, many=True)
+        return Response(serializer.data)
+
+    @validate_url_data('favorites', 'pk')
+    def destroy(self, request, **kwargs):
+        """删除一条收藏记录"""
+        pk, user = kwargs.get('pk'), request.user
+        rows, _ = Collection.objects.filter(pk=pk, user=user).delete()
+        print(rows)
+        return Response(response_code.result(DELETE_FAVORITES_SUCCESS, '删除成功' if rows > 0 else '无数据操作'))
+
+    @action(methods=['delete'], detail=False, url_path='destroy-all')
+    def destroy_all(self, request):
+        """删除全部收藏记录"""
+        rows, _ = Collection.objects.filter(user=request.user).delete()
+        return Response(response_code.result(DELETE_FAVORITES_SUCCESS, '删除成功' if rows > 0 else '无数据操作'))
+
+    def create(self, request):
+        """添加收藏记录"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        res = serializer.add(request)
+        print(res)
+        return Response(response_code.result(ADD_FAVORITES_SUCCESS, '添加成功' if res else '无数据更新'))
+

@@ -41,9 +41,36 @@ class RedisFavoritesOperation(BaseRedis):
         """收藏夹中商品的hash键"""
         return self.key('favorites', user_pk, 'commodity', collection_pk)
 
+    def zset_key_recommend(self, user_pk):
+        """与收藏夹相关的用于商品推荐zset的key键"""
+        return self.key('favorites', user_pk, 'recommend')
+
     def connect(self):
         signals.add_favorites.connect(self.sync_favorites_add_callback, sender=Collection)
         signals.delete_favorites.connect(self.sync_favorites_delete_callback, sender=Collection)
+        signals.retrieve_collect.connect(self.retrieve_collect, sender=None)
+        signals.collect_add_type.connect(self.collect_add_type, sender=None)
+
+    def retrieve_collect(self, sender, **kwargs):
+        """
+        获取存储用户收藏商品的{类型:次数}的zset
+        :param identity: 标识用户的唯一身份id
+        :return: [(key, score), (key, score)]
+        """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zrevrange(zset_key, 0, -1, withscores=True)
+
+    def collect_add_type(self, sender, commodity_type, **kwargs):
+        """
+        当用户收藏商品是，记录该商品的类型收藏的次数
+        :param sender: 标识用户唯一身份id
+        :param commodity_type: 商品类型
+        :param kwargs: 额外参数
+        """
+        with manage_redis(self.db) as redis:
+            zset_key = self.zset_key_recommend(sender)
+            return redis.zincrby(zset_key, 1, commodity_type)
 
     def get_resultSet(self, user, page, page_size):
         """
@@ -77,7 +104,7 @@ class RedisFavoritesOperation(BaseRedis):
                 return list_result_format
 
             # 未命中缓存
-            queryset = Collection.collection_.select_related('commodity').filter(user=user)[
+            queryset = Collection.objects.select_related('commodity').filter(user=user)[
                        (page - 1) * page_size: page * page_size]
 
             pipe_two = redis.pipeline()  # 建立管道

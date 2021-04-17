@@ -112,7 +112,14 @@ def validate_freight_pk(value):
     """
     检验url中关于运费模板的pk字段
     运费模板id允许上线8位数
-    :param value:
-    :return:
     """
-    return True if re.match('^[1-9]\d{0,7}', str(value)) else False
+    return True if re.match('^[1-9]\d{0,7}$', str(value)) else False
+
+
+def validate_favorites_pk(value):
+    """
+    检验url中关于收藏夹的pk字段
+    收藏夹id允许上线10位数
+    """
+
+    return True if re.match('^[1-9]\d{0,9}$', str(value)) else False
