@@ -41,6 +41,18 @@ class Store(models.Model):
     # 是否通过审核
     is_checked = models.BooleanField(default=True, verbose_name=_('是否通过管理员的审核'))
 
+    # 店铺logo
+    logo = models.CharField(max_length=256,verbose_name=_('店铺logo'))
+
+    # 商品描述分数
+    description_score = models.DecimalField(max_digits=2, decimal_places=1, verbose_name=_('商品描述分数'), default=5.0)
+
+    # 卖家服务分数
+    service_score = models.DecimalField(max_digits=2, decimal_places=1, verbose_name=_('卖家服务分数'), default=5.0)
+
+    # 物流服务分数
+    logistics_score = models.DecimalField(max_digits=2, decimal_places=1, verbose_name=_('物流服务分数'), default=5.0)
+
     objects = Manager()
 
     class Meta:

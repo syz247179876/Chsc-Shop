@@ -10,9 +10,10 @@ from rest_framework.response import Response
 from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
 from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_COMMODITY_PROPERTY, \
-    DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY
+    DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY, MODIFY_EFFECTIVE_SKU, DELETE_EFFECTIVE_SKU
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
-    SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer
+    SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer, SellerSkuSerializer, \
+    SellerSkuDeleteSerializer
 from seller_app.utils.permission import SellerPermissionValidation
 
 
@@ -34,7 +35,7 @@ class SellerCommodityApiView(GenericAPIView):
 
     @validate_url_data('commodity', 'pk', null=True)
     def get(self, request):
-        """获取单个分组详情或全部分组记录"""
+        """获取单个商品详情或全部分商品"""
         pk = request.query_params.get('pk', None)
         if request.query_params.get('pk', None):
             instance = self.get_queryset().get(pk=pk)
@@ -124,5 +125,38 @@ class FreightApiView(BackendGenericApiView):
     def delete(self, request):
         """删除已有运费模板"""
         rows = super().delete(request)
-        return Response(response_code.result(DELETE_COMMODITY_PROPERTY, "删除成功")) if rows else Response(
-            response_code.result(DELETE_COMMODITY_PROPERTY, '无操作,无效数据'))
+        return Response(response_code.result(DELETE_COMMODITY_PROPERTY, "删除成功" if rows else '无操作,无效数据'))
+
+
+class SellerSkuApiView(BackendGenericApiView):
+    """商家管理某商品的有效SKU集合"""
+
+    serializer_class = SellerSkuSerializer
+
+    serializer_delete_class = SellerSkuDeleteSerializer
+
+    permission_classes = [IsAuthenticated]
+
+    @validate_url_data('sku', 'pk', null=True)
+    def get(self, request):
+        """获取单个/多个有效SKU"""
+        return super().get(request)
+
+    @validate_url_data('sku', 'pk')
+    def put(self, request):
+        """修改有效SKU"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        rows = serializer.modify()
+        return Response(response_code.result(MODIFY_EFFECTIVE_SKU, '修改成功' if rows else '无操作，无效数据'))
+
+    def post(self, request):
+        """添加新的有效SKU"""
+        super().post(request)
+        return Response(response_code.result(MODIFY_EFFECTIVE_SKU, '添加成功'))
+
+    def delete(self, request):
+        """删除单个/全部SKU"""
+        rows = super().delete(request)
+        return Response(response_code.result(DELETE_EFFECTIVE_SKU, '删除成功' if rows else '无操作,无效数据'))
+

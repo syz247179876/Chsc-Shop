@@ -3,6 +3,8 @@
 # @Author : 司云中
 # @File : commodity_serializers.py
 # @Software: Pycharm
+import json
+
 from django.db import DatabaseError, transaction, DataError
 from django.db.transaction import atomic
 from rest_framework import serializers
@@ -12,7 +14,7 @@ from Emall.loggings import Logging
 from search_app.signals import add_to_es, update_to_es
 from seller_app.models import Seller
 from shop_app.models.commodity_models import Commodity, CommodityCategory, Freight, SkuProps, SkuValues, \
-    FreightItem
+    FreightItem, Sku
 from django.conf import settings
 
 commodity_logger = Logging.logger('commodity_')
@@ -97,7 +99,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     def update_script(self, commodity):
         """使用script来对document进行更新"""
         return {
-            "doc":{
+            "doc": {
                 'commodity_name': commodity.commodity_name,
                 'intro': commodity.intro,
                 'category': commodity.category.name  # 这里要优化，防止再次hit数据库
@@ -196,7 +198,8 @@ class SkuPropSerializer(serializers.ModelSerializer):
 
         try:
             with atomic():  # 开启事务
-                prop = self.Meta.model.objects.create(name=credential.pop('name'), commodity=credential.pop('commodity'))
+                prop = self.Meta.model.objects.create(name=credential.pop('name'),
+                                                      commodity=credential.pop('commodity'))
                 self.Meta.values_model.objects.bulk_create([
                     self.Meta.values_model(value=value, prop=prop) for value in
                     credential.pop('sku_values')
@@ -239,12 +242,13 @@ class SkuPropsDeleteSerializer(serializers.Serializer):
 class FreightSerializer(serializers.ModelSerializer):
     freight_item = serializers.ListField(child=serializers.DictField(allow_empty=False), allow_empty=False,
                                          write_only=True)  # 运费项
-    pk = serializers.IntegerField(min_value=1)  # 解决找不到pk问题
+    pk = serializers.IntegerField(min_value=1, required=False)  # 解决找不到pk问题
 
     class Meta:
         model = Freight
         item_model = FreightItem
         fields = ('pk', 'name', 'is_free', 'charge_type', 'freight_item')
+        read_only_fields = ('pk',)
 
     def add(self):
         """添加新的运费模板"""
@@ -338,4 +342,52 @@ class FreightDeleteSerializer(serializers.Serializer):
         model = Freight
 
     def delete(self):
+        return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+
+
+class SellerSkuSerializer(serializers.ModelSerializer):
+    """
+    商家管理有效SKU序列化器
+    """
+
+    properties_r = serializers.SerializerMethodField()  # 用于读
+
+    properties_w = serializers.DictField(child=serializers.IntegerField(), allow_empty=False, write_only=True)  # 用于写
+
+    class Meta:
+        model = Sku
+        read_only_fields = ('pk',)
+        fields = ('pk', 'sid', 'commodity', 'stock', 'price', 'favourable_price', 'image', 'name', 'status',
+                  'properties_r', 'properties_w')
+
+    def get_properties_r(self, obj):
+        """将properties反序列化"""
+        return json.loads(obj.properties)
+
+    def add(self):
+        """添加有效SKU"""
+        self.validated_data['properties'] = json.dumps(self.validated_data.pop('properties_w'))
+        self.Meta.model.objects.create(**self.validated_data)
+
+    def modify(self):
+        """修改有效SKU"""
+        pk = self.context.get('request').data.get('pk', None)
+        if not pk:
+            raise DataFormatError('缺少数据')
+        self.validated_data['properties'] = json.dumps(self.validated_data.pop('properties_w'))
+        rows = self.Meta.model.objects.filter(pk=pk).update(**self.validated_data)
+        return rows
+
+
+class SellerSkuDeleteSerializer(serializers.Serializer):
+    """
+    删除有效SKU序列化器
+    """
+    pk_list = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
+
+    class Meta:
+        model = Sku
+
+    def delete(self):
+        """删除有效SKU"""
         return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
