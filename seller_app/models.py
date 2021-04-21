@@ -4,6 +4,7 @@ from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 
 from universal_app.models import Role
+from user_app.utils.validators import ProvinceValidator
 
 User = get_user_model()
 
@@ -40,6 +41,25 @@ class Store(models.Model):
 
     # 是否通过审核
     is_checked = models.BooleanField(default=True, verbose_name=_('是否通过管理员的审核'))
+
+    # 店铺logo
+    logo = models.CharField(max_length=256,verbose_name=_('店铺logo'))
+
+    # 商品描述分数
+    description_score = models.DecimalField(max_digits=2, decimal_places=1, verbose_name=_('商品描述分数'), default=5.0)
+
+    # 卖家服务分数
+    service_score = models.DecimalField(max_digits=2, decimal_places=1, verbose_name=_('卖家服务分数'), default=5.0)
+
+    # 物流服务分数
+    logistics_score = models.DecimalField(max_digits=2, decimal_places=1, verbose_name=_('物流服务分数'), default=5.0)
+
+    # 发货地,省份/市
+    province = models.CharField(verbose_name=_('省份/市'),
+                                max_length=20,
+                                default="中国/北京",
+                                validators=[ProvinceValidator(), ]
+                                )
 
     objects = Manager()
 

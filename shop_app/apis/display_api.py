@@ -3,15 +3,12 @@
 # @Author : 司云中
 # @File : display_api.py
 # @Software: Pycharm
-import datetime
-import json
 
 from django.conf import settings
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from Emall.decorator import validate_url_data
 from Emall.exceptions import DataFormatError, DataNotExist
 from search_app.signals import retrieve_from_es, parse_hits, record_search, retrieve_heat_keyword, retrieve_record
 from search_app.utils.common import identity
@@ -50,7 +47,7 @@ class CommodityCardDisplay(GenericViewSet):
         return {
             "query": {
                 "bool": {
-                    "should":[
+                    "should": [
                         {"match": {"commodity_name": q}},
                         {"match": {"intro": q}},
                         {"match": {"category": q}}
@@ -58,7 +55,7 @@ class CommodityCardDisplay(GenericViewSet):
                 }
             },
             "from": 0,  # 从第0个商品开始查
-            "size": 1   # 查询一个结果
+            "size": 1  # 查询一个结果
         }
 
     def retrieve_dsl(self, index=None, **kwargs):
@@ -90,7 +87,7 @@ class CommodityCardDisplay(GenericViewSet):
         if not request.query_params.get('q', None):
             raise DataFormatError('缺少必要参数')
         keyword = request.query_params.get('q')
-        results = retrieve_from_es.send(**self.retrieve_dsl(**self.dsl_body(keyword)))[0] # 发送信号，搜索es，获取id列表
+        results = retrieve_from_es.send(**self.retrieve_dsl(**self.dsl_body(keyword)))[0]  # 发送信号，搜索es，获取id列表
         code, res = results[1]
         print(code, res)
         if code == 200:
@@ -119,8 +116,6 @@ class CommodityCardDisplay(GenericViewSet):
         foot = retrieve_foot.send(sender=unique_identity)
         bought = retrieve_bought.send(sender=unique_identity)
 
-
-
     @action(detail=False, methods=['GET'], url_path='discount')
     def discount_list(self, request):
         """每日打折商品"""
@@ -147,25 +142,27 @@ class CommodityCardDisplay(GenericViewSet):
         return Response(cur_heat)
 
 
-
 class CommodityDetailDisplay(GenericViewSet):
-    """商品详情页API"""
-
+    """
+    商品详情页API
+    包含商品基本信息API，商品SKU属性键值API
+    """
 
     serializer_class = CommodityDetailSerializer
 
     model = Commodity
 
     def get_instance(self, pk):
-        """根据pk获取商品对象"""
+        """根据pk获取商品对象，join联合查询多表"""
         try:
-            return self.model.commodity_.prefetch_related('sku').get(pk=pk)
+            return self.model.commodity_.select_related('store').select_related('freight').prefetch_related('sku').get(
+                pk=pk)
         except self.model.DoesNotExist:
             raise DataNotExist()
 
     @action(detail=False, methods=['GET'], url_path='detail')
-    def detail_list(self, request, **kwargs):
-        """获取商品详情信息"""
+    def detail_list(self, request):
+        """获取指定商品详情信息"""
         pk = request.query_params.get('pk')
         obj = self.get_instance(pk)
         serializer = self.get_serializer(instance=obj)
