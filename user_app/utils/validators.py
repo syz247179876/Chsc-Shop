@@ -42,7 +42,7 @@ class RegionValidator(validators.RegexValidator):
 @deconstructible
 class ProvinceValidator(validators.RegexValidator):
     """验证省份-城市"""
-    regex =  r'^[\u4e00-\u9fa5]{2,10}/[\u4e00-\u9fa5]{2,10}/[\u4e00-\u9fa5]{2,10}$'
+    regex =  r'^[\u4e00-\u9fa5]{2,10}/[\u4e00-\u9fa5]{2,10}(/[\u4e00-\u9fa5]{2,10}$)*'
     message = _('省份格式不规范')
     flags = 0
 

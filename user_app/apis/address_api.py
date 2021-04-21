@@ -92,3 +92,10 @@ class AddressOperation(viewsets.ModelViewSet):
     @validate_url_data('address', 'pk')
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+
+    @action(methods=['GET'], detail=False, url_path='default')
+    def retrieve_default_address(self, request):
+        """获取用户默认收货地址"""
+        object = Address.address_.filter(user=request.user, default_address=True).first()
+        serializer = self.get_serializer(object)
+        return Response(serializer.data)
