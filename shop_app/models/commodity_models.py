@@ -98,7 +98,8 @@ class FreightItem(models.Model):
     可根据不同区域进行配置,每固定区域内为一个运费项
     """
 
-    freight = models.ForeignKey(to=Freight, verbose_name=_('运费id'), on_delete=models.CASCADE)
+    freight = models.ForeignKey(to=Freight, verbose_name=_('运费id'), on_delete=models.CASCADE,
+                                related_name='freight_items')
 
     # 启用状态
     status = models.BooleanField(default=True, verbose_name=_('是否启用'))
@@ -309,7 +310,8 @@ class Sku(models.Model):
     对能够影响商品销量和库存的销售属性集合进行排列组合的迪卡尔积种类
     """
 
-    sid = models.IntegerField(verbose_name=_('sku唯一标识'), unique=True)   # 标识唯一的sku，根据不同sku属性值组合而成
+    # 标识唯一的sku，根据不同sku属性值组合而成
+    sid = models.CharField(verbose_name=_('sku唯一标识'), unique=True, max_length=128)
 
     # 关系为多对一,原因在于对sku中的关键属性进行排列组合,每一种情况都是一个sku,因此多个sku对应一个商品
     commodity = models.ForeignKey(Commodity, on_delete=models.CASCADE, verbose_name=_('商品'), related_name='sku')
@@ -342,6 +344,8 @@ class Sku(models.Model):
 
     # sku是否上下架
     status = models.BooleanField(verbose_name=_('sku状态'))
+
+    objects = Manager()
 
     class Meta:
         db_table = 'sku'
