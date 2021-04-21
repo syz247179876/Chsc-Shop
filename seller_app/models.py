@@ -4,6 +4,7 @@ from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 
 from universal_app.models import Role
+from user_app.utils.validators import ProvinceValidator
 
 User = get_user_model()
 
@@ -52,6 +53,13 @@ class Store(models.Model):
 
     # 物流服务分数
     logistics_score = models.DecimalField(max_digits=2, decimal_places=1, verbose_name=_('物流服务分数'), default=5.0)
+
+    # 发货地,省份/市
+    province = models.CharField(verbose_name=_('省份/市'),
+                                max_length=20,
+                                default="中国/北京",
+                                validators=[ProvinceValidator(), ]
+                                )
 
     objects = Manager()
 
