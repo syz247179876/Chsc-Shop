@@ -3,20 +3,72 @@
 # @Author : 司云中
 # @File : cart_api.py
 # @Software: Pycharm
+from django.db.models import Count
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from Emall.response_code import response_code
+from Emall.exceptions import DataFormatError
+from Emall.response_code import response_code, DELETE_CART_COMMODITY, ADD_CART_COMMODITY
 from user_app.model.trolley_models import Trolley
 from user_app.redis.shopcart_redis import shopcart
-from user_app.serializers.shopcart_serializers import ShopCartSerializer
+from user_app.serializers.shopcart_serializers import ShopCartSerializer, ShopCartDeleteSerializer
 from user_app.utils.pagination import TrolleyResultsSetPagination
 
 
 class ShopCartOperation(GenericViewSet):
+    """购物车相关的操作"""
+
+    serializer_class = ShopCartSerializer
+
+    serializer_delete_class = ShopCartDeleteSerializer
+
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # join连接查询，计算总记录条数
+        return Trolley.trolley_.filter(user=self.request.user).select_related('commodity').select_related(
+            'sku').aggregate(total=Count('id'))
+
+    def create(self, request):
+        """添加购物车记录"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.add()
+        return Response(response_code.result(ADD_CART_COMMODITY, '添加成功'))
+
+    @action(methods=['DELETE'], detail=False, url_path='several')
+    def destroy_several(self, request):
+        """单删购物车记录"""
+        serializer = self.serializer_delete_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        rows = serializer.delete()
+        return Response(response_code.result(DELETE_CART_COMMODITY, '删除成功' if rows else '无数据操作'))
+
+    @action(methods=['DELETE'], detail=False, url_path='all')
+    def destroy_all(self, request):
+        """清空购物车"""
+        rows, _ = Trolley.trolley_.filter(user=self.request.user).delete()
+        return Response(response_code.result(DELETE_CART_COMMODITY, '删除成功' if rows else '无数据操作'))
+
+    def update(self, request, pk=None):
+        """更新购物车中某件商品的数量，并返回更新后的价格"""
+        count = request.query_params.get('count', None)
+        if not count:
+            raise DataFormatError('缺少数据')
+        else:
+            pass
+
+    def list(self, request):
+        """获取购物车列表信息"""
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(instance=queryset)
+        return Response(serializer.data)
+
+
+class ShopCartApiView(GenericViewSet):
     """购物车的相关操作"""
 
     model_class = Trolley
