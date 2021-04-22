@@ -7,6 +7,7 @@
 
 from rest_framework import serializers
 
+from remark_app.models.remark_models import Remark, RemarkReply
 from seller_app.models import Store
 from shop_app.models.commodity_models import Commodity, Sku, SkuProps, SkuValues, Freight, FreightItem
 
@@ -18,6 +19,22 @@ class CommodityCardSerializer(serializers.ModelSerializer):
         model = Commodity
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'details', 'intro', 'little_image')
 
+
+class CommodityRemarkReplySerializer(serializers.ModelSerializer):
+    """商品的评价回复序列化器"""
+
+    class Meta:
+        model = RemarkReply
+        fields = ('reply_content','reply_time', 'praise', 'against', 'is_action')
+
+class CommodityRemarkSerializer(serializers.ModelSerializer):
+    """商品的评价序列化器"""
+    consumer = serializers.CharField(read_only=True, source='consumer.username')
+    reply = CommodityRemarkReplySerializer(many=True)
+
+    class Meta:
+        model = Remark
+        fields = ('consumer', 'grade', 'reward_content', 'reward_time', 'praise', 'against', 'action_status', 'reply')
 
 class CommodityFreightItemSerializer(serializers.ModelSerializer):
     """商品运费模板项序列化器"""
@@ -75,6 +92,7 @@ class CommodityDetailSerializer(serializers.ModelSerializer):
     sku_props = CommoditySkuPropsSerializer(many=True)
     store = CommodityStoreSerializer()
     freight = CommodityFreightSerializer()
+    remark = CommodityRemarkSerializer(many=True)
 
     class Meta:
         model = Commodity

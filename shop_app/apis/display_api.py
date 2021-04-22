@@ -155,7 +155,8 @@ class CommodityDetailDisplay(GenericViewSet):
     def get_instance(self, pk):
         """根据pk获取商品对象，join联合查询多表"""
         try:
-            return self.model.commodity_.select_related('store').select_related('freight').prefetch_related('sku').get(
+            return self.model.commodity_.select_related('store').select_related('freight').prefetch_related(
+                'sku').prefetch_related('remark').get(
                 pk=pk)
         except self.model.DoesNotExist:
             raise DataNotExist()
