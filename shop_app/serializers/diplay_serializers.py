@@ -7,9 +7,13 @@
 
 from rest_framework import serializers
 
+from Emall.loggings import Logging
 from remark_app.models.remark_models import Remark, RemarkReply
 from seller_app.models import Store
-from shop_app.models.commodity_models import Commodity, Sku, SkuProps, SkuValues, Freight, FreightItem
+from shop_app.models.commodity_models import Commodity, SkuProps, SkuValues, Freight, FreightItem
+from user_app.model.collection_models import Collection
+
+consumer_logger = Logging.logger('consumer_')
 
 
 class CommodityCardSerializer(serializers.ModelSerializer):
@@ -25,7 +29,8 @@ class CommodityRemarkReplySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RemarkReply
-        fields = ('reply_content','reply_time', 'praise', 'against', 'is_action')
+        fields = ('reply_content', 'reply_time', 'praise', 'against', 'is_action')
+
 
 class CommodityRemarkSerializer(serializers.ModelSerializer):
     """商品的评价序列化器"""
@@ -35,6 +40,7 @@ class CommodityRemarkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Remark
         fields = ('consumer', 'grade', 'reward_content', 'reward_time', 'praise', 'against', 'action_status', 'reply')
+
 
 class CommodityFreightItemSerializer(serializers.ModelSerializer):
     """商品运费模板项序列化器"""
@@ -93,6 +99,27 @@ class CommodityDetailSerializer(serializers.ModelSerializer):
     store = CommodityStoreSerializer()
     freight = CommodityFreightSerializer()
     remark = CommodityRemarkSerializer(many=True)
+
+    collection = serializers.SerializerMethodField()
+
+    def get_collection(self, obj):
+        """
+        判断该商品用户是否收藏
+        """
+        user = getattr(self.context.get('request'), 'user', None)
+        data = {
+                'is_collected': False,
+                'pk': None
+            }
+        if not user:
+            return data
+        else:
+            queryset = Collection.objects.filter(commodity_id=obj.pk, user=user)
+            if queryset.exists():
+                object = queryset.first()
+                data['is_collected'] = True
+                data['pk'] = object.pk
+            return data
 
     class Meta:
         model = Commodity
