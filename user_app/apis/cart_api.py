@@ -11,10 +11,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from Emall.exceptions import DataFormatError
-from Emall.response_code import response_code, DELETE_CART_COMMODITY, ADD_CART_COMMODITY
+from Emall.response_code import response_code, DELETE_CART_COMMODITY, ADD_CART_COMMODITY, MODIFY_CART_COMMODITY
+from shop_app.models.commodity_models import Sku
 from user_app.model.trolley_models import Trolley
 from user_app.redis.shopcart_redis import shopcart
-from user_app.serializers.shopcart_serializers import ShopCartSerializer, ShopCartDeleteSerializer
+from user_app.serializers.shopcart_serializers import ShopCartSerializer, ShopCartDeleteSerializer, CartCountSerializer
 from user_app.utils.pagination import TrolleyResultsSetPagination
 
 
@@ -23,9 +24,15 @@ class ShopCartOperation(GenericViewSet):
 
     serializer_class = ShopCartSerializer
 
+    serializer_update_delete = CartCountSerializer
+
     serializer_delete_class = ShopCartDeleteSerializer
 
     permission_classes = [IsAuthenticated]
+
+    def get_delete_serializer(self, *args, **kwargs):
+        kwargs['context'] = self.get_serializer_context()
+        return self.serializer_delete_class(*args, **kwargs)
 
     def get_queryset(self):
         # join连接查询，计算总记录条数
@@ -42,7 +49,7 @@ class ShopCartOperation(GenericViewSet):
     @action(methods=['DELETE'], detail=False, url_path='several')
     def destroy_several(self, request):
         """单删购物车记录"""
-        serializer = self.serializer_delete_class(data=request.data)
+        serializer = self.get_delete_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         rows = serializer.delete()
         return Response(response_code.result(DELETE_CART_COMMODITY, '删除成功' if rows else '无数据操作'))
@@ -53,13 +60,15 @@ class ShopCartOperation(GenericViewSet):
         rows, _ = Trolley.trolley_.filter(user=self.request.user).delete()
         return Response(response_code.result(DELETE_CART_COMMODITY, '删除成功' if rows else '无数据操作'))
 
-    def update(self, request, pk=None):
+    @action(methods=['PUT'], detail=False, url_path='count')
+    def update_count(self, request):
         """更新购物车中某件商品的数量，并返回更新后的价格"""
-        count = request.query_params.get('count', None)
-        if not count:
-            raise DataFormatError('缺少数据')
-        else:
-            pass
+
+        serializer = self.serializer_update_delete(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_price = serializer.modify()
+        return Response(response_code.result(MODIFY_CART_COMMODITY, '修改成功', new_price=new_price))
+
 
     def list(self, request):
         """获取购物车列表信息"""

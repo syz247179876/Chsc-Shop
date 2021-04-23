@@ -8,10 +8,10 @@ import json
 
 from rest_framework import serializers
 
-from Emall.exceptions import DataTypeError, DataFormatError, LabelError, SqlServerError
+from Emall.exceptions import DataTypeError, DataFormatError, LabelError, SqlServerError, DataNotExist
 from Emall.loggings import Logging
 from seller_app.models import Store
-from shop_app.models.commodity_models import Commodity
+from shop_app.models.commodity_models import Commodity, Sku
 from user_app.model.trolley_models import Trolley
 
 common_logger = Logging.logger('django')
@@ -54,7 +54,7 @@ class ShopCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trolley
         commodity_model = Commodity
-        fields = ('pk', 'count', 'commodity', 'sku')
+        fields = ('pk', 'count', 'commodity', 'sku', 'total')
         read_only_fields = ('pk', 'total')
 
     def add(self):
@@ -62,12 +62,65 @@ class ShopCartSerializer(serializers.ModelSerializer):
         credential = {
             'user': getattr(self.context.get('request'), 'user'),
             'commodity': self.validated_data.get('commodity'),
-            'count': self.validated_data.get('count'),
+            'count': self.validated_data.get('count', 1),
             'sku': self.validated_data.get('sku')
         }
         self.Meta.model.trolley_.create(**credential)
 
         # TODO:后续为了进行用户行为的分析，可以记录用户假如购物车的商品，作为行为分析的数据
+
+
+class CartCountSerializer(serializers.ModelSerializer):
+    """购物车的商品数量序列化器"""
+    # 购物车中记录的id值
+    tid = serializers.IntegerField(min_value=1, write_only=True)
+
+    # 购物车中对应商品的sku的id值
+    sid = serializers.IntegerField(min_value=1, write_only=True)
+
+    # 购买的商品数量
+    count = serializers.IntegerField(min_value=1, max_value=999999, write_only=True)
+
+    class Meta:
+        model = Trolley
+        sku_model = Sku
+        fields = ('tid', 'sid', 'count')
+
+    def validate_tid(self, value):
+        """校验购物车记录是否存在"""
+        try:
+            return self.Meta.model.trolley_.get(pk=value)
+        except self.Meta.model.DoesNotExist:
+            raise DataNotExist()
+
+    def validate_sid(self, value):
+        """
+        校验sku记录是否存在
+        返回优惠的价格
+        """
+        try:
+            sku_dict = self.Meta.sku_model.objects.values('favourable_price').filter(pk=value).first()
+        except self.Meta.sku_model.DoesNotExist:
+            raise DataNotExist()
+        else:
+            return sku_dict.get('favourable_price')
+
+    def modify(self):
+        """
+        更新购物车中该商品记录的数量
+        同时计算数量在sku中对应的总价格，返回给客户端
+        :return decimal price
+        """
+
+        credential = {
+            'trolley': self.validated_data.pop('tid'),
+            'price': self.validated_data.pop('sid'),
+            'count': self.validated_data.pop('count')
+        }
+        trolley = credential.get('trolley')
+        trolley.count = credential.get('count')
+        trolley.save()
+        return credential.get('count') * credential.pop('price')
 
 # class ShopCartSerializer(serializers.ModelSerializer):
 #
