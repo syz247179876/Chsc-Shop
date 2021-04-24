@@ -199,5 +199,14 @@ class FavoritesOperation(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         res = serializer.add(request)
-        return Response(response_code.result(ADD_FAVORITES_SUCCESS, '添加成功' if res else '无数据更新', data=res.pk))
+        return Response(response_code.result(ADD_FAVORITES_SUCCESS, '添加成功' if res else '商品已被添加'))
+
+    @action(methods=['POST'], detail=False, url_path='several')
+    def create_several(self, request):
+        """添加一系列收藏记录"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.bulk_add(request)
+        return Response(response_code.result(ADD_FAVORITES_SUCCESS,'添加成功'))
+
 

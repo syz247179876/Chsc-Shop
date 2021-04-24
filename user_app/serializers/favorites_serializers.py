@@ -5,7 +5,7 @@
 # @Software: PyCharm
 import datetime
 
-from Emall.exceptions import DataNotExist
+from Emall.exceptions import DataNotExist, DataFormatError
 from Emall.loggings import Logging
 from user_app.model.collection_models import Commodity, Collection
 
@@ -26,9 +26,11 @@ class FavoritesSerializer(serializers.ModelSerializer):
     """收藏夹序列化器"""
 
     # 收藏商品
-    commodity_pk = serializers.IntegerField(write_only=True)
+    commodity_pk = serializers.IntegerField(write_only=True, required=False)
 
-    # commodity = CommoditySerializer(read_only=True, many=True)  # 必须和外键名同名
+    # 收藏某些商品
+    commodity_pk_list = serializers.ListSerializer(child=serializers.IntegerField(min_value=1), allow_empty=False,
+                                                   required=False, write_only=True)
 
     cid = serializers.IntegerField(source='commodity.pk', read_only=True)
 
@@ -50,26 +52,45 @@ class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         commodity_model = Commodity
-        # fields = ('pk', 'commodity_pk', 'commodity')
         fields = (
-        'pk', 'cid', 'commodity_pk', 'commodity_name', 'onshelve_time', 'unshelve_time', 'intro', 'status', 'price',
-        'favourable_price')
+            'pk', 'cid', 'commodity_pk', 'commodity_name', 'onshelve_time', 'unshelve_time', 'intro', 'status', 'price',
+            'favourable_price', 'commodity_pk_list')
         read_only_fields = ('pk',)
+
+    def validate_commodity_pk_list(self, value):
+        """验证收藏的一系列商品的id值是否存在"""
+        queryset = self.Meta.commodity_model.commodity_.filter(pk__in=value)
+        if not queryset.exists():
+            raise DataNotExist()
+        else:
+            return queryset
 
     def validate_commodity_pk(self, value):
         """验证收藏的商品id值是否存在"""
-        obj = self.Meta.commodity_model.commodity_.filter(pk=value)
-        if not obj.exists():
+        queryset = self.Meta.commodity_model.commodity_.filter(pk=value)
+        if not queryset.exists():
             raise DataNotExist()
         else:
-            return obj.first()
+            return queryset.first()
 
     def add(self, request):
         """添加商品到收藏夹"""
-        commodity = self.validated_data.pop('commodity_pk')
+        commodity = self.validated_data.pop('commodity_pk', None)
+        if not commodity:
+            raise DataFormatError('数据缺失')
         # 如果用户已经收藏过该商品
         if self.Meta.model.objects.filter(user=request.user, commodity=commodity).exists():
             return None
         # 创建新的收藏记录
         return self.Meta.model.objects.create(user=request.user, commodity=commodity,
                                               collect_time=datetime.datetime.now())
+
+    def bulk_add(self, request):
+        """添加一系列商品到收藏夹"""
+        commodity_list = self.validated_data.pop('commodity_pk_list', None)
+        if not commodity_list:
+            raise DataFormatError('数据缺失')
+        self.Meta.model.objects.bulk_create([
+            self.Meta.model(user=request.user, commodity=obj, collect_time=datetime.datetime.now()) for obj in
+            commodity_list
+        ])

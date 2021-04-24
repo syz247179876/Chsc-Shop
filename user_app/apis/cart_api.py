@@ -12,6 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from Emall.exceptions import DataFormatError
 from Emall.response_code import response_code, DELETE_CART_COMMODITY, ADD_CART_COMMODITY, MODIFY_CART_COMMODITY
+from seller_app.models import Store
 from shop_app.models.commodity_models import Sku
 from user_app.model.trolley_models import Trolley
 from user_app.redis.shopcart_redis import shopcart
@@ -36,8 +37,8 @@ class ShopCartOperation(GenericViewSet):
 
     def get_queryset(self):
         # join连接查询，计算总记录条数
-        return Trolley.trolley_.filter(user=self.request.user).select_related('commodity').select_related(
-            'sku').aggregate(total=Count('id'))
+        return Trolley.trolley_.filter(user=self.request.user).select_related('commodity__store').select_related(
+            'sku')
 
     def create(self, request):
         """添加购物车记录"""
@@ -69,11 +70,10 @@ class ShopCartOperation(GenericViewSet):
         new_price = serializer.modify()
         return Response(response_code.result(MODIFY_CART_COMMODITY, '修改成功', new_price=new_price))
 
-
     def list(self, request):
         """获取购物车列表信息"""
         queryset = self.get_queryset()
-        serializer = self.get_serializer(instance=queryset)
+        serializer = self.get_serializer(instance=queryset, many=True)
         return Response(serializer.data)
 
 
