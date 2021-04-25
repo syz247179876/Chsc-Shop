@@ -8,7 +8,7 @@ from user_app.apis.cart_api import ShopCartOperation
 from user_app.apis.favourites_api import  FavoritesOperation
 from user_app.apis.foot_api import FootOperation
 from user_app.apis.head_image_api import HeadImageOperation
-from user_app.apis.information_api import InformationOperation
+from user_app.apis.information_api import InformationOperation, UserExtraInfoOperation
 from user_app.apis.ocr_api import VerifyIdCard
 from user_app.apis.password_api import ChangePassword
 from django.conf import settings
@@ -49,4 +49,5 @@ router.register(f'{settings.URL_PREFIX}/address', AddressOperation, basename='ad
 router.register(f'{settings.URL_PREFIX}/foot', FootOperation, basename='foot')
 router.register(f'{settings.URL_PREFIX}/favorites', FavoritesOperation, basename='favorites')
 router.register(f'{settings.URL_PREFIX}/trolley', ShopCartOperation, basename='trolley')
+router.register(f'{settings.URL_PREFIX}/extra', UserExtraInfoOperation, basename='extra')
 urlpatterns += router.urls

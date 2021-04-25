@@ -144,5 +144,20 @@ class FootRedisOperation(BaseRedis):
                 consumer_logger.error(e)
                 raise RedisOperationError()
 
+    def retrieve_foot_count(self, user_id):
+        """
+        获取某用户的足迹记录总数
+        :param user_id: 用户id
+        :param kwargs: 额外参数
+        :return: int
+        """
+        with manage_redis(self.db) as redis:
+            try:
+                key = self.key('foot', user_id)
+                return redis.zcard(key)
+            except Exception as e:
+                consumer_logger.error(e)
+                raise RedisOperationError()
+
 
 foot_redis = FootRedisOperation.choice_redis_db('redis')
