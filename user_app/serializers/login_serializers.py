@@ -117,11 +117,11 @@ class UserJwtLoginSerializer(Serializer):
             'username': username,
             'exp': datetime.utcnow() + api_settings.JWT_EXPIRATION_DELTA
         }
-        if hasattr(user, 'email'):
+        if getattr(user, 'email'):
             payload['email'] = user.email
 
         # add seller info
-        if hasattr(user, 'is_seller'):
+        if getattr(user, 'is_seller'):
             payload['is_seller'] = True
             seller = self.Meta.seller_model.objects.get(user=user)
             payload['sid'] = seller.pk
