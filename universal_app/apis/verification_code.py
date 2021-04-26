@@ -11,8 +11,9 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from Emall.base_redis import BaseRedis
+from Emall.exceptions import CodeError
 from Emall.loggings import Logging
-from Emall.response_code import response_code
+from Emall.response_code import response_code, VERIFICATION_CODE_SEND
 from Emall.settings import TEMPLATES_CODE_REGISTER
 from Emall.settings import TEMPLATES_CODE_RETRIEVE_PASSWORD, TEMPLATES_CODE_REGISTER, TEMPLATES_CODE_LOGIN, \
     TEMPLATES_CODE_IDENTIFY, TEMPLATES_CODE_MODIFY_PASSWORD
@@ -61,20 +62,19 @@ class SendCode:
                 if way == 'email':
                     # 异步任务队列发送验证码
                     send_email.delay(title=title, content=content, user_email=number)
-                    self.response = response_code.email_verification_success
                 elif way == 'phone':
                     # 发送手机验证码
                     template_code = kwargs.pop('template_code')
                     send_phone.delay(phone_numbers=number, template_code=template_code,
                                      template_param={'code': code})
-                    self.response = response_code.phone_verification_success
+                self.response = response_code.result(VERIFICATION_CODE_SEND, '发送成功')
                 # 保存验证码
                 self.redis.save_code(number, code, self.time)
-                return Response(self.response, status=status.HTTP_200_OK)
+                return Response(self.response)
             except Exception as e:
                 # fail to send
                 common_logger.info('{}-send_email:{}'.format(mode, str(e)))
-                return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                raise CodeError('验证码发送失败')
 
         return send
 
