@@ -10,7 +10,7 @@ from rest_framework import serializers
 from Emall.loggings import Logging
 from remark_app.models.remark_models import Remark, RemarkReply
 from seller_app.models import Store
-from shop_app.models.commodity_models import Commodity, SkuProps, SkuValues, Freight, FreightItem
+from shop_app.models.commodity_models import Commodity, SkuProps, SkuValues, Freight, FreightItem, CommodityCategory
 from user_app.model.collection_models import Collection
 
 consumer_logger = Logging.logger('consumer_')
@@ -108,9 +108,9 @@ class CommodityDetailSerializer(serializers.ModelSerializer):
         """
         user = getattr(self.context.get('request'), 'user', None)
         data = {
-                'is_collected': False,
-                'pk': None
-            }
+            'is_collected': False,
+            'pk': None
+        }
         if not user:
             return data
         else:
@@ -124,3 +124,32 @@ class CommodityDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commodity
         fields = '__all__'
+
+
+class CommodityFirstCategorySerializer(serializers.ModelSerializer):
+    """商品一级类别序列化器"""
+
+    text = serializers.CharField(source='name')  # 换名
+
+    class Meta:
+        model = CommodityCategory
+        fields = ('pk', 'text')
+
+
+class CommoditySecondCategorySerializer(serializers.ModelSerializer):
+    """商品二级及以下序列化器"""
+
+    child = serializers.SerializerMethodField(read_only=True)
+
+    def get_child(self, obj):
+        """
+        对自身递归嵌套查询
+        注意obj此时为字典类型,每次递归要跟第三次一样
+        """
+        return CommoditySecondCategorySerializer(instance=self.Meta.model.objects.filter(pre_id=obj.get('pk'))
+                                                 .values('pk', 'name', 'thumbnail').order_by('sort'), many=True).data
+
+    class Meta:
+        model = CommodityCategory
+        fields = ('pk', 'name', 'thumbnail', 'child')  # pre会反序列化为model实例
+        read_only_fields = ('pk', 'name', 'thumbnail', 'child')
