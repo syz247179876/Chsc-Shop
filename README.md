@@ -10,6 +10,11 @@
 
 我会定期review code 质量,进一步完善和优化
 
+
+后端API项目地址:https://github.com/syz247179876/Chsc-Shop
+
+前端项目地址:https://github.com/PleaseKillMe-Ok/vue-mall
+
 ---
 
 ---
