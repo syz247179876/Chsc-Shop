@@ -18,3 +18,6 @@ class RedisOrderOperation(BaseRedis):
         with manage_redis(self.db) as redis:
             key = OrderCreateSerializer.generate_orderid(pk)
             redis.setex(key, 3000, 1)
+
+
+order_redis = RedisOrderOperation.choice_redis_db('redis')  # 选择redis具体db
