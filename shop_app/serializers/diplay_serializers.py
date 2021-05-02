@@ -19,9 +19,13 @@ consumer_logger = Logging.logger('consumer_')
 class CommodityCardSerializer(serializers.ModelSerializer):
     """商品卡片显示序列化器"""
 
+    store_name = serializers.CharField(source='store.name')
+    is_free = serializers.BooleanField(source='freight.is_free')
+
     class Meta:
         model = Commodity
-        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'details', 'intro', 'little_image')
+        fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'details', 'intro', 'little_image',
+                  'sell_counts', 'store_name', 'is_free')
 
 
 class CommodityRemarkReplySerializer(serializers.ModelSerializer):
