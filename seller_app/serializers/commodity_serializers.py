@@ -56,6 +56,8 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     # 模板id
     freight_id = serializers.IntegerField(min_value=1)
 
+    stock = serializers.IntegerField(min_value=1, required=True)
+
     class Meta:
         model = Commodity
         category_model = CommodityCategory
@@ -148,7 +150,8 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             'favourable_price': self.validated_data.pop('favourable_price'),
             'details': self.validated_data.pop('details', ''),
             'intro': self.validated_data.pop('intro'),
-            'status': self.validated_data.pop('status')
+            'status': self.validated_data.pop('status'),
+            'stock': self.validated_data.pop('stock')
         }
 
 
@@ -350,7 +353,7 @@ class SellerSkuSerializer(serializers.ModelSerializer):
 
     properties_r = serializers.SerializerMethodField()  # 用于读
 
-    properties_w = serializers.DictField(child=serializers.IntegerField(), allow_empty=False, write_only=True)  # 用于写
+    properties_w = serializers.DictField(child=serializers.CharField(), allow_empty=False, write_only=True)  # 用于写
 
     class Meta:
         model = Sku

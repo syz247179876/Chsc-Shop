@@ -61,12 +61,15 @@ class SellerCommodityApiView(GenericAPIView):
     def delete(self, request):
         """商家删除商品"""
         serializer = self.serializer_delete_class(data=request.data)
+        print(self.request.query_params.get('all', None))
         if self.request.query_params.get('all', None) == 'true':
-            self.serializer_delete_class.Meta.model.commodity_.all().delete()
+            queryset = Commodity.commodity_.filter(user=request.user).delete()
+            print(queryset)
         else:
             serializer.is_valid(raise_exception=True)
             serializer.delete_commodity()
-        return
+        # return
+        return Response(3333)
 
 
 class SkuPropApiView(BackendGenericApiView):
@@ -139,7 +142,7 @@ class SellerSkuApiView(BackendGenericApiView):
 
     serializer_delete_class = SellerSkuDeleteSerializer
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     @validate_url_data('sku', 'pk', null=True)
     def get(self, request):
