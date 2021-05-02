@@ -186,7 +186,6 @@ class FavoritesOperation(GenericViewSet):
         """删除一条收藏记录"""
         pk, user = kwargs.get('pk'), request.user
         rows, _ = Collection.objects.filter(pk=pk, user=user).delete()
-        print(rows)
         return Response(response_code.result(DELETE_FAVORITES_SUCCESS, '删除成功' if rows > 0 else '无数据操作'))
 
     @action(methods=['delete'], detail=False, url_path='destroy-all')
@@ -200,6 +199,14 @@ class FavoritesOperation(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         res = serializer.add(request)
-        print(res)
-        return Response(response_code.result(ADD_FAVORITES_SUCCESS, '添加成功' if res else '无数据更新'))
+        return Response(response_code.result(ADD_FAVORITES_SUCCESS, '添加成功' if res else '商品已被添加', data=res.pk))
+
+    @action(methods=['POST'], detail=False, url_path='several')
+    def create_several(self, request):
+        """添加一系列收藏记录"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.bulk_add(request)
+        return Response(response_code.result(ADD_FAVORITES_SUCCESS,'添加成功'))
+
 

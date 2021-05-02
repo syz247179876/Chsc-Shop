@@ -14,14 +14,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from order_app.utils.pagination import OrderResultsSetPagination
-from order_app.models.order_models import OrderBasic
-from order_app.redis.order_redis import RedisOrderOperation
-from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCommoditySerializer, \
-    OrderAddressSerializer, OrderCreateSerializer
+from Emall.exceptions import SqlServerError
 from Emall.loggings import Logging
-
-from Emall.response_code import response_code
+from Emall.response_code import response_code, DELETE_ORDER_SUCCESS, CREATE_ORDER_SUCCESS
+from order_app.models.order_models import OrderBasic
+from order_app.redis.order_redis import order_redis
+from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCommoditySerializer, \
+    OrderAddressSerializer, OrderCreateSerializer, OrderConfirmSerializer
+from order_app.utils.pagination import OrderResultsSetPagination
+from shop_app.models.commodity_models import Commodity
+from user_app.model.trolley_models import Trolley
 
 common_logger = Logging.logger('django')
 
@@ -31,29 +33,58 @@ order_logger = Logging.logger('order_')
 class OrderBasicOperation(viewsets.GenericViewSet):
     """订单基本操作"""
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     serializer_class = OrderBasicSerializer
 
-    redis = RedisOrderOperation.choice_redis_db('redis')  # 选择redis具体db
+    serializer_create_class = OrderCreateSerializer
+
+    redis = order_redis
+
+    def get_object_detail(self):
+        """获取某个订单及订单下的商品信息"""
+        pass
+
+    def get_create_serializer(self, *args, **kwargs):
+        kwargs['context'] = self.get_serializer_context()
+        return self.serializer_create_class(*args, **kwargs)
+
 
     def get_queryset(self):
         """默认获取该用户的所有订单"""
-        return OrderBasic.order_basic_.filter(user=self.request.user)
+        return OrderBasic.order_basic_.filter(user=self.request.user).prefetch_related('order_details')
+
+    def get_status_queryset(self):
+        """根据订单状态搜索数据集"""
+        status = self.request.query_params.get(self.lookup_field, '0')
+        if status == '0':
+            return OrderBasic.order_basic_.filter(user=self.request.user, delete_consumer=False).\
+                prefetch_related('order_details').prefetch_related('order_details__commodity').\
+                prefetch_related('order_details__sku')
+        return OrderBasic.order_basic_.filter(user=self.request.user, status=status, delete_consumer=False).\
+            prefetch_related('order_details').prefetch_related('order_details__commodity').\
+            prefetch_related('order_details__sku')
 
     def disguise_del_order_list(self, validated_data):
-        """逻辑群删除订单"""
+        """
+        逻辑群删除订单
+        :return int
+        """
         return self.get_queryset().filter(pk__in=validated_data.get('list_pk', [])).update(delete_consumer=True)
 
     def substantial_del_order_list(self, validated_data):
-        """当用户和商家都已逻辑删除订单，此时群真删订单"""
-        self.get_queryset().filter(pk__in=validated_data.get('list_pk', []), delete_shopper=True).delete()
+        """
+        当用户和商家都已逻辑删除订单，此时群真删订单
+        :return int
+        """
+        rows, _ = self.get_queryset().filter(pk__in=validated_data.get('list_pk', []), delete_shopper=True).delete()
+        return rows
 
     def disguise_del_order(self):
         """逻辑单删订单"""
         instance = self.get_object()
         instance.delete_consumer = True
-        instance.save()
+        instance.save(update_fields=['delete_consumer'])
 
     def substantial_del_order(self):
         """真实单删订单"""
@@ -78,32 +109,38 @@ class OrderBasicOperation(viewsets.GenericViewSet):
             return Response(response_code.delete_order_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(response_code.delete_order_success, status=status.HTTP_200_OK)
 
-    def destroy(self, request, *args, **kwargs):
-        """单删"""
+    def destroy(self, request, pk=None):
+        """
+        用户/商家单删订单
+        只有当两者都删除后才真正删除
+        """
         try:
             with transaction.atomic():  # 开启事务
                 self.disguise_del_order()  # 假删
                 self.substantial_del_order()  # 真删
         except DatabaseError as e:
             order_logger.error(e)
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(response_code.delete_order_success, status=status.HTTP_200_OK)
+            raise SqlServerError()
+        return Response(response_code.result(DELETE_ORDER_SUCCESS, '删除成功'))
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, pk=None):
         """获取具体的单个订单细节"""
-        instance = self.get_object()
-        serializer = self.get_serializer(instance=instance)
+        obj = self.get_object_detail()
+        serializer = self.get_serializer(instance=obj)
+        # 检查某个订单是否过期
         expire = self.redis.get_ttl('order_{pk}_expire'.format(pk=self.kwargs.get(self.lookup_field)))
         if expire != -1 and expire != -2:
-            serializer.data.update({'order_expire': expire})
-        return Response(serializer.data)
+            serializer.data.update({'order_expire': expire}) # 返回过期时间
+            return Response(serializer.data)
+        else:
+            return Response({'detail': '订单已经失效'})
 
     def list(self, request, *args, **kwargs):
         """
         获取具体status状态的订单集合
         前端url中传递参数名为page
         """
-        queryset = self.get_queryset()
+        queryset = self.get_status_queryset()
         page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -111,55 +148,33 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-
-class OrderListOperation(GenericAPIView):
-    """获取具体status状态的订单操作"""
-
-    lookup_field = 'status'
-    pagination_class = OrderResultsSetPagination
-
-    serializer_class = OrderBasicSerializer
-
-    def get_queryset(self):
-        """根据status返回查询集"""
-        status_ = self.kwargs.get(self.lookup_field, '0')
-        if status_ == '0':
-            return OrderBasic.order_basic_.filter(delete_consumer=False)
-        return OrderBasic.order_basic_.filter(status=status_, delete_consumer=False)
-
-    def get(self, request, *args, **kwargs):
-        """
-        获取具体status状态的订单集合
-        前端url中传递参数名为page
-        """
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)  # 返回一个list页对象,默认返回第一页的page对象
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    def create(self, request):
+        """创建初始订单"""
+        serializer = self.get_create_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.create_order(request.user, self.redis)
+        return Response(response_code.result(CREATE_ORDER_SUCCESS, '创建成功'))
 
 
-class OrderCreateOperation(GenericAPIView):
-    """创建初始订单操作"""
+class OrderConfirmOperation(GenericAPIView):
+    """
+    用户点击结算/立即购买
+    进入确认订单步骤
+    """
+    permission_classes = [IsAuthenticated]
 
-    permission_class = [IsAuthenticated]
+    serializer_class = OrderConfirmSerializer
 
-    serializer_class = OrderCreateSerializer
-
-    redis = RedisOrderOperation.choice_redis_db('redis')
+    def get_instance(self, pk_list):
+        return Trolley.trolley_.filter(pk__in=pk_list, user=self.request.user).select_related('commodity__store').\
+            select_related('commodity__freight').select_related('sku')
 
     def post(self, request):
-        """创建初始订单"""
+        """根据用户结算时选择的商品进行显示"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        result = serializer.create_order(serializer.validated_data, request.user, self.redis)
-        if result:
-            return Response(response_code.create_order_success, status=status.HTTP_200_OK)
-        else:
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        serializer = self.get_serializer(instance=self.get_instance(serializer.validated_data.get('pk_list')), many=True)
+        return Response(serializer.data)
 
 # class OrderBasicOperation(GenericAPIView):
 #     """订单操作"""
@@ -236,76 +251,78 @@ class OrderCreateOperation(GenericAPIView):
 #             permission_classes = [IsAuthenticated, ]
 #         return [permission() for permission in permission_classes]  # 返回实例化后的权限类，用于循环校验权限
 
+#
+# class OrderBuyNow(APIView):
+#     """订单跳转暂存操作"""
+#
+#     permission_classes = [IsAuthenticated]
+#
+#     serializer_address_class = OrderAddressSerializer
+#     serializer_commodity_class = OrderCommoditySerializer
+#
+#     @property
+#     def get_serializer_address_class(self):
+#         # 地址序列化类
+#         return self.serializer_address_class
+#
+#     @property
+#     def get_serializer_commodity_class(self):
+#         # 商品序列化类
+#         return self.serializer_commodity_class
+#
+#     @method_decorator(login_required(login_url='/consumer/login/'))
+#     def post(self, request):
+#         """
+#         session做中间件用于暂存交易商品基本信息（不包括money)
+#         解决ajax禁止定向的问题
+#         """
+#
+#         # data = json.loads(request.body.decode('utf-8'))  # 解码 + 反序列化
+#         data = request.data
+#         try:
+#             request.session['commodity_list'] = data['commodity_list']
+#             request.session['counts_list'] = data['counts_list']
+#             common_logger.info(request.session['commodity_list'])
+#             common_logger.info(request.session['counts_list'])
+#             return Response({'code': 666})
+#         except Exception as e:
+#             order_logger.error(e)
+#             return Response({'code': -666})
+#
+#
+# class OrderCommitOperation(viewsets.ModelViewSet):
+#     """用户结算商品，生成初始订单"""
+#
+#     permission_classes = [IsAuthenticated]
+#
+#     serializer_class = OrderCommoditySerializer
+#
+#     extra_time = 30  # 订单持续时间30min
+#
+#     # def get_serializer_context(self):
+#     #     """递交额外的信息"""
+#     #     pass
+#
+#     # @method_decorator(login_required(login_url='/consumer/login/'))
+#     # def list(self, request, *args, **kwargs):
+#     #     """get the commodity which consumer intend to buy"""
+#     #     # 序列化用户订单生成页获取商品信息
+#     #     try:
+#     #         commodity_list = request.session['commodity_list']
+#     #         instances = self.get_serializer_class.get_commodity(commodity_list)
+#     #         serializer = self.get_serializer(instances, context=self.context(request), many=True)
+#     #         return Response(serializer.data)
+#     #     except Exception as e:
+#     #         order_logger.error(e)
+#     #         return Response(None)
+#
+#     def create(self, request, *args, **kwargs):
+#         """
+#         从购物车/商品页直接点击结算/购买
+#         传入相关信息，计算价格，生成未支付订单
+#         """
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         return Response({'www': 'www'})
 
-class OrderBuyNow(APIView):
-    """订单跳转暂存操作"""
 
-    permission_classes = [IsAuthenticated]
-
-    serializer_address_class = OrderAddressSerializer
-    serializer_commodity_class = OrderCommoditySerializer
-
-    @property
-    def get_serializer_address_class(self):
-        # 地址序列化类
-        return self.serializer_address_class
-
-    @property
-    def get_serializer_commodity_class(self):
-        # 商品序列化类
-        return self.serializer_commodity_class
-
-    @method_decorator(login_required(login_url='/consumer/login/'))
-    def post(self, request):
-        """
-        session做中间件用于暂存交易商品基本信息（不包括money)
-        解决ajax禁止定向的问题
-        """
-
-        # data = json.loads(request.body.decode('utf-8'))  # 解码 + 反序列化
-        data = request.data
-        try:
-            request.session['commodity_list'] = data['commodity_list']
-            request.session['counts_list'] = data['counts_list']
-            common_logger.info(request.session['commodity_list'])
-            common_logger.info(request.session['counts_list'])
-            return Response({'code': 666})
-        except Exception as e:
-            order_logger.error(e)
-            return Response({'code': -666})
-
-
-class OrderCommitOperation(viewsets.ModelViewSet):
-    """用户结算商品，生成初始订单"""
-
-    permission_classes = [IsAuthenticated]
-
-    serializer_class = OrderCommoditySerializer
-
-    extra_time = 30  # 订单持续时间30min
-
-    # def get_serializer_context(self):
-    #     """递交额外的信息"""
-    #     pass
-
-    # @method_decorator(login_required(login_url='/consumer/login/'))
-    # def list(self, request, *args, **kwargs):
-    #     """get the commodity which consumer intend to buy"""
-    #     # 序列化用户订单生成页获取商品信息
-    #     try:
-    #         commodity_list = request.session['commodity_list']
-    #         instances = self.get_serializer_class.get_commodity(commodity_list)
-    #         serializer = self.get_serializer(instances, context=self.context(request), many=True)
-    #         return Response(serializer.data)
-    #     except Exception as e:
-    #         order_logger.error(e)
-    #         return Response(None)
-
-    def create(self, request, *args, **kwargs):
-        """
-        从购物车/商品页直接点击结算/购买
-        传入相关信息，计算价格，生成未支付订单
-        """
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response({'www': 'www'})

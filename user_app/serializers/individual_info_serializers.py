@@ -29,13 +29,15 @@ class IndividualInfoSerializer(serializers.ModelSerializer):
     sex = serializers.CharField(source='get_sex_display', read_only=True)
     rank = serializers.CharField(source='consumer.rank', read_only=True)
     safety = serializers.IntegerField(source='consumer.safety', read_only=True)
-
+    fans = serializers.IntegerField(source='consumer.fans', read_only=True)
+    attention = serializers.IntegerField(source='consumer.fans', read_only=True)
+    personality = serializers.CharField(source='consumer.personality', read_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'phone', 'full_name', 'head_image', 'birthday', 'sex', 'rank', 'safety', 'last_login']
+        fields = ('username', 'phone', 'full_name', 'head_image', 'birthday', 'sex', 'rank', 'safety', 'last_login',
+                  'fans', 'attention', 'personality')
         # 继承ModelSerializer后，上面定义的自定义字段要显示使用read_only，不能放到read_only_fields中，没有效果
-        # read_only_fields = ['username', 'phone', 'head_image', 'birthday', 'sex', 'rank', 'safety']
 
 
 class HeadImageSerializer(serializers.Serializer):

@@ -15,6 +15,7 @@ from seller_app.serializers.commodity_serializers import SellerCommoditySerializ
     SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer, SellerSkuSerializer, \
     SellerSkuDeleteSerializer
 from seller_app.utils.permission import SellerPermissionValidation
+from shop_app.models.commodity_models import Commodity
 
 
 class SellerCommodityApiView(GenericAPIView):
@@ -25,6 +26,9 @@ class SellerCommodityApiView(GenericAPIView):
     serializer_delete_class = SellerCommodityDeleteSerializer
 
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
+
+    def get_queryset(self):
+        return Commodity.commodity_.filter(user=self.request.user)
 
     def post(self, request):
         """商家添加商品"""
@@ -37,7 +41,7 @@ class SellerCommodityApiView(GenericAPIView):
     def get(self, request):
         """获取单个商品详情或全部分商品"""
         pk = request.query_params.get('pk', None)
-        if request.query_params.get('pk', None):
+        if pk:
             instance = self.get_queryset().get(pk=pk)
             serializer = self.get_serializer(instance=instance)
         else:
@@ -49,7 +53,7 @@ class SellerCommodityApiView(GenericAPIView):
     def put(self, request):
         """商家修改商品信息"""
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid()
+        serializer.is_valid(raise_exception=True)
         res = serializer.update_commodity()
         return Response(
             response_code.result(MODIFY_COMMODITY, '修改成功') if res else response_code.result(MODIFY_COMMODITY, '无数据改动'))
@@ -57,12 +61,15 @@ class SellerCommodityApiView(GenericAPIView):
     def delete(self, request):
         """商家删除商品"""
         serializer = self.serializer_delete_class(data=request.data)
+        print(self.request.query_params.get('all', None))
         if self.request.query_params.get('all', None) == 'true':
-            self.serializer_delete_class.Meta.model.commodity_.all().delete()
+            queryset = Commodity.commodity_.filter(user=request.user).delete()
+            print(queryset)
         else:
             serializer.is_valid(raise_exception=True)
             serializer.delete_commodity()
-        return
+        # return
+        return Response(3333)
 
 
 class SkuPropApiView(BackendGenericApiView):
@@ -135,7 +142,7 @@ class SellerSkuApiView(BackendGenericApiView):
 
     serializer_delete_class = SellerSkuDeleteSerializer
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     @validate_url_data('sku', 'pk', null=True)
     def get(self, request):

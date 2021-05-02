@@ -2,10 +2,9 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Manager
-from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from shop_app.models.commodity_models import Commodity
+from shop_app.models.commodity_models import Commodity, Sku
 from user_app.models import Address
 from voucher_app.models.voucher_models import Voucher
 
@@ -42,6 +41,7 @@ class OrderBasic(models.Model):
 
     # 支付方式
     payment_choice = (
+        ('0', '尚未付款'),
         ('1', '货到付款'),
         ('2', '微信支付'),
         ('3', '支付宝'),
@@ -93,21 +93,21 @@ class OrderBasic(models.Model):
 
     # 订单状态
     status_choice = (
-        ("1", '代付款'),  # 用户提交订单，尚未付款，此时会锁定库存
-        ("2", '代发货'),  # 用户付款后，等待商家接单前
-        ("3", '代收货'),  # 用户付款后，等待收获
+        ("1", '待付款'),  # 用户提交订单，尚未付款，此时会锁定库存
+        ("2", '待发货'),  # 用户付款后，等待商家接单前
+        ("3", '待收货'),  # 用户付款后，等待收获
         ("4", '交易成功'),  # 用户确认收货之后，订单完成交易
         ("5", '已取消'),  # 付款前取消订单
         ("6", '售后中'),  # 商家发货或付款后，用户取消订单
         ("7", '交易关闭'),  # 取消订单或售后结束或退货成功都转移到交易关闭
         ("8", '正在退货'),  # 用户选择退货，移至此
-        ("9", '退款成功'),  # 用户选择退货，移至此
+        ("9", '退款成功'),  # 用户退货成功后，移至此
     )
 
     status = models.CharField(verbose_name=_('订单状态'),
                               max_length=1,
                               choices=status_choice,
-                              default=1,
+                              default="1",
                               )
 
     # 是否审核（同意接单）
@@ -125,8 +125,6 @@ class OrderBasic(models.Model):
     # 订单提交有效时间
     efficient_time = models.DateTimeField(verbose_name=_('订单过期时间'), auto_now=True)
 
-    # 当前订单使用的优惠卷
-
     order_basic_ = Manager()
 
     class Meta:
@@ -138,19 +136,11 @@ class OrderBasic(models.Model):
         return '订单号:{}'.format(self.order_id)
 
 
-class OrderDetails(models.Model):
-    """子订单商品表，详情订单，针对某一种商品"""
-
-    # 对应的店家
-    seller = models.ForeignKey(User, verbose_name=_('商家'),
-                               help_text=_('该商品所对应的商家'),
-                               on_delete=models.SET_NULL,  # 商家帐号删除后,值为null, 商品对应下架
-                               related_name='order_details',
-                               null=True
-                               )
+class OrderDetail(models.Model):
+    """订单商品表，详情订单，针对某一种商品"""
 
     # 商品，显示商品下架
-    commodity = models.OneToOneField(Commodity,
+    commodity = models.ForeignKey(Commodity,
                                      verbose_name=_('商品'),
                                      related_name='order_details',
                                      on_delete=models.SET_NULL,
@@ -163,10 +153,6 @@ class OrderDetails(models.Model):
                                     on_delete=models.CASCADE,
                                     related_name='order_details',
                                     )
-    # 商品的优惠价
-    price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name=_('商品价格'),
-                                validators=[MaxValueValidator(999999.99, message=_('商品的最高单价不能超过999999.99人民币')),
-                                            MinValueValidator(0, message=_('商品价格必须为正数'))])
 
     # 某种商品的数量
     counts = models.PositiveIntegerField(
@@ -176,13 +162,13 @@ class OrderDetails(models.Model):
             MaxValueValidator(10000, message=_('订单中商品总数不超过10000件'))]
     )
 
-    # 该商品标签（尺寸，颜色，规格等）
-    label = models.CharField(max_length=25, default='无')
+    # 商品下的sku
+    sku = models.ForeignKey(Sku, verbose_name=_('商品的sku'), on_delete=True, related_name="order_detail")
 
-    order_details_ = Manager()
+    order_detail_ = Manager()
 
     class Meta:
-        db_table = 'OrderDetails'
+        db_table = 'OrderDetail'
         verbose_name = _('订单商品详情表')
         verbose_name_plural = _('订单商品详情表')
 
@@ -205,21 +191,6 @@ class Logistic(models.Model):
                                                choices=shipping_status_choice,
                                                )
 
-    def shipping_status_color(self):
-        """重绘发货状态颜色"""
-        color_code = ''
-        if self.shipping_status == 1:
-            color_code = '#5DECA5',
-        elif self.shipping_status == 2:
-            color_code = '#E92B34'
-            # display_name = self.get_check_status_display()
-        return format_html(
-            '<span style="color:{}";>{}</span>',
-            color_code,
-            self.get_shipping_status_display(),
-        )
-
-    shipping_status_color.short_description = '发货状态'
     # 买家是否签收
     signed = models.BooleanField(verbose_name=_('是否签收'),
                                  default=False,

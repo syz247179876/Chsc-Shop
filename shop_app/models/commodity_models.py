@@ -311,7 +311,7 @@ class Sku(models.Model):
     """
 
     # 标识唯一的sku，根据不同sku属性值组合而成
-    sid = models.CharField(verbose_name=_('sku唯一标识'), unique=True, max_length=128)
+    sid = models.CharField(verbose_name=_('sku唯一标识'), max_length=128)
 
     # 关系为多对一,原因在于对sku中的关键属性进行排列组合,每一种情况都是一个sku,因此多个sku对应一个商品
     commodity = models.ForeignKey(Commodity, on_delete=models.CASCADE, verbose_name=_('商品'), related_name='sku')

@@ -215,13 +215,11 @@ class User(AbstractUser):
     Username and password are required. Other fields are optional.
     """
 
-
     class Meta(AbstractUser.Meta):
         swappable = 'AUTH_USER_MODEL'
 
     def get_username_field(self):
         return self.USERNAME_FIELD
-
 
 
 class Consumer(models.Model):
@@ -232,7 +230,7 @@ class Consumer(models.Model):
         User,
         verbose_name=_('消费者'),
         on_delete=models.CASCADE,
-        related_name='user',
+        related_name='consumer',
     )
 
     rank_choice = (
@@ -264,6 +262,12 @@ class Consumer(models.Model):
         _('积分值'),
         default=0
     )
+
+    fans = models.PositiveIntegerField(_('粉丝数'), default=0)
+
+    attention = models.PositiveIntegerField(_('关注度'), default=0)
+
+    personality = models.CharField(_('个性签名'), null=True, max_length=50)
 
     USER_FIELD = 'user'
     PHONE_FIELD = 'phone'
@@ -321,10 +325,10 @@ class Address(models.Model):
                                  validators=[RecipientsValidator(), ]
                                  )
 
-    # 省份
-    province = models.CharField(verbose_name=_('省份'),
+    # 省份/市
+    province = models.CharField(verbose_name=_('省份/市'),
                                 max_length=20,
-                                validators=[ProvinceValidator(),]
+                                validators=[ProvinceValidator(), ]
                                 )
 
     # 收件地址,街道,区等
@@ -363,4 +367,3 @@ class Address(models.Model):
 
     def __str__(self):
         return self.recipient
-

@@ -45,10 +45,7 @@ class CommodityCategorySerializer(serializers.ModelSerializer):
 class SellerCommoditySerializer(serializers.ModelSerializer):
     """商家操作商品模型序列化器"""
 
-    category_list = serializers.SerializerMethodField()
-
-    # 分组列表,读
-    group_list = serializers.SerializerMethodField()
+    # category_list = serializers.SerializerMethodField()
 
     # 分组列表,写
     groups = serializers.ListField(child=serializers.CharField(max_length=10), write_only=True, allow_empty=True)
@@ -59,19 +56,22 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     # 模板id
     freight_id = serializers.IntegerField(min_value=1)
 
+    stock = serializers.IntegerField(min_value=1, required=True)
+
     class Meta:
         model = Commodity
         category_model = CommodityCategory
         seller_model = Seller
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'groups',
                   'status', 'stock', 'category_id',
-                  'freight_id', 'category_list', 'group_list')
-        read_only_fields = ('pk', 'category_list', 'group_list')
+                  'freight_id')
+        read_only_fields = ('pk', )
 
-    def get_category_list(self, obj):
-        """获取全部的序列化器"""
-        category = self.Meta.category_model.objects.all()
-        return CommodityCategorySerializer(category, many=True).data
+    # def get_category_list(self, obj):
+    #     """获取全部种类的序列化器"""
+    #     category = self.Meta.category_model.objects.all()
+    #     return CommodityCategorySerializer(category, many=True).data
+
 
     def add_update_dsl(self, id, index=None, **kwargs):
         """
@@ -122,7 +122,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
 
     def update_commodity(self):
         """商家修改商品"""
-        pk = self.context.get('request').query_params.get('pk', None)
+        pk = self.context.get('request').data.get('pk', None)
         if not pk:
             raise DataFormatError("缺少必要的数据")
         credential = self.get_credential
@@ -150,7 +150,8 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             'favourable_price': self.validated_data.pop('favourable_price'),
             'details': self.validated_data.pop('details', ''),
             'intro': self.validated_data.pop('intro'),
-            'status': self.validated_data.pop('status')
+            'status': self.validated_data.pop('status'),
+            'stock': self.validated_data.pop('stock')
         }
 
 
@@ -352,7 +353,7 @@ class SellerSkuSerializer(serializers.ModelSerializer):
 
     properties_r = serializers.SerializerMethodField()  # 用于读
 
-    properties_w = serializers.DictField(child=serializers.IntegerField(), allow_empty=False, write_only=True)  # 用于写
+    properties_w = serializers.DictField(child=serializers.CharField(), allow_empty=False, write_only=True)  # 用于写
 
     class Meta:
         model = Sku

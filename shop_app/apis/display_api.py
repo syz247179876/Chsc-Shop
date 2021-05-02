@@ -5,6 +5,8 @@
 # @Software: Pycharm
 
 from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -12,8 +14,9 @@ from rest_framework.viewsets import GenericViewSet
 from Emall.exceptions import DataFormatError, DataNotExist
 from search_app.signals import retrieve_from_es, parse_hits, record_search, retrieve_heat_keyword, retrieve_record
 from search_app.utils.common import identity
-from shop_app.models.commodity_models import Commodity
-from shop_app.serializers.diplay_serializers import CommodityCardSerializer, CommodityDetailSerializer
+from shop_app.models.commodity_models import Commodity, CommodityCategory
+from shop_app.serializers.diplay_serializers import CommodityCardSerializer, CommodityDetailSerializer, \
+    CommodityFirstCategorySerializer, CommoditySecondCategorySerializer
 from user_app.signals import retrieve_collect, retrieve_foot, retrieve_bought
 
 
@@ -24,7 +27,7 @@ class CommodityCardDisplay(GenericViewSet):
 
     def dsl_body(self, q):
         """
-        DSL表达式的body部分
+        DSL表达式的body部
         使用bool表达式将多个叶子语句合并成单一语句进行查找
         """
         return {
@@ -89,17 +92,56 @@ class CommodityCardDisplay(GenericViewSet):
         keyword = request.query_params.get('q')
         results = retrieve_from_es.send(**self.retrieve_dsl(**self.dsl_body(keyword)))[0]  # 发送信号，搜索es，获取id列表
         code, res = results[1]
-        print(code, res)
         if code == 200:
             pk_list = parse_hits.send(sender=self.__class__.__name__, result=res)[0]  # 解析数据
             serializer = self.get_serializer(instance=self.get_keyword_queryset(pk_list[1]), many=True)
-            self.send_record_signal(request)  # 发送信号,记录用户搜索记录
+            if (request.query_params.get('record', None)):  # 如果用户点击搜索后触发记录
+                self.send_record_signal(request)  # 发送信号,记录用户搜索记录
             return Response(serializer.data)
         return Response([])
 
-    @action(detail=False, methods=['GET'], url_path='recommend')
+    def recommend_by_search_history(self):
+        """根据搜索的历史记录推荐"""
+        pass
+
+    def recommend_by_collect(self):
+        """根据用户收藏夹商品类型进行推荐"""
+        pass
+
+    def recommend_by_foot(self):
+        """根据用户足迹中商品的类型进行推荐"""
+        pass
+
+    def recommend_by_bought(self):
+        """根据用户已经购买商品多的类型进行推荐"""
+        pass
+
     @identity
-    def recommend_list(self, request, unique_identity, *args, **kwargs):
+    def retrieve_user_action(self, request, unique_identity, *args, **kwargs):
+        """获取用户购物行为信息"""
+        _, search_history = retrieve_record.send(sender=unique_identity, request=request)[0]
+        _, collect = retrieve_collect.send(sender=unique_identity)[0]
+        _, foot = retrieve_foot.send(sender=unique_identity)[0]
+        _, bought = retrieve_bought.send(sender=unique_identity)[0]
+
+        print(search_history, collect, foot, bought)
+
+        if not any([search_history, collect, foot, bought]):
+            # 当用户有任何信息时，分页显示全部商品
+            pass
+        else:
+            print(search_history, collect, foot, bought)
+
+        return {
+            'search_history': search_history,
+            'collect': collect,
+            'foot': foot,
+            'bought': bought
+        }
+
+    @method_decorator(cache_page(60))  # 缓存1min
+    @action(detail=False, methods=['GET'], url_path='recommend')
+    def recommend_list(self, request, *args, **kwargs):
         """
         首页推荐商品，数据来源：
         1.用户的搜索关键字 -- weight=10
@@ -108,13 +150,11 @@ class CommodityCardDisplay(GenericViewSet):
         4.用户的购买商品 -- weight=15
 
         采用zset，key为类型，score为类型出现的次数，作为推荐衡量
-
         """
 
-        search_history = retrieve_record.send(sender=unique_identity, request=request)
-        collect = retrieve_collect.send(sender=unique_identity)
-        foot = retrieve_foot.send(sender=unique_identity)
-        bought = retrieve_bought.send(sender=unique_identity)
+        res = self.retrieve_user_action(request, *args, **kwargs)
+
+        return Response(res)
 
     @action(detail=False, methods=['GET'], url_path='discount')
     def discount_list(self, request):
@@ -155,7 +195,8 @@ class CommodityDetailDisplay(GenericViewSet):
     def get_instance(self, pk):
         """根据pk获取商品对象，join联合查询多表"""
         try:
-            return self.model.commodity_.select_related('store').select_related('freight').prefetch_related('sku').get(
+            return self.model.commodity_.select_related('store').select_related('freight').prefetch_related(
+                'sku').prefetch_related('remark').get(
                 pk=pk)
         except self.model.DoesNotExist:
             raise DataNotExist()
@@ -166,4 +207,48 @@ class CommodityDetailDisplay(GenericViewSet):
         pk = request.query_params.get('pk')
         obj = self.get_instance(pk)
         serializer = self.get_serializer(instance=obj)
+        return Response(serializer.data)
+
+
+class CommodityCategoryDisplay(GenericViewSet):
+    """
+    与消费者相关的商品类别操作
+    1.获取所有一级类目
+    2.用户选择一级目录，查看二级目录
+    """
+
+    serializer_class = CommodityFirstCategorySerializer
+
+    detail_serializer_class = CommoditySecondCategorySerializer  # 一级目录下详细的类别层级（存在2级嵌套关系）
+
+    @staticmethod
+    def get_first_queryset():
+        """
+        获取数据集
+        一般默认商品总类的id值为1
+        :return:  QuerySet
+        """
+        return CommodityCategory.objects.filter(pre_id=1).values('pk', 'name')
+
+    @staticmethod
+    def get_second_queryset(pk):
+        """
+        获取第而二级别即以下的数据集
+        按照分数值+添加时间进行排序
+        """
+        return CommodityCategory.objects.filter(pre_id=pk).values('pk', 'name', 'thumbnail').order_by('sort', 'add_time')
+
+    @action(methods=['GET'], detail=False, url_path='first-category')
+    def first_category(self, request):
+        """获取所有一级目录"""
+        queryset = self.get_first_queryset()
+        serializer = self.get_serializer(instance=queryset, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['GET'], detail=True, url_path='second-category')
+    def second_category(self, request, pk=None):
+        """获取指定一级目录下的信息"""
+        queryset = self.get_second_queryset(pk)
+        serializer = self.detail_serializer_class(instance=queryset, many=True)
+        print(serializer.data)
         return Response(serializer.data)

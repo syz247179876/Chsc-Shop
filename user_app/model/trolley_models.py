@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Manager
 from django.utils.translation import gettext_lazy as _
 
-from shop_app.models.commodity_models import Commodity
+from shop_app.models.commodity_models import Commodity, Sku
 
 
 class Trolley(models.Model):
@@ -27,11 +27,8 @@ class Trolley(models.Model):
     # 该商品数量
     count = models.PositiveIntegerField(verbose_name=_('商品数量'),default=1)
 
-    # 该商品价格
-    price = models.DecimalField(verbose_name=_('商品价格'), decimal_places=2, max_digits=11)
-
-    # 店铺
-    store = models.ForeignKey(Store, verbose_name=_('店铺'), on_delete=True, related_name='trolley')
+    # 商品下的sku
+    sku = models.ForeignKey(Sku, verbose_name=_('商品的sku'), on_delete=True, related_name="trolley")
 
     trolley_ = Manager()
 
