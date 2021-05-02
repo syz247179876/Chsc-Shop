@@ -91,9 +91,17 @@ class CommodityCategoryDeleteSerializer(serializers.Serializer):
 
 
 class CommodityCategorySerializer(serializers.ModelSerializer):
+
+    child = serializers.SerializerMethodField(read_only=True)
+
+
+    def get_child(self, obj):
+        """对自身递归嵌套查询"""
+        return CommodityCategorySerializer(instance=self.Meta.model.objects.filter(pre_id=obj.pk), many=True).data
+
     class Meta:
         model = CommodityCategory
-        fields = ('pk', 'name', 'intro', 'thumbnail', 'sort', 'pre')  # pre会反序列化为model实例
+        fields = ('pk', 'name', 'intro', 'thumbnail', 'sort', 'pre', 'child')  # pre会反序列化为model实例
         read_only_fields = ('pk',)
 
     def update_category(self):

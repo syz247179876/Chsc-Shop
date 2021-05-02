@@ -29,7 +29,7 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
     permission_classes = [IsAuthenticated, ManagerPermissionValidation]
 
     def get_queryset(self):
-        return self.serializer_class.Meta.model.objects.all()
+        return self.serializer_class.Meta.model.objects.filter(pre=None)
 
     def post(self, request):
         """添加类别"""
@@ -72,6 +72,7 @@ class ManagerCommodityCategoryApiView(GenericAPIView):
             instance = self.get_queryset()
             serializer = self.get_serializer(instance=instance, many=True)
         return Response(serializer.data)
+
 
 
 class ManageCommodityGroupApiView(GenericAPIView):
