@@ -48,9 +48,12 @@ class OrderSkuSerializer(serializers.ModelSerializer):
 class CommoditySerializer(serializers.ModelSerializer):
     """ 与订单细节有关的商品序列化器"""
 
+    # 店铺名
+    store_name = serializers.CharField(source='store.name', read_only=True)
+
     class Meta:
         model = Commodity
-        fields = ('commodity_name', 'intro', 'category', 'freight', 'little_image')
+        fields = ('commodity_name', 'intro', 'little_image', 'store_name')
 
 
 class OrderDetailsSerializer(serializers.ModelSerializer):
@@ -106,8 +109,6 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             raise DataNotExist()
         for value in queryset:
             # 创建详细订单表
-            print(sku_dict)
-            print(sku_dict.get(str(value.pk)))
             total_price += (value.favourable_price * sku_dict.get(str(value.pk)))
         return total_price, sum(sku_dict.values())
 
@@ -135,8 +136,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             'payment': self.validated_data.get('payment'),
             'total_counts': 0,
             'total_price': 0,
-            'favourable_price':0,
-            'true_price':0
+            'favourable_price': 0,
+            'true_price': 0
         }
         try:
             credential['address'] = self.get_address(user)
@@ -155,7 +156,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 order_basic = OrderBasic.order_basic_.create(**credential)  # 创建初始订单
                 OrderDetail.order_detail_.bulk_create([
-                    OrderDetail(commodity=sku.commodity, order_basic=order_basic, sku=sku, counts=sku_dict.get(key)) for sku, key in zip(queryset,sku_dict)
+                    OrderDetail(commodity=sku.commodity, order_basic=order_basic, sku=sku, counts=sku_dict.get(key)) for
+                    sku, key in zip(queryset, sku_dict)
                 ])
         except DatabaseError as e:  # rollback
             order_logger.error(e)
@@ -167,7 +169,6 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderBasic
         fields = ('sku_dict', 'payment')
-
 
 
 class OrderConfirmSerializer(serializers.ModelSerializer):

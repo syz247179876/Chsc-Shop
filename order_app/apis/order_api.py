@@ -3,26 +3,20 @@
 # @Author : 司云中
 # @File : order.py
 # @Software: PyCharm
-from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError, transaction
-from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from Emall.exceptions import SqlServerError
 from Emall.loggings import Logging
 from Emall.response_code import response_code, DELETE_ORDER_SUCCESS, CREATE_ORDER_SUCCESS
 from order_app.models.order_models import OrderBasic
 from order_app.redis.order_redis import order_redis
-from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCommoditySerializer, \
-    OrderAddressSerializer, OrderCreateSerializer, OrderConfirmSerializer
-from order_app.utils.pagination import OrderResultsSetPagination
-from shop_app.models.commodity_models import Commodity
+from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCreateSerializer, OrderConfirmSerializer
 from user_app.model.trolley_models import Trolley
 
 common_logger = Logging.logger('django')
@@ -56,13 +50,13 @@ class OrderBasicOperation(viewsets.GenericViewSet):
 
     def get_status_queryset(self):
         """根据订单状态搜索数据集"""
-        status = self.request.query_params.get(self.lookup_field, '0')
+        status = self.request.query_params.get('status', '0')
         if status == '0':
             return OrderBasic.order_basic_.filter(user=self.request.user, delete_consumer=False).\
-                prefetch_related('order_details').prefetch_related('order_details__commodity').\
+                prefetch_related('order_details').prefetch_related('order_details__commodity__store').\
                 prefetch_related('order_details__sku')
         return OrderBasic.order_basic_.filter(user=self.request.user, status=status, delete_consumer=False).\
-            prefetch_related('order_details').prefetch_related('order_details__commodity').\
+            prefetch_related('order_details').prefetch_related('order_details__commodity__store').\
             prefetch_related('order_details__sku')
 
     def disguise_del_order_list(self, validated_data):
