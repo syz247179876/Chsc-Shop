@@ -14,9 +14,10 @@ from rest_framework.response import Response
 from Emall.exceptions import SqlServerError
 from Emall.loggings import Logging
 from Emall.response_code import response_code, DELETE_ORDER_SUCCESS, CREATE_ORDER_SUCCESS
-from order_app.models.order_models import OrderBasic
+from order_app.models.order_models import OrderBasic, OrderDetail
 from order_app.redis.order_redis import order_redis
-from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCreateSerializer, OrderConfirmSerializer
+from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCreateSerializer, OrderConfirmSerializer, \
+    OrderSellerSerializer
 from user_app.model.trolley_models import Trolley
 
 common_logger = Logging.logger('django')
@@ -31,6 +32,8 @@ class OrderBasicOperation(viewsets.GenericViewSet):
 
     serializer_class = OrderBasicSerializer
 
+    serializer_seller_class = OrderSellerSerializer
+
     serializer_create_class = OrderCreateSerializer
 
     redis = order_redis
@@ -43,35 +46,42 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         kwargs['context'] = self.get_serializer_context()
         return self.serializer_create_class(*args, **kwargs)
 
-
     def get_queryset(self):
         """默认获取该用户的所有订单"""
-        return OrderBasic.order_basic_.filter(user=self.request.user).prefetch_related('order_details')
+        return OrderDetail.order_detail_.filter(user=self.request.user).select_related('order_basic')
 
     def get_status_queryset(self):
         """根据订单状态搜索数据集"""
         status = self.request.query_params.get('status', '0')
         if status == '0':
-            return OrderBasic.order_basic_.filter(user=self.request.user, delete_consumer=False).\
-                prefetch_related('order_details').prefetch_related('order_details__commodity__store').\
+            return OrderBasic.order_basic_.filter(user=self.request.user, delete_consumer=False). \
+                prefetch_related('order_details').prefetch_related('order_details__commodity__store'). \
                 prefetch_related('order_details__sku')
-        return OrderBasic.order_basic_.filter(user=self.request.user, status=status, delete_consumer=False).\
-            prefetch_related('order_details').prefetch_related('order_details__commodity__store').\
+        return OrderBasic.order_basic_.filter(user=self.request.user, status=status, delete_consumer=False). \
+            prefetch_related('order_details').prefetch_related('order_details__commodity__store'). \
             prefetch_related('order_details__sku')
+
+    def get_seller_queryset(self):
+        """
+        返回商家所需要的订单信息，获取订单中属于商家店铺下的商品
+        """
+        return OrderDetail.order_detail_.filter(user=self.request.user).select_related('order_basic__address',
+                                                                                       'commodity', 'sku'). \
+            filter(order_basic__delete_seller=False)
 
     def disguise_del_order_list(self, validated_data):
         """
         逻辑群删除订单
         :return int
         """
-        return self.get_queryset().filter(pk__in=validated_data.get('list_pk', [])).update(delete_consumer=True)
+        return self.get_queryset().filter(pk__in=validated_data.get('pk_list', [])).update(delete_consumer=True)
 
     def substantial_del_order_list(self, validated_data):
         """
         当用户和商家都已逻辑删除订单，此时群真删订单
         :return int
         """
-        rows, _ = self.get_queryset().filter(pk__in=validated_data.get('list_pk', []), delete_shopper=True).delete()
+        rows, _ = self.get_queryset().filter(pk__in=validated_data.get('pk_list', []), delete_seller=True).delete()
         return rows
 
     def disguise_del_order(self):
@@ -85,23 +95,21 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         pk = self.kwargs.get(self.lookup_field)
         self.get_queryset().filter(pk=pk, delete_shopper=True).delete()
 
-    @action(methods=['delete'], detail=False)
+    @action(methods=['delete'], detail=False, url_path='delete-multiple')
     def destroy_multiple(self, request, *args, **kwargs):
         """多删"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if not serializer.validated_data.get('list_pk', None):  # 校验订单必须存在
-            return Response({'list_pk': ['该字段必须存在']})
+        if not serializer.validated_data.get('pk_list', None):  # 校验订单必须存在
+            return Response({'pk_list': ['该字段必须存在']})
         try:
             with transaction.atomic():  # 开启事务
                 is_delete = self.disguise_del_order_list(serializer.validated_data)
                 self.substantial_del_order_list(serializer.validated_data)
         except DatabaseError as e:
             order_logger.error(e)
-            return Response(response_code.server_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        if not is_delete:
-            return Response(response_code.delete_order_error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(response_code.delete_order_success, status=status.HTTP_200_OK)
+            raise SqlServerError()
+        return Response(response_code.result(DELETE_ORDER_SUCCESS, '删除成功' if is_delete else '无数据修改'))
 
     def destroy(self, request, pk=None):
         """
@@ -124,7 +132,7 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         # 检查某个订单是否过期
         expire = self.redis.get_ttl('order_{pk}_expire'.format(pk=self.kwargs.get(self.lookup_field)))
         if expire != -1 and expire != -2:
-            serializer.data.update({'order_expire': expire}) # 返回过期时间
+            serializer.data.update({'order_expire': expire})  # 返回过期时间
             return Response(serializer.data)
         else:
             return Response({'detail': '订单已经失效'})
@@ -149,6 +157,20 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         serializer.create_order(request.user, self.redis)
         return Response(response_code.result(CREATE_ORDER_SUCCESS, '创建成功'))
 
+    @action(methods=['GET'], detail=False, url_path='seller')
+    def seller_list(self, request):
+        """为商家展示对应的订单信息"""
+        queryset = self.get_seller_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_seller_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_seller_class(instance=queryset, many=True)
+        return Response({
+            'count': queryset.count(),
+            'data': serializer.data
+        })
+
 
 class OrderConfirmOperation(GenericAPIView):
     """
@@ -160,14 +182,15 @@ class OrderConfirmOperation(GenericAPIView):
     serializer_class = OrderConfirmSerializer
 
     def get_instance(self, pk_list):
-        return Trolley.trolley_.filter(pk__in=pk_list, user=self.request.user).select_related('commodity__store').\
+        return Trolley.trolley_.filter(pk__in=pk_list, user=self.request.user).select_related('commodity__store'). \
             select_related('commodity__freight').select_related('sku')
 
     def post(self, request):
         """根据用户结算时选择的商品进行显示"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer = self.get_serializer(instance=self.get_instance(serializer.validated_data.get('pk_list')), many=True)
+        serializer = self.get_serializer(instance=self.get_instance(serializer.validated_data.get('pk_list')),
+                                         many=True)
         return Response(serializer.data)
 
 # class OrderBasicOperation(GenericAPIView):
@@ -318,5 +341,3 @@ class OrderConfirmOperation(GenericAPIView):
 #         serializer = self.get_serializer(data=request.data)
 #         serializer.is_valid(raise_exception=True)
 #         return Response({'www': 'www'})
-
-

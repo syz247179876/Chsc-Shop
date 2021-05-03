@@ -78,7 +78,7 @@ class OrderBasicSerializer(serializers.ModelSerializer):
 
     status = serializers.SerializerMethodField(required=False)  # 获取可读的status
 
-    list_pk = serializers.ListField(required=False, write_only=True, allow_empty=False,
+    pk_list = serializers.ListField(required=False, write_only=True, allow_empty=False,
                                     child=serializers.IntegerField())  # 订单号集合
 
     def get_status(self, obj):
@@ -87,7 +87,9 @@ class OrderBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderBasic
         fields = ('order_id', 'trade_number', 'total_price', 'total_counts', 'generate_time', 'status',
-                  'order_details', 'list_pk')
+                  'order_details', 'pk_list')
+        read_only_fields = ('order_id', 'trade_number', 'total_price', 'total_counts', 'generate_time', 'status',
+                  'order_details')
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
@@ -194,48 +196,6 @@ class OrderConfirmSerializer(serializers.ModelSerializer):
         read_only_fields = ('pk', 'cid', 'store_name', 'commodity_name', 'count', 'time', 'sku', 'intro', 'is_free')
 
 
-class PageSerializer(serializers.Serializer):
-    """页数序列器"""
-
-    page = serializers.IntegerField()
-
-    data = serializers.SerializerMethodField()
-
-    @property
-    def serializer_class(self):
-        """data serializer"""
-        return self.context.get('serializer')
-
-    def get_data(self, obj):
-        instances = self.context.get('instances', None)
-        context = self.context.get('context', {})
-        return self.serializer_class(instances, context=context, many=True).data
-
-
-class Page:
-    """the instance of page"""
-
-    def __init__(self, page):
-        self.page = page
-
-
-# 订单提交所需序列化器
-
-class OrderCommitSerialiizer(serializers.Serializer):
-    pass
-
-
-class OrderAddressSerializer(serializers.ModelSerializer):
-
-    @staticmethod
-    def get_address(user):
-        """get address of current user"""
-        try:
-            return Address.address_.filter(user=user)
-        except Address.DoesNotExist:
-            return None
-
-
 class OrderCommoditySerializer(serializers.ModelSerializer):
     """订单提交序列化器"""
 
@@ -263,3 +223,50 @@ class OrderCommoditySerializer(serializers.ModelSerializer):
                   'discounts_intro', 'commodity_counts_dict', 'store_commodity_dict']
         read_only_fields = ['commodity_name', 'pk', 'price', 'intro', 'category', 'freight', 'total_price',
                             'total_price', 'big_image', 'discounts_intro']
+
+
+class OrderSellerAddressSerializer(serializers.ModelSerializer):
+    """与商家+订单有关的地址序列化器"""
+
+    class Meta:
+        model = Address
+        fields = ('recipient', 'province', 'region', 'phone')
+
+
+class OrderSellerSerializer(serializers.ModelSerializer):
+    """与商家有关的订单序列化器"""
+
+    commodity_name = serializers.CharField(source='commodity.commodity_name')
+
+    order_id = serializers.CharField(source='order_basic.order_id')
+
+    status = serializers.CharField(source='order_basic.get_status_display')
+
+    is_checked = serializers.CharField(source='order_basic.is_checked')
+
+    efficient_time = serializers.CharField(source='order_basic.efficient_time')
+
+    recipient = serializers.CharField(source='order_basic.address.recipient')
+
+    province = serializers.CharField(source='order_basic.address.province')
+
+    region = serializers.CharField(source='order_basic.address.region')
+
+    phone = serializers.CharField(source='order_basic.address.phone')
+
+    sku_favourable_price = serializers.DecimalField(source='sku.favourable_price', max_digits=9, decimal_places=2)
+
+    sku_image = serializers.CharField(source='sku.image')
+
+    sku_name = serializers.CharField(source='sku.name')
+
+    sku_properties = serializers.SerializerMethodField()
+
+    def get_sku_properties(self, obj):
+        """反序列化"""
+        return ''.join((key+":"+value+";" for key,value in json.loads(obj.sku.properties).items()))
+
+    class Meta:
+        model = OrderDetail
+        fields = ('pk', 'commodity_name', 'order_id', 'status' ,'is_checked', 'efficient_time', 'recipient',
+                  'province', 'region', 'phone', 'sku_favourable_price', 'sku_properties', 'sku_image', 'sku_name')
