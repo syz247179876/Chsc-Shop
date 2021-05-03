@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : seller_commodity_api.py
 # @Software: Pycharm
+from django.db.models import Count
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -28,7 +29,7 @@ class SellerCommodityApiView(GenericAPIView):
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     def get_queryset(self):
-        return Commodity.commodity_.filter(user=self.request.user)
+        return Commodity.commodity_.filter(user=self.request.user).annotate(count=Count('id'))
 
     def post(self, request):
         """商家添加商品"""
@@ -44,10 +45,14 @@ class SellerCommodityApiView(GenericAPIView):
         if pk:
             instance = self.get_queryset().get(pk=pk)
             serializer = self.get_serializer(instance=instance)
+            return Response(serializer.data)
         else:
             instance = self.get_queryset()
             serializer = self.get_serializer(instance=instance, many=True)
-        return Response(serializer.data)
+        return Response({
+            'count': instance.count(),
+            'data': serializer.data
+        })
 
     @validate_url_data('commodity', 'pk')
     def put(self, request):
@@ -166,4 +171,3 @@ class SellerSkuApiView(BackendGenericApiView):
         """删除单个/全部SKU"""
         rows = super().delete(request)
         return Response(response_code.result(DELETE_EFFECTIVE_SKU, '删除成功' if rows else '无操作,无效数据'))
-

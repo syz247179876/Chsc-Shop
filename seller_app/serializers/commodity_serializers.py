@@ -63,8 +63,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
         category_model = CommodityCategory
         seller_model = Seller
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'groups',
-                  'status', 'stock', 'category_id',
-                  'freight_id')
+                  'status', 'stock', 'category_id', 'freight_id')
         read_only_fields = ('pk', )
 
     # def get_category_list(self, obj):
@@ -245,6 +244,16 @@ class FreightSerializer(serializers.ModelSerializer):
                                          write_only=True)  # 运费项
     pk = serializers.IntegerField(min_value=1, required=False)  # 解决找不到pk问题
 
+    charge_type = serializers.SerializerMethodField()
+
+    is_free = serializers.SerializerMethodField()
+
+    def get_is_free(self, obj):
+        return '包邮' if obj.is_free else '不包邮'
+
+    def get_charge_type(self, obj):
+        return obj.get_charge_type_display()
+
     class Meta:
         model = Freight
         item_model = FreightItem
@@ -256,7 +265,8 @@ class FreightSerializer(serializers.ModelSerializer):
         credential = {
             'name': self.validated_data.pop('name'),
             'is_free': self.validated_data.pop('is_free'),
-            'charge_type': self.validated_data.pop('charge_type')
+            'charge_type': self.validated_data.pop('charge_type'),
+            'user': self.context.get('request').user
         }
 
         try:
