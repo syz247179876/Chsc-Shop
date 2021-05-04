@@ -11,7 +11,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from Emall.exceptions import SqlServerError
+from Emall.exceptions import SqlServerError, DataNotExist
 from Emall.loggings import Logging
 from Emall.response_code import response_code, DELETE_ORDER_SUCCESS, CREATE_ORDER_SUCCESS
 from order_app.models.order_models import OrderBasic, OrderDetail
@@ -90,30 +90,35 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         rows, _ = self.get_queryset().filter(pk__in=validated_data.get('pk_list', []), delete_seller=True, delete_consumer=True).delete()
         return rows
 
-    def disguise_del_order(self):
+    def disguise_del_order(self, identity):
         """逻辑单删订单"""
         instance = self.get_object()
-        instance.delete_consumer = True
-        instance.save(update_fields=['delete_consumer'])
+        print(instance.delete_seller)
+        if identity == -1:
+            instance.delete_consumer = True
+            instance.save(update_fields=['delete_consumer'])
+        elif identity == 1:
+            instance.delete_seller = True
+            instance.save(update_fields=['delete_seller'])
+            print(instance.delete_seller)
+
+
 
     def substantial_del_order(self):
         """真实单删订单"""
         pk = self.kwargs.get(self.lookup_field)
-        self.get_queryset().filter(pk=pk, delete_shopper=True).delete()
+        self.get_queryset().filter(pk=pk, delete_seller=True, delete_consumer=True).delete()
 
     @action(methods=['delete'], detail=False, url_path='delete-multiple')
     def destroy_multiple(self, request, *args, **kwargs):
         """多删"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if not serializer.validated_data.get('pk_list', None):  # 校验订单必须存在
-            return Response({'pk_list': ['该字段必须存在']})
-        if not serializer.validated_data.get('identity', None): # 必须选择请求的用户身份
-            return Response({'identity': ['该字段必须存在']})
+        if not serializer.validated_data.get('pk_list', None) or not serializer.validated_data.get('identity', None):  # 校验订单必须存在
+            raise DataNotExist('缺少数据')
         try:
             with transaction.atomic():  # 开启事务
                 is_delete = self.disguise_del_order_list(serializer.validated_data)
-                print(is_delete,777777)
                 self.substantial_del_order_list(serializer.validated_data)
         except DatabaseError as e:
             order_logger.error(e)
@@ -126,14 +131,18 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         用户/商家单删订单
         只有当两者都删除后才真正删除
         """
+        identity = request.query_params.get('identity', None)
+        if not identity:
+            raise DataNotExist('缺少数据')
         try:
             with transaction.atomic():  # 开启事务
-                self.disguise_del_order()  # 假删
+                self.disguise_del_order(int(identity))  # 假删
                 self.substantial_del_order()  # 真删
         except DatabaseError as e:
             order_logger.error(e)
             raise SqlServerError()
-        return Response(response_code.result(DELETE_ORDER_SUCCESS, '删除成功'))
+        else:
+            return Response(response_code.result(DELETE_ORDER_SUCCESS, '删除成功'))
 
     def retrieve(self, request, pk=None):
         """获取具体的单个订单细节"""
