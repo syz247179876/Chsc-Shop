@@ -86,6 +86,11 @@ class SkuPropApiView(BackendGenericApiView):
 
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
+    def get_queryset(self):
+        """获取该商家所属的商品属性规格和值"""
+        return self.serializer_class.Meta.model.objects.select_related('commodity__user').\
+            filter(commodity__user=self.request.user)
+
     @validate_url_data('sku_props', 'pk', null=True)
     def get(self, request):
         """获取商品属性规格和值单个或多个"""
@@ -117,6 +122,9 @@ class FreightApiView(BackendGenericApiView):
     serializer_delete_class = FreightDeleteSerializer
 
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
+
+    def get_queryset(self):
+        return self.serializer_class.Meta.model.objects.filter(user=self.request.user)
 
     @validate_url_data('freight', 'pk', null=True)
     def get(self, request):

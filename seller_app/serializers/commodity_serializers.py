@@ -116,8 +116,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             raise SqlServerError()
         else:
             # 发送信号,添加document到索引库
-            res = add_to_es.send(**self.add_update_dsl(commodity.pk, **self.search_body(commodity)))
-            print(res)
+            add_to_es.send(**self.add_update_dsl(commodity.pk, **self.search_body(commodity)))
 
     def update_commodity(self):
         """商家修改商品"""
