@@ -14,6 +14,7 @@ from user_app.apis.password_api import ChangePassword
 from django.conf import settings
 
 from user_app.apis.password_api import RetrievePasswordOperation, NewPassword
+from user_app.apis.safe_api import UserSafeOperation
 
 app_name = 'user_app'
 
@@ -50,4 +51,5 @@ router.register(f'{settings.URL_PREFIX}/foot', FootOperation, basename='foot')
 router.register(f'{settings.URL_PREFIX}/favorites', FavoritesOperation, basename='favorites')
 router.register(f'{settings.URL_PREFIX}/trolley', ShopCartOperation, basename='trolley')
 router.register(f'{settings.URL_PREFIX}/extra', UserExtraInfoOperation, basename='extra')
+router.register(f'{settings.URL_PREFIX}/safe', UserSafeOperation, basename='safe')
 urlpatterns += router.urls
