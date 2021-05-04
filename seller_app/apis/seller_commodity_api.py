@@ -157,6 +157,10 @@ class SellerSkuApiView(BackendGenericApiView):
 
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
+    def get_queryset(self):
+        return self.serializer_class.Meta.model.objects.select_related('commodity__user').\
+            filter(commodity__user=self.request.user)
+
     @validate_url_data('sku', 'pk', null=True)
     def get(self, request):
         """获取单个/多个有效SKU"""
