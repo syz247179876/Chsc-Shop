@@ -32,6 +32,7 @@ class UserJwtLoginSerializer(Serializer):
     LOGIN_WAY = (
         ('email', 'email'),
         ('phone', 'phone'),
+        ('username', 'username')
     )
 
     class Meta:
