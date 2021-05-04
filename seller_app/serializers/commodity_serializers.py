@@ -6,6 +6,7 @@
 import json
 
 from django.db import DatabaseError, transaction, DataError
+from django.db.models import ProtectedError
 from django.db.transaction import atomic
 from rest_framework import serializers
 
@@ -352,8 +353,10 @@ class FreightDeleteSerializer(serializers.Serializer):
         model = Freight
 
     def delete(self):
-        return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
-
+        try:
+            return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+        except ProtectedError:
+            raise SqlServerError('存在商品使用该模板，无法删除！')
 
 class SellerSkuSerializer(serializers.ModelSerializer):
     """
