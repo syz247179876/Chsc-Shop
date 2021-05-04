@@ -67,21 +67,27 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         """
         return OrderDetail.order_detail_.filter(user=self.request.user).select_related('order_basic__address',
                                                                                        'commodity', 'sku'). \
-            filter(order_basic__delete_seller=False)
+            filter(delete_seller=False)
 
     def disguise_del_order_list(self, validated_data):
         """
-        逻辑群删除订单
+        商家逻辑群删除订单
         :return int
         """
-        return self.get_queryset().filter(pk__in=validated_data.get('pk_list', [])).update(delete_consumer=True)
+        identity = validated_data.get('identity')
+        if identity == -1:
+            return self.get_queryset().filter(pk__in=validated_data.get('pk_list', [])).select_related('user').\
+                filter(user__is_seller=False).update(delete_consumer=True)
+        elif identity == 1:
+            return self.get_queryset().filter(pk__in=validated_data.get('pk_list', [])).select_related('user').\
+                filter(user__is_seller=True).update(delete_seller=True)
 
     def substantial_del_order_list(self, validated_data):
         """
         当用户和商家都已逻辑删除订单，此时群真删订单
         :return int
         """
-        rows, _ = self.get_queryset().filter(pk__in=validated_data.get('pk_list', []), delete_seller=True).delete()
+        rows, _ = self.get_queryset().filter(pk__in=validated_data.get('pk_list', []), delete_seller=True, delete_consumer=True).delete()
         return rows
 
     def disguise_del_order(self):
@@ -102,14 +108,18 @@ class OrderBasicOperation(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         if not serializer.validated_data.get('pk_list', None):  # 校验订单必须存在
             return Response({'pk_list': ['该字段必须存在']})
+        if not serializer.validated_data.get('identity', None): # 必须选择请求的用户身份
+            return Response({'identity': ['该字段必须存在']})
         try:
             with transaction.atomic():  # 开启事务
                 is_delete = self.disguise_del_order_list(serializer.validated_data)
+                print(is_delete,777777)
                 self.substantial_del_order_list(serializer.validated_data)
         except DatabaseError as e:
             order_logger.error(e)
             raise SqlServerError()
-        return Response(response_code.result(DELETE_ORDER_SUCCESS, '删除成功' if is_delete else '无数据修改'))
+        else:
+            return Response(response_code.result(DELETE_ORDER_SUCCESS, '删除成功' if is_delete else '无数据修改'))
 
     def destroy(self, request, pk=None):
         """

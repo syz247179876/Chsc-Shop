@@ -81,13 +81,20 @@ class OrderBasicSerializer(serializers.ModelSerializer):
     pk_list = serializers.ListField(required=False, write_only=True, allow_empty=False,
                                     child=serializers.IntegerField())  # 订单号集合
 
+    identity_choice = (
+        (-1, '消费者'),
+        (1, '商家')
+    )
+
+    identity = serializers.ChoiceField(required=False, write_only=True, choices=identity_choice)  # 标识是用户还是商家
+
     def get_status(self, obj):
         return obj.get_status_display()
 
     class Meta:
         model = OrderBasic
         fields = ('order_id', 'trade_number', 'total_price', 'total_counts', 'generate_time', 'status',
-                  'order_details', 'pk_list')
+                  'order_details', 'pk_list', 'identity')
         read_only_fields = ('order_id', 'trade_number', 'total_price', 'total_counts', 'generate_time', 'status',
                   'order_details')
 
