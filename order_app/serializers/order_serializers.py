@@ -153,7 +153,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             pk = user.pk
             credential['order_id'] = self.generate_orderid(pk)  # 产生订单号
             queryset = Sku.objects.filter(
-                pk__in=[int(pk) for pk in self.validated_data.get('sku_dict').keys()]).select_related('commodity')
+                pk__in=[int(pk) for pk in self.validated_data.get('sku_dict').keys()]).select_related('commodity__user')
             total_price, total_counts = self.compute_order_details(queryset)  # 计算总价和总数量
             # 重新修改订单表总数量
             credential['total_price'] = total_price
@@ -165,7 +165,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 order_basic = OrderBasic.order_basic_.create(**credential)  # 创建初始订单
                 OrderDetail.order_detail_.bulk_create([
-                    OrderDetail(commodity=sku.commodity, order_basic=order_basic, sku=sku, counts=sku_dict.get(key)) for
+                    OrderDetail(user=sku.commodity.user, commodity=sku.commodity, order_basic=order_basic, sku=sku, counts=sku_dict.get(key)) for
                     sku, key in zip(queryset, sku_dict)
                 ])
         except DatabaseError as e:  # rollback

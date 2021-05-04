@@ -139,6 +139,7 @@ class OrderBasic(models.Model):
 class OrderDetail(models.Model):
     """订单商品表，详情订单，针对某一种商品"""
 
+    # 商家
     user = models.ForeignKey(User, verbose_name=_('商家'), related_name='order_details', on_delete=models.CASCADE)
 
     # 商品，显示商品下架
