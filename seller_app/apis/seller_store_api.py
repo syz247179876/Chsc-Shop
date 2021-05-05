@@ -37,18 +37,10 @@ class SellerStoreApiView(GenericAPIView):
         serializer.is_valid(raise_exception=True)  # 校验店铺名是否唯一
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # def get_object(self):
-    #     """获取店铺数据"""
-    #     try:
-    #         return self.serializer_class.Meta.model.objects.get(pk=self.kwargs.get(('id')))
-    #     except self.serializer_class.Meta.model.DoesNotExist:
-    #         raise DataNotExist('用户不存在')
-
     def get_queryset(self):
         """获取店铺数据集"""
         return self.serializer_display_class.Meta.model.objects.select_related('user', 'store', 'role').\
             filter(user=self.request.user, user__is_seller=True)
-        # return self.serializer_class.Meta.model.objects.filter(pk=self.kwargs.get('id')).select_related()
 
     def get(self, request, *args, **kwargs):
         """商家获取店铺信息"""
