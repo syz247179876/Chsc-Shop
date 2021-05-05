@@ -11,9 +11,10 @@ from Emall.exceptions import DataFormatError, SqlServerError, DataExisted, DataN
 from manager_app.models import Role
 from seller_app.models import Store, Seller
 
+User = get_user_model()
+
 
 class SellerStoreSerializer(serializers.ModelSerializer):
-    User = get_user_model()
     class Meta:
         model = Store
         seller_model = Seller
@@ -42,9 +43,51 @@ class SellerStoreSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 store = self.Meta.model.objects.create(**credential)  # 创建店铺
                 self.Meta.seller_model.objects.create(user=user, store=store, role=role)  # 创建商家
-                user.is_seller = True # 将该用户升级成商家,具备商家权限
+                user.is_seller = True  # 将该用户升级成商家,具备商家权限
                 user.save(force_update=True)
         except self.Meta.role_model.DoesNotExist:
             raise DataNotExist()
         except DatabaseError:
             raise SqlServerError()
+
+
+class SellerUserDisplaySerializer(serializers.ModelSerializer):
+    """商家个人信息序列化器"""
+
+    sex = serializers.CharField(source='get_sex_display', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'full_name', 'email', 'phone', 'is_seller', 'is_active',
+                  'birthday', 'sex', 'head_image', 'date_joined')
+
+
+class SellerStoreDisplaySerializer(serializers.ModelSerializer):
+    """商家店铺信息序列化器"""
+
+    type = serializers.CharField(source='get_type_display', read_only=True)
+
+    rank = serializers.CharField(source='get_rank_display', read_only=True)
+
+    class Meta:
+        model = Store
+        fields = '__all__'
+
+class SellerRoleDisplaySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Role
+        exclude = ['permission']
+
+class SellerDisplaySerializer(serializers.ModelSerializer):
+    """商家个人信息+店铺信息序列化器"""
+
+    user = SellerUserDisplaySerializer()
+
+    store = SellerStoreDisplaySerializer()
+
+    role = SellerRoleDisplaySerializer()
+
+    class Meta:
+        model = Seller
+        fields = '__all__'

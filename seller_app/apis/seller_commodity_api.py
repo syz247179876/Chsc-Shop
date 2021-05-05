@@ -14,7 +14,7 @@ from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_CO
     DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY, MODIFY_EFFECTIVE_SKU, DELETE_EFFECTIVE_SKU
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
     SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer, SellerSkuSerializer, \
-    SellerSkuDeleteSerializer
+    SellerSkuDeleteSerializer, SkuCommoditySerializer
 from seller_app.utils.permission import SellerPermissionValidation
 from shop_app.models.commodity_models import Commodity
 
@@ -84,6 +84,8 @@ class SkuPropApiView(BackendGenericApiView):
 
     serializer_delete_class = SkuPropsDeleteSerializer
 
+    serializer_commodity_class = SkuCommoditySerializer
+
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     def get_queryset(self):
@@ -91,10 +93,19 @@ class SkuPropApiView(BackendGenericApiView):
         return self.serializer_class.Meta.model.objects.select_related('commodity__user').\
             filter(commodity__user=self.request.user)
 
+    def get_commodity_queryset(self):
+        """获取该商家所属下的商品数据"""
+        return self.serializer_commodity_class.Meta.model.commodity_.filter(user=self.request.user).\
+            values('pk', 'commodity_name')
+
     @validate_url_data('sku_props', 'pk', null=True)
     def get(self, request):
         """获取商品属性规格和值单个或多个"""
-        return super().get(request)
+        response = super().get(request)
+        commodity_queryset = self.get_commodity_queryset()
+        commodity_serializer = self.serializer_commodity_class(instance=commodity_queryset, many=True)
+        response.data.update({'commodity':commodity_serializer.data})
+        return response
 
     def post(self, request):
         """添加商品属性规格和值"""
@@ -112,6 +123,7 @@ class SkuPropApiView(BackendGenericApiView):
         result_num = super().delete(request)
         return Response(response_code.result(DELETE_COMMODITY_PROPERTY, '删除成功')) \
             if result_num else Response(response_code.result(DELETE_COMMODITY_PROPERTY, '无操作,无效数据'))
+
 
 
 class FreightApiView(BackendGenericApiView):
@@ -155,16 +167,27 @@ class SellerSkuApiView(BackendGenericApiView):
 
     serializer_delete_class = SellerSkuDeleteSerializer
 
+    serializer_commodity_class = SkuCommoditySerializer
+
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.select_related('commodity__user').\
             filter(commodity__user=self.request.user)
 
+    def get_commodity_queryset(self):
+        """获取该商家所属下的商品数据"""
+        return self.serializer_commodity_class.Meta.model.commodity_.filter(user=self.request.user).\
+            values('pk', 'commodity_name')
+
     @validate_url_data('sku', 'pk', null=True)
     def get(self, request):
         """获取单个/多个有效SKU"""
-        return super().get(request)
+        response = super().get(request)
+        commodity_queryset = self.get_commodity_queryset()
+        commodity_serializer = self.serializer_commodity_class(instance=commodity_queryset, many=True)
+        response.data.update({'commodity': commodity_serializer.data})
+        return response
 
     @validate_url_data('sku', 'pk')
     def put(self, request):

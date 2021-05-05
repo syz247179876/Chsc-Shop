@@ -16,7 +16,7 @@ app_name = 'seller_app'
 urlpatterns = [
     path(f'{settings.URL_PREFIX}/commodity/',SellerCommodityApiView.as_view()),
     path(f'{settings.URL_PREFIX}/sku-property/', SkuPropApiView.as_view()),
-    path(f'{settings.URL_PREFIX}/store/', SellerStoreApiView.as_view()),
+    path(f'{settings.URL_PREFIX}/store/<int:pk>/', SellerStoreApiView.as_view()),
     path(f'{settings.URL_PREFIX}/freight/', FreightApiView.as_view()),
     path(f'{settings.URL_PREFIX}/sku/', SellerSkuApiView.as_view()),
     path(f'{settings.URL_PREFIX}/menu/', SellerMenuApiView.as_view())

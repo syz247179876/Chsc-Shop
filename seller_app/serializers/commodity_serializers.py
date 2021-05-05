@@ -178,10 +178,14 @@ class SkuPropSerializer(serializers.ModelSerializer):
 
     values = serializers.SerializerMethodField()  # 显示属性对应的值数组
 
+    commodity_name = serializers.CharField(source='commodity.commodity_name', read_only=True)
+
+    cid = serializers.IntegerField(source='commodity.pk', read_only=True)
+
     class Meta:
         model = SkuProps
         values_model = SkuValues
-        fields = ('pk', 'name', 'sku_values', 'values', 'commodity')
+        fields = ('pk', 'name', 'sku_values', 'values', 'commodity', 'commodity_name', 'cid')
         read_only_fields = ('pk',)
 
     def get_values(self, obj):
@@ -238,6 +242,13 @@ class SkuPropsDeleteSerializer(serializers.Serializer):
         """删除商品属性规格和值"""
         return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
 
+
+class SkuCommoditySerializer(serializers.ModelSerializer):
+    """与Sku有关的商品数据序列化器"""
+
+    class Meta:
+        model = Commodity
+        fields = ('pk', 'commodity_name')
 
 class FreightSerializer(serializers.ModelSerializer):
     freight_item = serializers.ListField(child=serializers.DictField(allow_empty=False), allow_empty=False,
@@ -369,11 +380,13 @@ class SellerSkuSerializer(serializers.ModelSerializer):
 
     commodity_name = serializers.CharField(source='commodity.commodity_name', read_only=True)
 
+    cid = serializers.IntegerField(source='commodity.pk', read_only=True)
+
     class Meta:
         model = Sku
         read_only_fields = ('pk',)
         fields = ('pk', 'sid', 'commodity', 'stock', 'price', 'favourable_price', 'image', 'name', 'status',
-                  'properties_r', 'properties_w', 'commodity_name')
+                  'properties_r', 'properties_w', 'commodity_name', 'cid')
 
     def get_properties_r(self, obj):
         """将properties反序列化"""
