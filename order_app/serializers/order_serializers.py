@@ -247,11 +247,9 @@ class OrderSellerSerializer(serializers.ModelSerializer):
 
     order_id = serializers.CharField(source='order_basic.order_id')
 
-    status = serializers.CharField(source='order_basic.get_status_display')
+    status = serializers.BooleanField(source='order_basic.get_status_display')
 
-    is_checked = serializers.CharField(source='order_basic.is_checked')
-
-    efficient_time = serializers.CharField(source='order_basic.efficient_time')
+    efficient_time = serializers.DateTimeField(source='order_basic.efficient_time')
 
     recipient = serializers.CharField(source='order_basic.address.recipient')
 

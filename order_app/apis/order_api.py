@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 from Emall.exceptions import SqlServerError, DataNotExist
 from Emall.loggings import Logging
-from Emall.response_code import response_code, DELETE_ORDER_SUCCESS, CREATE_ORDER_SUCCESS
+from Emall.response_code import response_code, DELETE_ORDER_SUCCESS, CREATE_ORDER_SUCCESS, ACCEPT_ORDER
 from order_app.models.order_models import OrderBasic, OrderDetail
 from order_app.redis.order_redis import order_redis
 from order_app.serializers.order_serializers import OrderBasicSerializer, OrderCreateSerializer, OrderConfirmSerializer, \
@@ -102,8 +102,6 @@ class OrderBasicOperation(viewsets.GenericViewSet):
             instance.save(update_fields=['delete_seller'])
             print(instance.delete_seller)
 
-
-
     def substantial_del_order(self):
         """真实单删订单"""
         pk = self.kwargs.get(self.lookup_field)
@@ -189,6 +187,12 @@ class OrderBasicOperation(viewsets.GenericViewSet):
             'count': queryset.count(),
             'data': serializer.data
         })
+
+    @action(methods=['PUT'], detail=True, url_path='reception')
+    def seller_accept_order(self, request, pk):
+        """商家接受订单"""
+        rows = OrderDetail.order_detail_.filter(pk=pk, user=request.user).update(is_checked=True)
+        return Response(response_code.result(ACCEPT_ORDER, '接单成功' if rows else '无效操作'))
 
 
 class OrderConfirmOperation(GenericAPIView):
