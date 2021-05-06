@@ -54,8 +54,6 @@ class SellerStoreSerializer(serializers.ModelSerializer):
 class SellerUserDisplaySerializer(serializers.ModelSerializer):
     """商家个人信息序列化器"""
 
-    sex = serializers.CharField(source='get_sex_display', read_only=True)
-
     class Meta:
         model = User
         fields = ('username', 'full_name', 'email', 'phone', 'is_seller', 'is_active',
@@ -73,11 +71,12 @@ class SellerStoreDisplaySerializer(serializers.ModelSerializer):
         model = Store
         fields = '__all__'
 
-class SellerRoleDisplaySerializer(serializers.ModelSerializer):
 
+class SellerRoleDisplaySerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         exclude = ['permission']
+
 
 class SellerDisplaySerializer(serializers.ModelSerializer):
     """商家个人信息+店铺信息序列化器"""
@@ -91,3 +90,49 @@ class SellerDisplaySerializer(serializers.ModelSerializer):
     class Meta:
         model = Seller
         fields = '__all__'
+
+
+class SellerUpdateInfoSerializer(serializers.ModelSerializer):
+    """
+    商家更新个人信息序列化器
+    """
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'phone', 'birthday', 'sex')
+
+    def modify(self):
+        user = self.context.get('request').user
+        user.username = self.validated_data.get('username', None) or user.username
+        user.email = self.validated_data.get('email', None) or user.email
+        user.phone = self.validated_data.get('phone', None) or user.phone
+        user.sex = self.validated_data.get('sex', None) or user.sex
+        user.save(update_fields=['username', 'email', 'phone', 'sex'])
+
+
+class SellerUpdateStoreSerializer(serializers.ModelSerializer):
+    """
+    商家更新店铺相关信息序列化器
+    """
+
+    class Meta:
+        model = Store
+        seller_model = Seller
+        fields = ('pk', 'name', 'intro', 'province')
+        extra_kwargs = {
+            'province':{
+                'required':True
+            }
+        }
+
+
+    def modify(self):
+        pk = self.context.get('request').data.get('pk', None)
+        if not pk:
+            raise DataFormatError('缺少数据')
+        user = self.context.get('request').user
+        queryset = self.Meta.model.objects.select_related('seller__user').filter(pk=pk, seller__user=user)
+        if queryset.count() == 0:
+            raise DataNotExist()
+        return queryset.update(**self.validated_data)
+
