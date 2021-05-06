@@ -48,9 +48,12 @@ class OrderSkuSerializer(serializers.ModelSerializer):
 class CommoditySerializer(serializers.ModelSerializer):
     """ 与订单细节有关的商品序列化器"""
 
+    # 店铺名
+    store_name = serializers.CharField(source='store.name', read_only=True)
+
     class Meta:
         model = Commodity
-        fields = ('commodity_name', 'intro', 'category', 'freight', 'little_image')
+        fields = ('commodity_name', 'intro', 'little_image', 'store_name')
 
 
 class OrderDetailsSerializer(serializers.ModelSerializer):
@@ -75,8 +78,15 @@ class OrderBasicSerializer(serializers.ModelSerializer):
 
     status = serializers.SerializerMethodField(required=False)  # 获取可读的status
 
-    list_pk = serializers.ListField(required=False, write_only=True, allow_empty=False,
+    pk_list = serializers.ListField(required=False, write_only=True, allow_empty=False,
                                     child=serializers.IntegerField())  # 订单号集合
+
+    identity_choice = (
+        (-1, '消费者'),
+        (1, '商家')
+    )
+
+    identity = serializers.ChoiceField(required=False, write_only=True, choices=identity_choice)  # 标识是用户还是商家
 
     def get_status(self, obj):
         return obj.get_status_display()
@@ -84,7 +94,9 @@ class OrderBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderBasic
         fields = ('order_id', 'trade_number', 'total_price', 'total_counts', 'generate_time', 'status',
-                  'order_details', 'list_pk')
+                  'order_details', 'pk_list', 'identity')
+        read_only_fields = ('order_id', 'trade_number', 'total_price', 'total_counts', 'generate_time', 'status',
+                  'order_details')
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
@@ -106,8 +118,6 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             raise DataNotExist()
         for value in queryset:
             # 创建详细订单表
-            print(sku_dict)
-            print(sku_dict.get(str(value.pk)))
             total_price += (value.favourable_price * sku_dict.get(str(value.pk)))
         return total_price, sum(sku_dict.values())
 
@@ -135,15 +145,15 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             'payment': self.validated_data.get('payment'),
             'total_counts': 0,
             'total_price': 0,
-            'favourable_price':0,
-            'true_price':0
+            'favourable_price': 0,
+            'true_price': 0
         }
         try:
             credential['address'] = self.get_address(user)
             pk = user.pk
             credential['order_id'] = self.generate_orderid(pk)  # 产生订单号
             queryset = Sku.objects.filter(
-                pk__in=[int(pk) for pk in self.validated_data.get('sku_dict').keys()]).select_related('commodity')
+                pk__in=[int(pk) for pk in self.validated_data.get('sku_dict').keys()]).select_related('commodity__user')
             total_price, total_counts = self.compute_order_details(queryset)  # 计算总价和总数量
             # 重新修改订单表总数量
             credential['total_price'] = total_price
@@ -155,7 +165,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 order_basic = OrderBasic.order_basic_.create(**credential)  # 创建初始订单
                 OrderDetail.order_detail_.bulk_create([
-                    OrderDetail(commodity=sku.commodity, order_basic=order_basic, sku=sku, counts=sku_dict.get(key)) for sku, key in zip(queryset,sku_dict)
+                    OrderDetail(user=sku.commodity.user, commodity=sku.commodity, order_basic=order_basic, sku=sku, counts=sku_dict.get(key)) for
+                    sku, key in zip(queryset, sku_dict)
                 ])
         except DatabaseError as e:  # rollback
             order_logger.error(e)
@@ -167,7 +178,6 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderBasic
         fields = ('sku_dict', 'payment')
-
 
 
 class OrderConfirmSerializer(serializers.ModelSerializer):
@@ -191,48 +201,6 @@ class OrderConfirmSerializer(serializers.ModelSerializer):
         model = Trolley
         fields = ('pk', 'cid', 'pk_list', 'store_name', 'commodity_name', 'count', 'time', 'sku', 'intro', 'is_free')
         read_only_fields = ('pk', 'cid', 'store_name', 'commodity_name', 'count', 'time', 'sku', 'intro', 'is_free')
-
-
-class PageSerializer(serializers.Serializer):
-    """页数序列器"""
-
-    page = serializers.IntegerField()
-
-    data = serializers.SerializerMethodField()
-
-    @property
-    def serializer_class(self):
-        """data serializer"""
-        return self.context.get('serializer')
-
-    def get_data(self, obj):
-        instances = self.context.get('instances', None)
-        context = self.context.get('context', {})
-        return self.serializer_class(instances, context=context, many=True).data
-
-
-class Page:
-    """the instance of page"""
-
-    def __init__(self, page):
-        self.page = page
-
-
-# 订单提交所需序列化器
-
-class OrderCommitSerialiizer(serializers.Serializer):
-    pass
-
-
-class OrderAddressSerializer(serializers.ModelSerializer):
-
-    @staticmethod
-    def get_address(user):
-        """get address of current user"""
-        try:
-            return Address.address_.filter(user=user)
-        except Address.DoesNotExist:
-            return None
 
 
 class OrderCommoditySerializer(serializers.ModelSerializer):
@@ -262,3 +230,50 @@ class OrderCommoditySerializer(serializers.ModelSerializer):
                   'discounts_intro', 'commodity_counts_dict', 'store_commodity_dict']
         read_only_fields = ['commodity_name', 'pk', 'price', 'intro', 'category', 'freight', 'total_price',
                             'total_price', 'big_image', 'discounts_intro']
+
+
+class OrderSellerAddressSerializer(serializers.ModelSerializer):
+    """与商家+订单有关的地址序列化器"""
+
+    class Meta:
+        model = Address
+        fields = ('recipient', 'province', 'region', 'phone')
+
+
+class OrderSellerSerializer(serializers.ModelSerializer):
+    """与商家有关的订单序列化器"""
+
+    commodity_name = serializers.CharField(source='commodity.commodity_name')
+
+    order_id = serializers.CharField(source='order_basic.order_id')
+
+    status = serializers.CharField(source='order_basic.get_status_display')
+
+    is_checked = serializers.CharField(source='order_basic.is_checked')
+
+    efficient_time = serializers.CharField(source='order_basic.efficient_time')
+
+    recipient = serializers.CharField(source='order_basic.address.recipient')
+
+    province = serializers.CharField(source='order_basic.address.province')
+
+    region = serializers.CharField(source='order_basic.address.region')
+
+    phone = serializers.CharField(source='order_basic.address.phone')
+
+    sku_favourable_price = serializers.DecimalField(source='sku.favourable_price', max_digits=9, decimal_places=2)
+
+    sku_image = serializers.CharField(source='sku.image')
+
+    sku_name = serializers.CharField(source='sku.name')
+
+    sku_properties = serializers.SerializerMethodField()
+
+    def get_sku_properties(self, obj):
+        """反序列化"""
+        return ''.join((key+":"+value+";" for key,value in json.loads(obj.sku.properties).items()))
+
+    class Meta:
+        model = OrderDetail
+        fields = ('pk', 'commodity_name', 'order_id', 'status' ,'is_checked', 'efficient_time', 'recipient',
+                  'province', 'region', 'phone', 'sku_favourable_price', 'sku_properties', 'sku_image', 'sku_name')

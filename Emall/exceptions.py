@@ -7,6 +7,12 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 from django.utils.translation import gettext_lazy as _
 
+class SqlConstraintError(APIException):
+    """违反数据库约束错误"""
+    status_code = status.HTTP_200_OK
+    default_detail = _('违反数据库完整性约束')
+    default_code = 'Constraint Error'
+
 class NoOperation(APIException):
     """无操作"""
     status_code = status.HTTP_204_NO_CONTENT
@@ -24,7 +30,6 @@ class ESConnectError(APIException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_detail = _('ES服务连接超时')
     default_code = 'ES Connection Error'
-
 
 class AuthenticationError(APIException):
     """jwt校验错误"""
@@ -138,7 +143,7 @@ class PhoneHasBeenBoundError(APIException):
 
 
 class CodeError(APIException):
-    """验证码校验错误"""
+    """验证码发送/校验错误"""
     status_code = status.HTTP_200_OK
     default_detail = _('验证码校验错误')
     default_code = 'Code Validate Error'

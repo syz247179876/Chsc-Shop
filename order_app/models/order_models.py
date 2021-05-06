@@ -139,13 +139,16 @@ class OrderBasic(models.Model):
 class OrderDetail(models.Model):
     """订单商品表，详情订单，针对某一种商品"""
 
+    # 商家
+    user = models.ForeignKey(User, verbose_name=_('商家'), related_name='order_details', on_delete=models.CASCADE)
+
     # 商品，显示商品下架
     commodity = models.ForeignKey(Commodity,
-                                     verbose_name=_('商品'),
-                                     related_name='order_details',
-                                     on_delete=models.SET_NULL,
-                                     null=True
-                                     )
+                                  verbose_name=_('商品'),
+                                  related_name='order_details',
+                                  on_delete=models.SET_NULL,
+                                  null=True
+                                  )
 
     # 属于哪一个订单，订单号
     order_basic = models.ForeignKey(OrderBasic, verbose_name=_('订单号'),
@@ -164,6 +167,12 @@ class OrderDetail(models.Model):
 
     # 商品下的sku
     sku = models.ForeignKey(Sku, verbose_name=_('商品的sku'), on_delete=True, related_name="order_detail")
+
+    # 用户删除订单状态，假删除
+    delete_consumer = models.BooleanField(verbose_name=_('消费者是否删除订单'), default=False)
+
+    # 商家删除订单状态，假删除
+    delete_seller = models.BooleanField(verbose_name=_('商家是否删除订单'), default=False)
 
     order_detail_ = Manager()
 

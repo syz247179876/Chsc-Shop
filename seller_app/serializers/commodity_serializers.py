@@ -5,11 +5,12 @@
 # @Software: Pycharm
 import json
 
-from django.db import DatabaseError, transaction, DataError
+from django.db import DatabaseError, transaction, DataError, IntegrityError
+from django.db.models import ProtectedError
 from django.db.transaction import atomic
 from rest_framework import serializers
 
-from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist
+from Emall.exceptions import DataFormatError, SqlServerError, DataNotExist, DataTypeError, SqlConstraintError
 from Emall.loggings import Logging
 from search_app.signals import add_to_es, update_to_es
 from seller_app.models import Seller
@@ -63,8 +64,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
         category_model = CommodityCategory
         seller_model = Seller
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'groups',
-                  'status', 'stock', 'category_id',
-                  'freight_id')
+                  'status', 'stock', 'category_id', 'freight_id')
         read_only_fields = ('pk', )
 
     # def get_category_list(self, obj):
@@ -117,8 +117,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             raise SqlServerError()
         else:
             # 发送信号,添加document到索引库
-            res = add_to_es.send(**self.add_update_dsl(commodity.pk, **self.search_body(commodity)))
-            print(res)
+            add_to_es.send(**self.add_update_dsl(commodity.pk, **self.search_body(commodity)))
 
     def update_commodity(self):
         """商家修改商品"""
@@ -179,10 +178,14 @@ class SkuPropSerializer(serializers.ModelSerializer):
 
     values = serializers.SerializerMethodField()  # 显示属性对应的值数组
 
+    commodity_name = serializers.CharField(source='commodity.commodity_name', read_only=True)
+
+    cid = serializers.IntegerField(source='commodity.pk', read_only=True)
+
     class Meta:
         model = SkuProps
         values_model = SkuValues
-        fields = ('pk', 'name', 'sku_values', 'values', 'commodity')
+        fields = ('pk', 'name', 'sku_values', 'values', 'commodity', 'commodity_name', 'cid')
         read_only_fields = ('pk',)
 
     def get_values(self, obj):
@@ -240,15 +243,32 @@ class SkuPropsDeleteSerializer(serializers.Serializer):
         return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
 
 
+class SkuCommoditySerializer(serializers.ModelSerializer):
+    """与Sku有关的商品数据序列化器"""
+
+    class Meta:
+        model = Commodity
+        fields = ('pk', 'commodity_name')
+
 class FreightSerializer(serializers.ModelSerializer):
     freight_item = serializers.ListField(child=serializers.DictField(allow_empty=False), allow_empty=False,
                                          write_only=True)  # 运费项
     pk = serializers.IntegerField(min_value=1, required=False)  # 解决找不到pk问题
 
+    str_charge_type = serializers.SerializerMethodField()
+
+    str_is_free = serializers.SerializerMethodField()
+
+    def get_str_is_free(self, obj):
+        return '包邮' if obj.is_free else '不包邮'
+
+    def get_str_charge_type(self, obj):
+        return obj.get_charge_type_display()
+
     class Meta:
         model = Freight
         item_model = FreightItem
-        fields = ('pk', 'name', 'is_free', 'charge_type', 'freight_item')
+        fields = ('pk', 'name', 'str_is_free', 'str_charge_type', 'freight_item', 'is_free', 'charge_type')
         read_only_fields = ('pk',)
 
     def add(self):
@@ -256,7 +276,8 @@ class FreightSerializer(serializers.ModelSerializer):
         credential = {
             'name': self.validated_data.pop('name'),
             'is_free': self.validated_data.pop('is_free'),
-            'charge_type': self.validated_data.pop('charge_type')
+            'charge_type': self.validated_data.pop('charge_type'),
+            'user': self.context.get('request').user
         }
 
         try:
@@ -343,8 +364,10 @@ class FreightDeleteSerializer(serializers.Serializer):
         model = Freight
 
     def delete(self):
-        return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
-
+        try:
+            return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+        except ProtectedError:
+            raise SqlServerError('存在商品使用该模板，无法删除！')
 
 class SellerSkuSerializer(serializers.ModelSerializer):
     """
@@ -355,11 +378,15 @@ class SellerSkuSerializer(serializers.ModelSerializer):
 
     properties_w = serializers.DictField(child=serializers.CharField(), allow_empty=False, write_only=True)  # 用于写
 
+    commodity_name = serializers.CharField(source='commodity.commodity_name', read_only=True)
+
+    cid = serializers.IntegerField(source='commodity.pk', read_only=True)
+
     class Meta:
         model = Sku
         read_only_fields = ('pk',)
         fields = ('pk', 'sid', 'commodity', 'stock', 'price', 'favourable_price', 'image', 'name', 'status',
-                  'properties_r', 'properties_w')
+                  'properties_r', 'properties_w', 'commodity_name', 'cid')
 
     def get_properties_r(self, obj):
         """将properties反序列化"""
@@ -391,4 +418,7 @@ class SellerSkuDeleteSerializer(serializers.Serializer):
 
     def delete(self):
         """删除有效SKU"""
-        return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+        try:
+            return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+        except TypeError:
+            raise SqlConstraintError('订单中正使用有效sku，无法删除')

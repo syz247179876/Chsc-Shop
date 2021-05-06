@@ -51,15 +51,19 @@ class BackendGenericApiView(GenericAPIView):
         if pk:
             obj = self.get_obj(pk)
             serializer = self.get_serializer(instance=obj)
+            return Response(serializer.data)
         else:
-            instance = self.get_queryset()
-            serializer = self.get_serializer(instance=instance, many=True)
-        return Response(serializer.data)
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(instance=queryset, many=True)
+        return Response({
+            'count': queryset.count(),
+            'data': serializer.data
+        })
 
     def put(self, request):
         """修改"""
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid()
+        serializer.is_valid(raise_exception=True)
         serializer.modify()
 
     def delete(self, request):

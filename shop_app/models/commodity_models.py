@@ -70,6 +70,9 @@ class CommodityGroup(models.Model):
 
 class Freight(models.Model):
     """商品运费表"""
+
+    user = models.ForeignKey(User, verbose_name=_('商家'), on_delete=models.CASCADE)
+
     name = models.CharField(verbose_name=_('运费模板名称'), max_length=15)
 
     # 是否包邮
