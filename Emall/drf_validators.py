@@ -119,7 +119,25 @@ def validate_freight_pk(value):
 def validate_favorites_pk(value):
     """
     检验url中关于收藏夹的pk字段
-    收藏夹id允许上线10位数
+    收藏夹id允许上限10位数
     """
 
     return True if re.match('^[1-9]\d{0,9}$', str(value)) else False
+
+def validate_carousel_pk(value):
+    """
+    检验url中关于轮播图的pk字段
+    轮播图允许上限4位数
+    """
+
+    return True if re.match('^[1-9]\d{0,3}', str(value)) else False
+
+
+def validate_sku_pk(value):
+    """
+    检验url中关于SKU的pk字段
+    轮播图允许上限9位数
+    :param value:
+    :return:
+    """
+    return True if re.match('^[1-9]\d{0,8}', str(value)) else False
