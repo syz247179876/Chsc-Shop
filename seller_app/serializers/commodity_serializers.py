@@ -31,17 +31,19 @@ class CommodityCategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'children')
 
     def get_children(self, obj):
-
         # 如果当前类别有后继结点的话,则继续递归查找所有前驱结点为该结点pk值的子类别,递归嵌套
         if obj.has_next:
-            return CommodityCategorySerializer(self.get_queryset(obj.pk), many=True).data
+            return CommodityCategorySerializer(instance=self.Meta.model.objects.filter(pre=obj.pk), many=True).data
         else:
             return None
 
-    def get_queryset(self, pre):
-        """根据pre查找所属的子类别"""
-        return CommodityCategory.objects.filter(pre=pre)
 
+class CommodityFreightSerializer(serializers.ModelSerializer):
+    """商品运费模板序列化器（简易版）"""
+
+    class Meta:
+        model = Freight
+        fields = ('pk', 'name', 'is_free', 'charge_type')
 
 class SellerCommoditySerializer(serializers.ModelSerializer):
     """商家操作商品模型序列化器"""
@@ -251,16 +253,18 @@ class SkuCommoditySerializer(serializers.ModelSerializer):
 
 
 class FreightItemSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FreightItem
-        fields = ('pk', 'status', 'first_piece', 'continue_piece', 'first_price', 'continue_price', 'city')
-        read_only_fields = ('pk', )
+        fields = ('pk', 'freight', 'status', 'first_piece', 'continue_piece', 'first_price', 'continue_price', 'city')
+        read_only_fields = ('pk',)
+
+    def add(self):
+        self.Meta.model.objects.create(**self.validated_data)
 
 
 class FreightSerializer(serializers.ModelSerializer):
     freight_items_w = serializers.ListField(child=serializers.DictField(allow_empty=False), allow_empty=False,
-                                          write_only=True)  # 运费项
+                                            write_only=True)  # 运费项
     pk = serializers.IntegerField(min_value=1, required=False)  # 解决找不到pk问题
 
     str_charge_type = serializers.SerializerMethodField()
@@ -279,7 +283,8 @@ class FreightSerializer(serializers.ModelSerializer):
         model = Freight
         item_model = FreightItem
         fields = (
-        'pk', 'name', 'str_is_free', 'str_charge_type', 'freight_items_w', 'is_free', 'charge_type', 'freight_items')
+            'pk', 'name', 'str_is_free', 'str_charge_type', 'freight_items_w', 'is_free', 'charge_type',
+            'freight_items')
         read_only_fields = ('pk',)
 
     def add(self):
@@ -327,13 +332,13 @@ class FreightSerializer(serializers.ModelSerializer):
             for item in freight_item_data:
                 # 遍历list，元素为item字典
                 # TODO: 这里还需要加强校验
-
                 item_obj = self.Meta.item_model.objects.get(pk=item.pop('pk'), freight=queryset.first())  # 获取item对象
                 item_obj.first_piece = item.pop('first_piece')
                 item_obj.continue_piece = item.pop('continue_piece')
                 item_obj.first_price = item.pop('first_price')
                 item_obj.continue_price = item.pop('continue_price')
                 item_obj.city = item.pop('city')
+                item_obj.status = item.pop('status')
                 temp_objs_item.append(item_obj)  # 追加进去，批量更新
             # 开启事务
             with transaction.atomic():
@@ -341,7 +346,7 @@ class FreightSerializer(serializers.ModelSerializer):
                 # 批量处理
                 self.Meta.item_model.objects.bulk_update(temp_objs_item,
                                                          ['first_piece', 'continue_piece', 'first_price',
-                                                          'continue_price', 'city'])
+                                                          'continue_price', 'city', 'status'])
                 del temp_objs_item
         except self.Meta.item_model.DoesNotExist:
             raise DataNotExist()

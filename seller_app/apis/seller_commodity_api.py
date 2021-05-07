@@ -17,7 +17,8 @@ from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_CO
     CREATE_FREIGHT_ITEM, DELETE_FREIGHT_ITEM
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
     SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer, SellerSkuSerializer, \
-    SellerSkuDeleteSerializer, SkuCommoditySerializer, FreightItemSerializer
+    SellerSkuDeleteSerializer, SkuCommoditySerializer, FreightItemSerializer, CommodityCategorySerializer, \
+    CommodityFreightSerializer
 from seller_app.utils.permission import SellerPermissionValidation
 from shop_app.models.commodity_models import Commodity
 
@@ -78,6 +79,31 @@ class SellerCommodityApiView(GenericAPIView):
             serializer.delete_commodity()
         # return
         return Response(3333)
+
+
+class SellerCommodityExtraApiView(GenericViewSet):
+    """商家对商品有关的所有额外数据的操作"""
+
+    serializer_category_class = CommodityCategorySerializer
+
+    serializer_freight_class = CommodityFreightSerializer
+
+    def get_category_queryset(self):
+        """获取商品所有分类信息"""
+        return self.serializer_category_class.Meta.model.objects.filter(has_prev=False).first()
+
+    def get_freight_queryset(self):
+        """获取该商家下的所有运费模板信息"""
+        return self.serializer_freight_class.Meta.model.objects.filter(user=self.request.user)
+
+    def list(self, request):
+        """获取与商品相关的所有额外数据"""
+        serializer_category = self.serializer_category_class(instance=self.get_category_queryset())
+        serializer_freight = self.serializer_freight_class(instance=self.get_freight_queryset(), many=True)
+        return Response({
+            'category': serializer_category.data,
+            'freight': serializer_freight.data
+        })
 
 
 class SkuPropApiView(BackendGenericApiView):
@@ -166,16 +192,18 @@ class FreightApiView(BackendGenericApiView):
 class FreightItemApiView(GenericViewSet):
     """运费模板项相关API"""
 
+    permission_classes = [IsAuthenticated, SellerPermissionValidation]
+
     serializer_class = FreightItemSerializer
 
     def create(self, request):
         """创建运费模板项"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.create()
+        serializer.add()
         return Response(response_code.result(CREATE_FREIGHT_ITEM, '创建成功'))
 
-    def delete(self, request, pk):
+    def destroy(self, request, pk):
         """删除运费模板项"""
         rows, _ = self.serializer_class.Meta.model.objects.filter(pk=pk).delete()
         return Response(response_code.result(DELETE_FREIGHT_ITEM, '删除成功' if rows else '无效操作'))
