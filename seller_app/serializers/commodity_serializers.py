@@ -25,10 +25,12 @@ class CommodityCategorySerializer(serializers.ModelSerializer):
     """商品类别序列化器"""
 
     children = serializers.SerializerMethodField()
+    value = serializers.IntegerField(source='pk')
+    label = serializers.CharField(source='name')
 
     class Meta:
         model = CommodityCategory
-        fields = ('name', 'children')
+        fields = ('value', 'label', 'children')
 
     def get_children(self, obj):
         # 如果当前类别有后继结点的话,则继续递归查找所有前驱结点为该结点pk值的子类别,递归嵌套
@@ -40,6 +42,8 @@ class CommodityCategorySerializer(serializers.ModelSerializer):
 
 class CommodityFreightSerializer(serializers.ModelSerializer):
     """商品运费模板序列化器（简易版）"""
+
+    charge_type = serializers.CharField(source='get_charge_type_display')
 
     class Meta:
         model = Freight
@@ -66,7 +70,7 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
         category_model = CommodityCategory
         seller_model = Seller
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'groups',
-                  'status', 'stock', 'category_id', 'freight_id')
+                  'status', 'stock', 'category_id', 'freight_id', 'details', 'spu')
         read_only_fields = ('pk',)
 
     # def get_category_list(self, obj):
@@ -151,7 +155,8 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             'details': self.validated_data.pop('details', ''),
             'intro': self.validated_data.pop('intro'),
             'status': self.validated_data.pop('status'),
-            'stock': self.validated_data.pop('stock')
+            'stock': self.validated_data.pop('stock'),
+            'spu': self.validated_data.pop('spu', '')
         }
 
 
@@ -163,8 +168,8 @@ class SellerCommodityDeleteSerializer(serializers.Serializer):
 
     def delete_commodity(self):
         """商家删除商品"""
-        self.Meta.model.commodity_.filter(pk__in=self.validated_data.pop('pk_list')).delete()
-
+        rows, _ = self.Meta.model.commodity_.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+        return rows
 
 class SkuValueSerializer(serializers.ModelSerializer):
     class Meta:

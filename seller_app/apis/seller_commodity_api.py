@@ -14,7 +14,7 @@ from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
 from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_COMMODITY_PROPERTY, \
     DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY, MODIFY_EFFECTIVE_SKU, DELETE_EFFECTIVE_SKU, \
-    CREATE_FREIGHT_ITEM, DELETE_FREIGHT_ITEM
+    CREATE_FREIGHT_ITEM, DELETE_FREIGHT_ITEM, DELETE_COMMODITY
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
     SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer, SellerSkuSerializer, \
     SellerSkuDeleteSerializer, SkuCommoditySerializer, FreightItemSerializer, CommodityCategorySerializer, \
@@ -72,13 +72,11 @@ class SellerCommodityApiView(GenericAPIView):
         serializer = self.serializer_delete_class(data=request.data)
         print(self.request.query_params.get('all', None))
         if self.request.query_params.get('all', None) == 'true':
-            queryset = Commodity.commodity_.filter(user=request.user).delete()
-            print(queryset)
+            rows = Commodity.commodity_.filter(user=request.user).delete()
         else:
             serializer.is_valid(raise_exception=True)
-            serializer.delete_commodity()
-        # return
-        return Response(3333)
+            rows = serializer.delete_commodity()
+        return Response(response_code.result(DELETE_COMMODITY, '删除成功' if rows else '无效操作'))
 
 
 class SellerCommodityExtraApiView(GenericViewSet):
