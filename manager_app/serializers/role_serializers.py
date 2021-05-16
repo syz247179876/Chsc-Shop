@@ -32,22 +32,6 @@ class RoleSerializer(serializers.ModelSerializer):
         except DatabaseError:
             raise DataFormatError('数据非法')
 
-    def modify_role(self):
-        """修改角色信息"""
-        credential = self.get_credential
-        pk = self.context.get('request').data.pop('pk')
-        permission_list = self.validated_data.pop('pid_list')
-        try:
-            with transaction.atomic():
-                role = self.Meta.model.objects.get(pk=pk)
-
-                # TODO: 存在问题
-                role.set(permission_list)
-        except self.Meta.model.DoesNotExist:
-            raise DataFormatError('数据不存在')
-        except DatabaseError:
-            raise DataFormatError('数据非法')
-
     @property
     def get_credential(self):
         return {
@@ -55,6 +39,37 @@ class RoleSerializer(serializers.ModelSerializer):
             'description': self.validated_data.pop('description'),
             'rid': self.validated_data.pop('rid')
         }
+
+
+class RoleUpdateSerializer(serializers.ModelSerializer):
+    """更新角色信息"""
+
+    rid_w = serializers.CharField(max_length=8)
+    pid_list = serializers.ListField(child=serializers.CharField(max_length=8), allow_empty=True, write_only=True)
+    class Meta:
+        model = Role
+        fields = ('pk', 'role_name', 'description', 'pid_list', 'rid_w')
+
+    def modify_role(self):
+        """修改角色信息"""
+        data = self.context.get('request').data
+        permission_list = self.validated_data.pop('pid_list')
+        try:
+            with transaction.atomic():
+                role = self.Meta.model.objects.get(pk=data.get('pk'))
+                role.permission.set(permission_list)
+                rid = self.validated_data.pop('rid_w')
+                role.role_name = self.validated_data.pop('role_name')
+                role.description = self.validated_data.pop('description')
+                if role.rid != rid:
+                    role.rid = rid
+                    role.save(force_update=True, update_fields=['role_name', 'description', 'rid'])
+                else:
+                    role.save(force_update=True, update_fields=['role_name', 'description'])
+        except self.Meta.model.DoesNotExist:
+            raise DataFormatError('数据不存在')
+        except DatabaseError:
+            raise DataFormatError('数据非法')
 
 
 class RoleDeleteSerializer(serializers.Serializer):
