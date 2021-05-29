@@ -127,7 +127,7 @@ QtPy==1.9.0
 redis==3.4.1
 redlock-py==1.0.8
 requests==2.23.0
-rsa==4.0
+rsa==4.7
 Send2Trash==1.5.0
 service-identity==18.1.0
 shellescape==3.8.1
