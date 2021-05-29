@@ -45,7 +45,7 @@ dnspython==1.16.0
 drf-haystack==1.8.7
 elasticsearch==7.7.1
 entrypoints==0.3
-eventlet==0.25.1
+eventlet==0.31.0
 fdfs-client==4.0.7
 flower==0.9.5
 future==0.18.2
