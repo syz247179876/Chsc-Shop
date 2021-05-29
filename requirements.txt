@@ -120,7 +120,7 @@ python-docx==0.8.10
 python-memcached==1.59
 python-ptrace==0.9.7
 pytz==2019.3
-PyYAML==5.3.1
+PyYAML==5.4
 pyzmq==19.0.0
 qtconsole==4.7.1
 QtPy==1.9.0
