@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from Emall.decorator import validate_url_data
 from Emall.exceptions import SqlServerError
 from Emall.response_code import response_code, ADD_ROLE_SUCCESS, MODIFY_ROLE_SUCCESS, DELETE_ROLE_SUCCESS
-from manager_app.serializers.role_serializers import RoleSerializer, RoleDeleteSerializer
+from manager_app.serializers.role_serializers import RoleSerializer, RoleDeleteSerializer, RoleUpdateSerializer
 from manager_app.utils.permission import ManagerPermissionValidation
 
 
@@ -19,9 +19,14 @@ class ManageRoleApiView(GenericAPIView):
     """超级管理员角色管理"""
 
     serializer_class = RoleSerializer
+    serializer_update_class = RoleUpdateSerializer
     serializer_delete_class = RoleDeleteSerializer
 
     permission_classes = [IsAuthenticated, ManagerPermissionValidation]
+
+    def get_update_serializer(self, *args, **kwargs):
+        kwargs['context'] = self.get_serializer_context()
+        return self.serializer_update_class(*args, **kwargs)
 
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
@@ -57,7 +62,7 @@ class ManageRoleApiView(GenericAPIView):
     @validate_url_data('role', 'pk')
     def put(self, request):
         """修改角色"""
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_update_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.modify_role()
         return Response(response_code.result(MODIFY_ROLE_SUCCESS, '修改成功'))

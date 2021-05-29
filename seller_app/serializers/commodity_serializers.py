@@ -25,23 +25,29 @@ class CommodityCategorySerializer(serializers.ModelSerializer):
     """商品类别序列化器"""
 
     children = serializers.SerializerMethodField()
+    value = serializers.IntegerField(source='pk')
+    label = serializers.CharField(source='name')
 
     class Meta:
         model = CommodityCategory
-        fields = ('name', 'children')
+        fields = ('value', 'label', 'children')
 
     def get_children(self, obj):
-
         # 如果当前类别有后继结点的话,则继续递归查找所有前驱结点为该结点pk值的子类别,递归嵌套
         if obj.has_next:
-            return CommodityCategorySerializer(self.get_queryset(obj.pk), many=True).data
+            return CommodityCategorySerializer(instance=self.Meta.model.objects.filter(pre=obj.pk), many=True).data
         else:
             return None
 
-    def get_queryset(self, pre):
-        """根据pre查找所属的子类别"""
-        return CommodityCategory.objects.filter(pre=pre)
 
+class CommodityFreightSerializer(serializers.ModelSerializer):
+    """商品运费模板序列化器（简易版）"""
+
+    charge_type = serializers.CharField(source='get_charge_type_display')
+
+    class Meta:
+        model = Freight
+        fields = ('pk', 'name', 'is_free', 'charge_type')
 
 class SellerCommoditySerializer(serializers.ModelSerializer):
     """商家操作商品模型序列化器"""
@@ -64,14 +70,13 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
         category_model = CommodityCategory
         seller_model = Seller
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'groups',
-                  'status', 'stock', 'category_id', 'freight_id')
-        read_only_fields = ('pk', )
+                  'status', 'stock', 'category_id', 'freight_id', 'details', 'spu')
+        read_only_fields = ('pk',)
 
     # def get_category_list(self, obj):
     #     """获取全部种类的序列化器"""
     #     category = self.Meta.category_model.objects.all()
     #     return CommodityCategorySerializer(category, many=True).data
-
 
     def add_update_dsl(self, id, index=None, **kwargs):
         """
@@ -150,7 +155,8 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             'details': self.validated_data.pop('details', ''),
             'intro': self.validated_data.pop('intro'),
             'status': self.validated_data.pop('status'),
-            'stock': self.validated_data.pop('stock')
+            'stock': self.validated_data.pop('stock'),
+            'spu': self.validated_data.pop('spu', '')
         }
 
 
@@ -162,8 +168,8 @@ class SellerCommodityDeleteSerializer(serializers.Serializer):
 
     def delete_commodity(self):
         """商家删除商品"""
-        self.Meta.model.commodity_.filter(pk__in=self.validated_data.pop('pk_list')).delete()
-
+        rows, _ = self.Meta.model.commodity_.filter(pk__in=self.validated_data.pop('pk_list')).delete()
+        return rows
 
 class SkuValueSerializer(serializers.ModelSerializer):
     class Meta:
@@ -250,14 +256,27 @@ class SkuCommoditySerializer(serializers.ModelSerializer):
         model = Commodity
         fields = ('pk', 'commodity_name')
 
+
+class FreightItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FreightItem
+        fields = ('pk', 'freight', 'status', 'first_piece', 'continue_piece', 'first_price', 'continue_price', 'city')
+        read_only_fields = ('pk',)
+
+    def add(self):
+        self.Meta.model.objects.create(**self.validated_data)
+
+
 class FreightSerializer(serializers.ModelSerializer):
-    freight_item = serializers.ListField(child=serializers.DictField(allow_empty=False), allow_empty=False,
-                                         write_only=True)  # 运费项
+    freight_items_w = serializers.ListField(child=serializers.DictField(allow_empty=False), allow_empty=False,
+                                            write_only=True)  # 运费项
     pk = serializers.IntegerField(min_value=1, required=False)  # 解决找不到pk问题
 
     str_charge_type = serializers.SerializerMethodField()
 
     str_is_free = serializers.SerializerMethodField()
+
+    freight_items = FreightItemSerializer(many=True, read_only=True)
 
     def get_str_is_free(self, obj):
         return '包邮' if obj.is_free else '不包邮'
@@ -268,7 +287,9 @@ class FreightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Freight
         item_model = FreightItem
-        fields = ('pk', 'name', 'str_is_free', 'str_charge_type', 'freight_item', 'is_free', 'charge_type')
+        fields = (
+            'pk', 'name', 'str_is_free', 'str_charge_type', 'freight_items_w', 'is_free', 'charge_type',
+            'freight_items')
         read_only_fields = ('pk',)
 
     def add(self):
@@ -283,10 +304,9 @@ class FreightSerializer(serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 freight = self.Meta.model.objects.create(**credential)  # 创建运费模板
-                freight_item_data = self.validated_data.pop('freight_item')
+                freight_item_data = self.validated_data.pop('freight_items_w')
                 # 双层嵌套,批量创建运费项和运费城市项， 创建运费项， 创建运费城市项
                 freight_items = [self.Meta.item_model(freight=freight, **item) for item in freight_item_data]
-                print(type(freight_items[0]))  # 检查类型
                 self.Meta.item_model.objects.bulk_create(freight_items)
         except DatabaseError as e:
             commodity_logger.error(e)
@@ -294,7 +314,7 @@ class FreightSerializer(serializers.ModelSerializer):
 
     def modify(self):
         """
-        修改运费模板
+        原有基础上修改运费模板，不添加/删除运费项
         数据结构清晰，优化查询条件
         """
         credential = {
@@ -310,18 +330,20 @@ class FreightSerializer(serializers.ModelSerializer):
             # 数据不存在
             if rows == 0:
                 raise DataNotExist()
-            freight_item_data = self.validated_data.pop('freight_item')
+            freight_item_data = self.validated_data.pop('freight_items_w')
             # 临时存放对象
             temp_objs_item = []
             # 更新运费项记录
             for item in freight_item_data:
                 # 遍历list，元素为item字典
+                # TODO: 这里还需要加强校验
                 item_obj = self.Meta.item_model.objects.get(pk=item.pop('pk'), freight=queryset.first())  # 获取item对象
                 item_obj.first_piece = item.pop('first_piece')
                 item_obj.continue_piece = item.pop('continue_piece')
                 item_obj.first_price = item.pop('first_price')
                 item_obj.continue_price = item.pop('continue_price')
                 item_obj.city = item.pop('city')
+                item_obj.status = item.pop('status')
                 temp_objs_item.append(item_obj)  # 追加进去，批量更新
             # 开启事务
             with transaction.atomic():
@@ -329,7 +351,7 @@ class FreightSerializer(serializers.ModelSerializer):
                 # 批量处理
                 self.Meta.item_model.objects.bulk_update(temp_objs_item,
                                                          ['first_piece', 'continue_piece', 'first_price',
-                                                          'continue_price', 'city'])
+                                                          'continue_price', 'city', 'status'])
                 del temp_objs_item
         except self.Meta.item_model.DoesNotExist:
             raise DataNotExist()
@@ -368,6 +390,7 @@ class FreightDeleteSerializer(serializers.Serializer):
             return self.Meta.model.objects.filter(pk__in=self.validated_data.pop('pk_list')).delete()
         except ProtectedError:
             raise SqlServerError('存在商品使用该模板，无法删除！')
+
 
 class SellerSkuSerializer(serializers.ModelSerializer):
     """

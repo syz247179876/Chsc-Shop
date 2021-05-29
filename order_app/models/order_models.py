@@ -110,9 +110,6 @@ class OrderBasic(models.Model):
                               default="1",
                               )
 
-    # 是否审核（同意接单）
-    is_checked = models.BooleanField(verbose_name=_('是否审核'), default=False)
-
     # 是否可以评论
     is_remark = models.BooleanField(verbose_name=_('是否可以评论'), default=False)
 
@@ -173,6 +170,9 @@ class OrderDetail(models.Model):
 
     # 商家删除订单状态，假删除
     delete_seller = models.BooleanField(verbose_name=_('商家是否删除订单'), default=False)
+
+    # 是否审核（同意接单）
+    is_checked = models.BooleanField(verbose_name=_('是否审核'), default=False)
 
     order_detail_ = Manager()
 

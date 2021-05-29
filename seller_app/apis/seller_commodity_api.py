@@ -4,17 +4,21 @@
 # @File : seller_commodity_api.py
 # @Software: Pycharm
 from django.db.models import Count
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
 from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_COMMODITY_PROPERTY, \
-    DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY, MODIFY_EFFECTIVE_SKU, DELETE_EFFECTIVE_SKU
+    DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY, MODIFY_EFFECTIVE_SKU, DELETE_EFFECTIVE_SKU, \
+    CREATE_FREIGHT_ITEM, DELETE_FREIGHT_ITEM, DELETE_COMMODITY
 from seller_app.serializers.commodity_serializers import SellerCommoditySerializer, SellerCommodityDeleteSerializer, \
     SkuPropSerializer, SkuPropsDeleteSerializer, FreightSerializer, FreightDeleteSerializer, SellerSkuSerializer, \
-    SellerSkuDeleteSerializer, SkuCommoditySerializer
+    SellerSkuDeleteSerializer, SkuCommoditySerializer, FreightItemSerializer, CommodityCategorySerializer, \
+    CommodityFreightSerializer
 from seller_app.utils.permission import SellerPermissionValidation
 from shop_app.models.commodity_models import Commodity
 
@@ -68,13 +72,36 @@ class SellerCommodityApiView(GenericAPIView):
         serializer = self.serializer_delete_class(data=request.data)
         print(self.request.query_params.get('all', None))
         if self.request.query_params.get('all', None) == 'true':
-            queryset = Commodity.commodity_.filter(user=request.user).delete()
-            print(queryset)
+            rows = Commodity.commodity_.filter(user=request.user).delete()
         else:
             serializer.is_valid(raise_exception=True)
-            serializer.delete_commodity()
-        # return
-        return Response(3333)
+            rows = serializer.delete_commodity()
+        return Response(response_code.result(DELETE_COMMODITY, '删除成功' if rows else '无效操作'))
+
+
+class SellerCommodityExtraApiView(GenericViewSet):
+    """商家对商品有关的所有额外数据的操作"""
+
+    serializer_category_class = CommodityCategorySerializer
+
+    serializer_freight_class = CommodityFreightSerializer
+
+    def get_category_queryset(self):
+        """获取商品所有分类信息"""
+        return self.serializer_category_class.Meta.model.objects.filter(has_prev=False).first()
+
+    def get_freight_queryset(self):
+        """获取该商家下的所有运费模板信息"""
+        return self.serializer_freight_class.Meta.model.objects.filter(user=self.request.user)
+
+    def list(self, request):
+        """获取与商品相关的所有额外数据"""
+        serializer_category = self.serializer_category_class(instance=self.get_category_queryset())
+        serializer_freight = self.serializer_freight_class(instance=self.get_freight_queryset(), many=True)
+        return Response({
+            'category': serializer_category.data,
+            'freight': serializer_freight.data
+        })
 
 
 class SkuPropApiView(BackendGenericApiView):
@@ -136,7 +163,7 @@ class FreightApiView(BackendGenericApiView):
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     def get_queryset(self):
-        return self.serializer_class.Meta.model.objects.filter(user=self.request.user)
+        return self.serializer_class.Meta.model.objects.filter(user=self.request.user).prefetch_related('freight_items')
 
     @validate_url_data('freight', 'pk', null=True)
     def get(self, request):
@@ -158,6 +185,26 @@ class FreightApiView(BackendGenericApiView):
         """删除已有运费模板"""
         rows = super().delete(request)
         return Response(response_code.result(DELETE_COMMODITY_PROPERTY, "删除成功" if rows else '无操作,无效数据'))
+
+
+class FreightItemApiView(GenericViewSet):
+    """运费模板项相关API"""
+
+    permission_classes = [IsAuthenticated, SellerPermissionValidation]
+
+    serializer_class = FreightItemSerializer
+
+    def create(self, request):
+        """创建运费模板项"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.add()
+        return Response(response_code.result(CREATE_FREIGHT_ITEM, '创建成功'))
+
+    def destroy(self, request, pk):
+        """删除运费模板项"""
+        rows, _ = self.serializer_class.Meta.model.objects.filter(pk=pk).delete()
+        return Response(response_code.result(DELETE_FREIGHT_ITEM, '删除成功' if rows else '无效操作'))
 
 
 class SellerSkuApiView(BackendGenericApiView):

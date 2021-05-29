@@ -32,40 +32,59 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
+INSTALLED_APPS_PACKAGES = [
+    'oauth_app',
+    'remark_app',
+    'search_app',
+    'user_app',
+    'voucher_app',
+    'shop_app',
+    'order_app',
+    'analysis_app',
+    'payment_app',
+    'universal_app',
+    'manager_app',
+    'seller_app'
+]
+
 INSTALLED_APPS = [
     'simpleui',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    # 'Remark_app',
-    'Remark_app.apps.RemarkConfig',
-    'Voucher_app.apps.VoucherAppConfig',
-    'Shop_app',
-    'Shopper_app',
-    'User_app',
-    'Order_app',
+    'oauth_app.apps.OauthAppConfig',
+    'remark_app.apps.RemarkAppConfig',
+    'voucher_app.apps.VoucherAppConfig',
+    'shop_app.apps.ShopAppConfig',
+    'user_app.apps.UserAppConfig',
+    'manager_app.apps.ManagerAppConfig',
+    'search_app.apps.SearchAppConfig',
+    'order_app.apps.OrderAppConfig',
+    'analysis_app.apps.AnalysisAppConfig',
+    'payment_app.apps.PaymentAppConfig',
+    'universal_app.apps.UniversalAppConfig',
+    'seller_app.apps.SellerAppConfig',
     'rest_framework',
     'mdeditor',
     'rest_framework_swagger',
-    'mainsite',
-    'Search_app',
-    'Analysis_app',
-    'Payment_app',
-    # 'Analysis_app.apps.AnalysisAppConfig',      # 行为分析,这种方式注册app信号可能注册失败
-    'haystack',
-    'CommonModule_app'
+    # 'haystack',
+    'corsheaders'
 ]
+from corsheaders.middleware import CorsMiddleware
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',  # 包括设置xss防护头部字段和判断是否使用https证书,如果有,则将http重定向到https上去.
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    # 根据session_id创建SessionStorage实例,以便在业务逻辑代码段中使用request.session
+    'django.middleware.common.CommonMiddleware',  # 检查用户代理是否在黑名单中,根据settings的配置文件来检查是否需要设置www开头和/结尾,然后执行url重写,规范url格式
     'django.middleware.csrf.CsrfViewMiddleware',
+    # 从cookie中拿取csrftoken,然后根据HTTP请求执行,如果是POST请求,首页会去从表单数据中获取隐藏字段csrftokenmiddle,如果不存在为空,则去从headers中拿去token, 最终比较两个token的secert部分.
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 通过懒加载的方式,利用session_id,去查询数据表寻找相关session记录,从中取出user_id,来创建user对象,赋值给request.user,以便以后使用.
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -73,23 +92,40 @@ MIDDLEWARE = [
 SITE_ID = 1
 
 # 项目根路由
-ROOT_URLCONF = 'e_mall.urls'
+ROOT_URLCONF = 'Emall.urls'
+
+# 默认重定向页面
+DEFAULT_REDIRECT_URI = '/'
+
+# 响应体中允许的头部
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "permission"
+)
 
 # django-rest-framework的配置
 REST_FRAMEWORK = {
     # 接口框架实例，coreapi.Document的instance,swagger的
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
-    # 全局添加jwt认证方式,所有视图请求都会调用该验证方法，对token进行认证，反解出生成user对象，赋给request.user
+    # 全局添加jwt认证方式,所有API视图请求都会调用该验证方法，对token进行认证，反解出生成user对象，赋给request.user
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'user_app.utils.authentication.MyJsonWebTokenAuthentication'
     ],
     'DEFAULT_THROTTLE_CLASSES': [  # 限流类
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
+        'remark_app.utils.throttle.PraiseRateThrottle',
+
     ],
     'DEFAULT_THROTTLE_RATES': {  # 限流频率，利用redis存储
-        'anon': '100/day',
-        'user': '1000/day'
+        'user-praise': '1000000/day',
     },
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     # 'PAGE_SIZE': 50
@@ -103,30 +139,47 @@ JWT_AUTH = {
     # 刷新的过期时间
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
     # 是否添加到cookie中
-    'JWT_AUTH_COOKIE': 'JwtToken',
+    'JWT_AUTH_COOKIE': 'Bearer-Token',
 }
 
-HAYSTACK_CONNECTIONS = {
-    # elasticSearch实现搜索引擎，不走DRF，直接请求索引库
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://192.168.0.105:9200/',  # 此处为elasticsearch运行的服务器ip地址，端口号固定为9200
-        'INDEX_NAME': 'shop',  # 指定elasticsearch建立的索引库的名称
+# HAYSTACK_CONNECTIONS = {
+#     # elasticSearch实现搜索引擎，不走DRF，直接请求索引库
+#     'default': {
+#         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+#         'URL': 'http://0.0.0.0:9200/',  # 此处为elasticsearch运行的服务器ip地址，端口号固定为9200
+#         'INDEX_NAME': 'shop',  # 指定elasticsearch建立的索引库的名称
+#     },
+#     # # whoosh搜索引擎的配置
+#     # 'default': {
+#     #     # 指定使用的搜索引擎
+#     #     'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+#     #     # 指定索引文件存放位置
+#     #     'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+#     # }
+# }
+
+# # 新增的数据自动生成索引
+# HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+#
+# # 设置每页显示的数目，默认为20，可以自己修改
+# HAYSTACK_SEARCH_RESULTS_PER_PAGE = 100
+
+# ES配置文件
+ELASTICSEARCH_SETTINGS = {
+    'single': {
+        'host': '127.0.0.1',
+        'port': 9200,
+        'timeout': 100
     },
-    # # whoosh搜索引擎的配置
-    # 'default': {
-    #     # 指定使用的搜索引擎
-    #     'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-    #     # 指定索引文件存放位置
-    #     'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
-    # }
 }
 
-# 新增的数据自动生成索引
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+# ES配置文件选项
+ELASTICSEARCH_CONFIG_MODE = 0
 
-# 设置每页显示的数目，默认为20，可以自己修改
-HAYSTACK_SEARCH_RESULTS_PER_PAGE = 100
+# ES默认索引库
+ES_INDICES = {
+    'default': 'syz-commodity',
+}
 
 # the config of swagger doc
 
@@ -154,9 +207,7 @@ SWAGGER_SETTINGS = {
 }
 
 # 重写后端认证类，所有的认证方法都会使用它,如果一个认证类失败
-AUTHENTICATION_BACKENDS = ['e_mall.authentication_consumer.EmailOrUsername', 'e_mall.authentication_consumer.Phone']
-
-# AUTH_USER_MODEL = 'Manager_app.Manager_user'
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends import ModelBackend']
 
 # 加密算法，默认取第一个
 PASSWORD_HASHERS = [
@@ -186,7 +237,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'e_mall.wsgi.application'
+WSGI_APPLICATION = 'Emall.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -199,7 +250,7 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'USER': 'root',
-        'PASSWORD': '123456'
+        'PASSWORD': 'password'
     }
 }
 
@@ -265,14 +316,14 @@ STATIC_ROOT = '/home/syz/E_mall/static/'
 
 # celery 设置,用于实例化
 # celery 中间人 redis://redis服务所在的ip地址:端口号/数据库号
-BROKER_URL = 'redis://:123456@127.0.0.1:6379/0'
+BROKER_URL = 'redis://@127.0.0.1:6381/0'
 # BROKER_URL = [
 #     'redis://192.168.0.105:6381/0',
 #     'redis://192.168.0.105:6380/0',
 #     'redis://192.168.0.105:6379/0'
 # ]
 # celery结果返回，可用于跟踪结果
-CELERY_RESULT_BACKEND = 'redis://:123456@127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND = 'redis://@127.0.0.1:6381/1'
 # CELERY_RESULT_BACKEND = ['redis://192.168.0.105:6381/1',
 #                          'redis://192.168.0.105:6380/1',
 #                          'redis://192.168.0.105:6379/1'
@@ -285,16 +336,19 @@ CELERY_RESULT_SERIALIZER = 'json'
 # celery时区设置，使用settings中TIME_ZONE同样的时区
 CELERY_TIME_ZONE = TIME_ZONE
 
-
 CELERY_BEAT_SCHEDULE = {
     # 'every-day-statistic-login-times':{
     #     'task':'Anaylsis_app',
     #     'schedule':crontab(minute=0, hour=0)  # 每天0点执行
     # },
-    'add-every-monday-morning':{
+    'add-every-monday-morning': {  # 每天统计活跃的用户数
         'task': 'Analysis_app.tasks.statistic_login_times',
-        'schedule': crontab(minute=0,hour=0),
-        'args':(),
+        'schedule': crontab(minute=0, hour=0),
+        'args': (),
+    },
+    'delete-heat-every-day': {  # 每天清0点1分清除热搜
+        'task': 'Search_app.tasks.timer_eliminate_heat',
+        'schedule': crontab(minute=1, hour=0)
     },
     # 'add-every-monday-morning': {
     #     'task': 'Analysis_app.tasks.add',
@@ -304,42 +358,57 @@ CELERY_BEAT_SCHEDULE = {
 
 }
 
+REDIS_SECRET = 'd976a049602d655546b695f2da7f136fd7d1d9671fbdf56f092896928506b26f'
+
 # 缓存
 CACHES = {
     'redis':
         {
             'BACKEND': 'django_redis.cache.RedisCache',
-            # 'LOCATION': 'redis://:123456@127.0.0.1:6379/2',
+            # 'LOCATION': 'redis://:password@127.0.0.1:6379/2',
             'LOCATION': [
-                'redis://192.168.0.105:6381/2',
-                'redis://192.168.0.105:6380/2',
-                'redis://192.168.0.105:6379/2'
+                'redis://0.0.0.0:6381/2',
+                'redis://0.0.0.0:6380/2',
+                'redis://0.0.0.0:6379/2'
             ],
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             }
         },
-    'analysis':    # 用于用户和商家行为分析
+    'analysis':  # 用于用户和商家行为分析
         {
             'BACKEND': 'django_redis.cache.RedisCache',
-            # 'LOCATION': 'redis://:123456@127.0.0.1:6379/2',
+            # 'LOCATION': 'redis://:password@127.0.0.1:6379/2',
             'LOCATION': [
-                'redis://192.168.0.105:6381/3',
-                'redis://192.168.0.105:6380/3',
-                'redis://192.168.0.105:6379/3'
+                'redis://0.0.0.0:6381/3',
+                'redis://0.0.0.0:6380/3',
+                'redis://0.0.0.0:6379/3'
             ],
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             }
         },
-    'remark':    # 用于评论模块的缓存操作
+    'remark':  # 用于评论模块的缓存操作
         {
             'BACKEND': 'django_redis.cache.RedisCache',
-            # 'LOCATION': 'redis://:123456@127.0.0.1:6379/2',
+            # 'LOCATION': 'redis://:password@127.0.0.1:6379/2',
             'LOCATION': [
-                'redis://192.168.0.105:6381/4',
-                'redis://192.168.0.105:6380/4',
-                'redis://192.168.0.105:6379/4'
+                'redis://0.0.0.0:6381/4',
+                'redis://0.0.0.0:6380/4',
+                'redis://0.0.0.0:6379/4'
+            ],
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        },
+    'search':  # 用于搜索模块的统计操作
+        {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            # 'LOCATION': 'redis://:password@127.0.0.1:6379/2',
+            'LOCATION': [
+                'redis://0.0.0.0:6381/5',
+                'redis://0.0.0.0:6380/5',
+                'redis://0.0.0.0:6379/5'
             ],
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
@@ -348,7 +417,7 @@ CACHES = {
     'default':
         {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': '127.0.0.1:11211',
+            'LOCATION': '0.0.0.0:11211',
             'OPTIONS': {
                 'server_max_value_length': 1024 * 1024 * 2,  # 支持对象的最大大小的容量
             }
@@ -359,10 +428,6 @@ CACHES = {
 MEDIA_URL = '/media/'  # 方便url使用的目录，与项目中的目录名不一样,同时也用于数据库存储的路径,要加上/来结尾
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # 用户上传的文件目录
-
-# 重写User表
-
-# AUTH_USER_MODEL = 'Shopper_app.Shoppers'
 
 # 会话session设置
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 引擎（默认）
@@ -398,7 +463,7 @@ EMAIL_HOST_USER = '247179876@qq.com'  # 发送邮件的地址
 # 本来填的自己的账号密码，但是不行的.
 # EMAIL_HOST_PASSWORD =os.environ['PASSWORDD']
 
-EMAIL_HOST_PASSWORD = ''  # 发送邮件的授权码
+EMAIL_HOST_PASSWORD = 'mazstyfnbdbfbjhf'  # 发送邮件的授权码
 
 # 这里的是前缀，也就是头
 EMAIL_SUBJECT_PREFIX = u'[Sercheif]'
@@ -422,13 +487,14 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 ACCESS_KEY_ID = ''
 ACCESS_KEY_SECRET = ''
 REGION = 'cn-hangzhou'
-SIGN_NAME = 'Eat-syz商城'  # 短信签名
+SIGN_NAME = 'ACC商城'  # 短信签名
 
 # 不同的短信模板
 TEMPLATES_CODE_LOGIN = 'SMS_199795817'
 TEMPLATES_CODE_REGISTER = 'SMS_199795814'
 TEMPLATES_CODE_IDENTIFY = 'SMS_199805896'
 TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
+TEMPLATES_CODE_RETRIEVE_PASSWORD = ''
 
 # 阿里OCR的AppCode
 
@@ -444,16 +510,16 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": ['redis://:123456@127.0.0.1:6379/5'],
+            "hosts": ['redis://:password@127.0.0.1:6379/5'],
         },
     },
 }
 
 # 配置django文件存储为fdfs
-DEFAULT_FILE_STORAGE = 'e_mall.storage.FastDFSStorage'
+DEFAULT_FILE_STORAGE = 'Emall.storage.FastDfsStorage'
 
 # FastDfs服务器地址
-FDFS_URL = 'http://192.168.0.105:80'
+FDFS_URL = 'http://0.0.0.0:80'
 
 # FastDfs的客户端路径
 FDFS_CLIENT_CONF = '/etc/fdfs/client.conf'
@@ -545,21 +611,28 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 50,
             'backupCount': 3,
         },
-        'mainsite_handlers': {
-            'level': 'ERROR',
-            # 'filters': ['require_debug_true'],
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'verbose',
-            'filename': os.path.join(BASE_DIR_LOG, 'mainsite_error.log'),
-            'maxBytes': 1024 * 1024 * 50,
-            'backupCount': 3,
-        },
         'evaluate_handlers': {
             'level': 'ERROR',
             # 'filters': ['require_debug_true'],
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
             'filename': os.path.join(BASE_DIR_LOG, 'evaluate_error.log'),
+            'maxBytes': 1024 * 1024 * 50,
+            'backupCount': 3,
+        },
+        'redis_handlers': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': os.path.join(BASE_DIR_LOG, 'redis_error.log'),
+            'maxBytes': 1024 * 1024 * 50,
+            'backupCount': 3,
+        },
+        'search_handlers': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': os.path.join(BASE_DIR_LOG, 'search_error.log'),
             'maxBytes': 1024 * 1024 * 50,
             'backupCount': 3,
         },
@@ -602,33 +675,38 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
-        'mainsite_': {
-            'handlers': ['mainsite_handlers', ],
-            'level': 'ERROR',
-            'propagate': False,
-        },
         'evaluate_': {
             'handlers': ['evaluate_handlers', ],
             'level': 'ERROR',
             'propagate': False,
         },
-        # 'django.db.backends': {
-        #     'handlers': ['sql_console', ],
-        #     'propagate': True,
-        #     'level': 'DEBUG',
-        # },
+        'redis_': {
+            'handlers': ['redis_handlers', ],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'search_': {
+            'handlers': ['search_handlers', ],
+            'level': 'ERROR',
+            'propagate': False
+        },
+        'django.db.backends': {
+            'handlers': ['sql_console', ],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
     },
 }
 
 # 支付宝支付的配置
-ALIPAY_APPID = ''
+ALIPAY_APPID = '2021001165602567'
 
 # windows,linux
-APP_KEY_PUBLIC_PATH = os.path.join(BASE_DIR, 'Payment_app/keys/application_key_public.pem')
+APP_KEY_PUBLIC_PATH = os.path.join(BASE_DIR, 'payment_app/keys/application_key_public.pem')
 
-APP_KEY_PRIVATE_PATH = os.path.join(BASE_DIR, 'Payment_app/keys/application_key_private.pem')
+APP_KEY_PRIVATE_PATH = os.path.join(BASE_DIR, 'payment_app/keys/application_key_private.pem')
 
-ALIPAY_PUBLIC_KEY_PATH = os.path.join(BASE_DIR, 'Payment_app/keys/alipay_public.pem')
+ALIPAY_PUBLIC_KEY_PATH = os.path.join(BASE_DIR, 'payment_app/keys/alipay_public.pem')
 
 ALIPAY_DEBUG = True  # 使用沙箱环境
 ALIPAY_SUBJECT = '吃货商城-订单支付'
@@ -636,59 +714,35 @@ ALIPAY_RETURN_URL = 'http://127.0.0.1:8000/payment/update-order-chsc-api/'
 ALIPAY_GATE = 'https://openapi.alipaydev.com/gateway.do?'
 ALIPAY_NOTIFY_URL = "http://127.0.0.1:8000/payment/payment-chsc-api/"
 
+# QQ登录参数
+QQ_CLIENT_ID = '247179876'
+QQ_CLIENT_SECRET = '900cc756f31e77ac93ddaeeceb8e08d5'
+QQ_REDIRECT_URI = '/'
+QQ_STATE = '/'
+
+# URL-API前缀
+
+URL_PREFIX = 'chsc/apis'
+
 # print(os.path.join(BASE_DIR, 'Payment_app/keys/application_key.pem').replace('\\', '/'))
 # create custom menu
 
 
+# 允许跨站点HTTP请求的来源列表
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:8080',
+    'http://localhost:8080',
+    'http://localhost:8081',
+    'http://localhost:8082',
+    'http://localhost:8083'
+]
 
-# SIMPLEUI_CONFIG = {
-#     'system_keep':False,
-#     'menu_display':['订单管理','库存管理','卖家评论','信誉查看','店铺管理','商品管理','个人信息'],
-#     'dynamic': False,
-#     'menus': [{
-#         'name': '订单管理',
-#         'icon': 'fa fa-hand-peace-o',
-#         'models': [{
-#             'name': '一个月内的订单记录',
-#             'icon': 'fa fa-line-chart',
-#             'url': '/admin/'
-#         }]
-#     }, {
-#         'name': '库存管理',
-#         'icon': 'fa fa-truck',
-#         'url': '/admin/',
-#     }, {
-#         'name': '卖家评论',
-#         'icon': 'fa fa-handshake-o',
-#         'models': [{
-#             'name': '回复管理',
-#             'url': '/admin/',
-#             'icon': 'fa fa-handshake-o'
-#         }]
-#     }, {
-#         'name': '信誉查看',
-#         'icon': 'fa fa-diamond',
-#         'url': '/admin',
-#     }, {
-#         'name': '店铺管理',
-#         'icon': 'fa fa-database',
-#         'url':'/admin/',
-#     },{
-#         'name': '商品管理',
-#         'icon': 'fa fa-suitcase',
-#         'url':'/admin/',
-#     }, {
-#         'name': '个人信息',
-#         'icon': 'fa fa-user-o',
-#         'models': [{
-#             'name': '修改资料',
-#             'url': '/admin/',
-#             'icon': 'fa fa-id-card-o'
-#         }, {
-#             'name': '密码修改',
-#             'icon': 'fa fa-id-card-o',
-#             'url': '/admin/'
-#         }]
-#     }]
-# }
+# headers中不同角色用户的Token键名
+HEADERS_TOKEN_KEY = {
+    'base-permission': 'HTTP_AUTHORIZATION',
+    'manager-permission': 'HTTP_PERMISSION_M_TOKEN',
+    'seller-permission': 'HTTP_PERMISSION_S_TOKEN',
+    'backend-request-permission': 'HTTP_PERMISSION',
+}
 
+AUTH_USER_MODEL = 'user_app.User'

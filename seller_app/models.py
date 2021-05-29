@@ -11,7 +11,7 @@ User = get_user_model()
 class Store(models.Model):
 
     # 店铺名
-    name = models.CharField(verbose_name=_('店铺名'), max_length=30, unique=True)
+    name = models.CharField(verbose_name=_('店铺名'), max_length=30)
 
     # 店铺简介
     intro = models.CharField(verbose_name=_('店铺简介'), max_length=128)
