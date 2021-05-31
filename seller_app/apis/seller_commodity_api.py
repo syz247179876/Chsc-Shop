@@ -12,6 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from Emall.base_api import BackendGenericApiView
 from Emall.decorator import validate_url_data
+from Emall.exceptions import SqlServerError
 from Emall.response_code import response_code, ADD_COMMODITY_PROPERTY, MODIFY_COMMODITY_PROPERTY, \
     DELETE_COMMODITY_PROPERTY, ADD_COMMODITY, MODIFY_COMMODITY, MODIFY_EFFECTIVE_SKU, DELETE_EFFECTIVE_SKU, \
     CREATE_FREIGHT_ITEM, DELETE_FREIGHT_ITEM, DELETE_COMMODITY
@@ -71,11 +72,14 @@ class SellerCommodityApiView(GenericAPIView):
         """商家删除商品"""
         serializer = self.serializer_delete_class(data=request.data)
         print(self.request.query_params.get('all', None))
-        if self.request.query_params.get('all', None) == 'true':
-            rows = Commodity.commodity_.filter(user=request.user).delete()
-        else:
-            serializer.is_valid(raise_exception=True)
-            rows = serializer.delete_commodity()
+        try:
+            if self.request.query_params.get('all', None) == 'true':
+                rows = Commodity.commodity_.filter(user=request.user).delete()
+            else:
+                serializer.is_valid(raise_exception=True)
+                rows = serializer.delete_commodity()
+        except TypeError:
+            raise SqlServerError('商品存在其他关联项，请先删除与商品关联的其他项')
         return Response(response_code.result(DELETE_COMMODITY, '删除成功' if rows else '无效操作'))
 
 
@@ -117,12 +121,12 @@ class SkuPropApiView(BackendGenericApiView):
 
     def get_queryset(self):
         """获取该商家所属的商品属性规格和值"""
-        return self.serializer_class.Meta.model.objects.select_related('commodity__user').\
+        return self.serializer_class.Meta.model.objects.select_related('commodity__user'). \
             filter(commodity__user=self.request.user)
 
     def get_commodity_queryset(self):
         """获取该商家所属下的商品数据"""
-        return self.serializer_commodity_class.Meta.model.commodity_.filter(user=self.request.user).\
+        return self.serializer_commodity_class.Meta.model.commodity_.filter(user=self.request.user). \
             values('pk', 'commodity_name')
 
     @validate_url_data('sku_props', 'pk', null=True)
@@ -131,7 +135,7 @@ class SkuPropApiView(BackendGenericApiView):
         response = super().get(request)
         commodity_queryset = self.get_commodity_queryset()
         commodity_serializer = self.serializer_commodity_class(instance=commodity_queryset, many=True)
-        response.data.update({'commodity':commodity_serializer.data})
+        response.data.update({'commodity': commodity_serializer.data})
         return response
 
     def post(self, request):
@@ -150,7 +154,6 @@ class SkuPropApiView(BackendGenericApiView):
         result_num = super().delete(request)
         return Response(response_code.result(DELETE_COMMODITY_PROPERTY, '删除成功')) \
             if result_num else Response(response_code.result(DELETE_COMMODITY_PROPERTY, '无操作,无效数据'))
-
 
 
 class FreightApiView(BackendGenericApiView):
@@ -198,8 +201,8 @@ class FreightItemApiView(GenericViewSet):
         """创建运费模板项"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.add()
-        return Response(response_code.result(CREATE_FREIGHT_ITEM, '创建成功'))
+        obj = serializer.add()
+        return Response(response_code.result(CREATE_FREIGHT_ITEM, '创建成功', data={'pk': obj.pk}))
 
     def destroy(self, request, pk):
         """删除运费模板项"""
@@ -219,12 +222,12 @@ class SellerSkuApiView(BackendGenericApiView):
     permission_classes = [IsAuthenticated, SellerPermissionValidation]
 
     def get_queryset(self):
-        return self.serializer_class.Meta.model.objects.select_related('commodity__user').\
+        return self.serializer_class.Meta.model.objects.select_related('commodity__user'). \
             filter(commodity__user=self.request.user)
 
     def get_commodity_queryset(self):
         """获取该商家所属下的商品数据"""
-        return self.serializer_commodity_class.Meta.model.commodity_.filter(user=self.request.user).\
+        return self.serializer_commodity_class.Meta.model.commodity_.filter(user=self.request.user). \
             values('pk', 'commodity_name')
 
     @validate_url_data('sku', 'pk', null=True)
