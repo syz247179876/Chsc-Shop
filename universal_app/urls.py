@@ -5,7 +5,9 @@
 # @Software: Pycharm
 from django.conf import settings
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
+from universal_app.apis.common_api import SettingsApiView
 from universal_app.apis.verification_code import VerificationCodeRegister, VerificationCodeShopperOpenStore, \
     VerificationCodeBind, VerificationCodeModifyPassword, VerificationCodeLogin
 
@@ -17,9 +19,14 @@ code_urlpatterns = [
     path('register/', VerificationCodeRegister.as_view()),
     path('store/', VerificationCodeShopperOpenStore.as_view()),
     path('bind/', VerificationCodeBind.as_view()),
-    path('password', VerificationCodeModifyPassword.as_view()),
+    path('password/', VerificationCodeModifyPassword.as_view()),
 ]
 
 urlpatterns = [
     path(f'{settings.URL_PREFIX}/verification-code/', include(code_urlpatterns)),
 ]
+
+
+router = DefaultRouter()
+router.register(f'{settings.URL_PREFIX}/settings', SettingsApiView, basename='settings')
+urlpatterns += router.urls
