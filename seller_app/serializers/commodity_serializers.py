@@ -63,20 +63,23 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
     # 模板id
     freight_id = serializers.IntegerField(min_value=1)
 
+    # 库存量
     stock = serializers.IntegerField(min_value=1, required=True)
+
+    # 商品详情页顶部轮播大图片的完整路径
+    big_image = serializers.CharField(required=True)
+
+    # 商品的标志图片的完整路径
+    little_image = serializers.CharField(max_length=256, required=True)
 
     class Meta:
         model = Commodity
         category_model = CommodityCategory
         seller_model = Seller
         fields = ('pk', 'commodity_name', 'price', 'favourable_price', 'intro', 'groups',
-                  'status', 'stock', 'category_id', 'freight_id', 'details', 'spu')
+                  'status', 'stock', 'category_id', 'freight_id', 'details', 'spu', 'big_image', 'little_image')
         read_only_fields = ('pk',)
 
-    # def get_category_list(self, obj):
-    #     """获取全部种类的序列化器"""
-    #     category = self.Meta.category_model.objects.all()
-    #     return CommodityCategorySerializer(category, many=True).data
 
     def add_update_dsl(self, id, index=None, **kwargs):
         """
@@ -156,8 +159,25 @@ class SellerCommoditySerializer(serializers.ModelSerializer):
             'intro': self.validated_data.pop('intro'),
             'status': self.validated_data.pop('status'),
             'stock': self.validated_data.pop('stock'),
-            'spu': self.validated_data.pop('spu', '')
+            'spu': self.validated_data.pop('spu', ''),
+            'big_image': self.validated_data.pop('big_image'),
+            'little_image': self.validated_data.pop('little_image')
         }
+
+
+class SellerCommodityPicSerializer(serializers.Serializer):
+    """商品图片相关序列化器"""
+    pic_list = serializers.ListField(child=serializers.CharField(max_length=256), allow_null=False)
+
+    class Meta:
+        mode = Commodity
+        fields = ('pic_list')
+
+    def append_pic(self):
+        """追加图片完整路径名"""
+        pic_str = ';'.join(self.validated_data.pop('pic_list'))
+        rows = self.Meta.mode.commodity_.filter()
+
 
 
 class SellerCommodityDeleteSerializer(serializers.Serializer):
@@ -264,7 +284,7 @@ class FreightItemSerializer(serializers.ModelSerializer):
         read_only_fields = ('pk',)
 
     def add(self):
-        self.Meta.model.objects.create(**self.validated_data)
+        return self.Meta.model.objects.create(**self.validated_data)
 
 
 class FreightSerializer(serializers.ModelSerializer):
