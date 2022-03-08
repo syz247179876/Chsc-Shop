@@ -52,7 +52,7 @@ future==0.18.2
 generics==1.0.0
 greenlet==0.4.15
 hiredis==1.1.0
-httpie==2.0.0
+httpie==3.1.0
 humanize==2.5.0
 hyperlink==20.0.1
 idna==2.9
