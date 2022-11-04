@@ -140,7 +140,7 @@ terminado==0.8.3
 testpath==0.4.4
 tornado==6.0.4
 traitlets==4.3.3
-Twisted==20.3.0
+Twisted==22.10.0
 txaio==20.4.1
 uritemplate==3.0.1
 urllib3==1.25.8
